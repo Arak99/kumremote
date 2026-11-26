@@ -318,7 +318,7 @@ function handle(m, live) {
   msgs.push({ t: m.time, text: m.message, c: c });
   if (msgs.length > 60) msgs.shift();
   if (c.state && m.time >= stateAt) { state = c.state; stateAt = m.time; }
-  if (c.kind === 'claude' && m.time >= claude.at) { claude = { mode: c.claude, at: m.time, title: firstLine((m.message || '').replace(/^🤖(✅|⚠️?)?\s*/, '')) }; if (live && c.claude !== 'work') speak(c.claude === 'done' ? 'เสร็จแล้ว' : 'งานไม่สำเร็จ'); }
+  if (c.kind === 'claude' && m.time >= claude.at) { claude = { mode: c.claude, at: m.time, title: firstLine((m.message || '').replace(/^🤖(✅|⚠️?)?\s*/, '').replace(/^(Claude\s*(กำลังทำงานบนคอม|ทำงานเสร็จ)|งานไม่สำเร็จ|งานใช้เวลานานเกิน หยุดไว้ก่อน)\s*:\s*/, '')) }; if (live && c.claude !== 'work') speak(c.claude === 'done' ? 'เสร็จแล้ว' : 'งานไม่สำเร็จ'); }
   var sm = /💡[^\n]*?(\d+)%[^\n]*?หรี่เอง:\s*(เปิด|ปิด)/.exec(m.message || '');
   if (sm && m.time >= scrAt) { scr = { bri: +sm[1], dim: sm[2] === 'เปิด' }; scrAt = m.time; if (want.bri === scr.bri) want.bri = null; if (want.dim === scr.dim) want.dim = null; }
   if (live && pending) {
