@@ -6,6 +6,7 @@
   ตัวเลือก: { width, height, character, stage:{y,h} (โหมดจอบอร์ด: วาดบอทในแถบเดียวกับจอบอร์ด KumWake), chrome: function(ctx,t) วาดส่วนอื่นของจอ }
   ประวัติ: 1.0 (26/11/2026) เวอร์ชันแรก
           1.1 (26/11/2026) โหมดจอบอร์ด (stage/chrome) + หน้าตา/ขนาด/ท่าทางให้ตรงกับบนบอร์ด KumWake v2.0
+          1.2 (26/11/2026) ฉากหลังพิกเซลตามเวลาจริง: กลางวัน (ฟ้า พระอาทิตย์ เมฆ) / เย็น / กลางคืน (พระจันทร์ ดาวกะพริบ), ภูเขา, พื้นหญ้า — ตรงกับบนบอร์ด KumWake v2.2
 */
 (function () {
   'use strict';
@@ -123,6 +124,38 @@
       if (mood === 'listen') { c.strokeStyle = col; c.lineWidth = 3; for (var sd = -1; sd <= 1; sd += 2) for (j = 0; j < 3; j++) { c.globalAlpha = .5 + .5 * Math.sin(t / 160 + j); c.beginPath(); c.arc(x + sd * (6 * U + 10), y0 + 5 * U, 8 + j * 7, sd > 0 ? -.6 : Math.PI - .6, sd > 0 ? .6 : Math.PI + .6); c.stroke(); } c.globalAlpha = 1; }
     }
 
+    // ---------- ฉากหลัง (เหมือนบนบอร์ด: kwScene ใน main.cpp) ----------
+    var SKY = { day: [[0x4f, 0xa3, 0xe0], [0xb4, 0xe0, 0xf5]], eve: [[0x2b, 0x2f, 0x77], [0xf2, 0x8c, 0x5a]], night: [[0x07, 0x0b, 0x26], [0x2a, 0x20, 0x5e]] };
+    var STARS = []; (function () { var r = 12345; for (var i = 0; i < 22; i++) { r = (r * 1103515245 + 12345) & 0x7fffffff; var x = r % 320; r = (r * 1103515245 + 12345) & 0x7fffffff; STARS.push([x, r % 52]); } })();
+    function hex(a) { return 'rgb(' + a[0] + ',' + a[1] + ',' + a[2] + ')'; }
+    function mix(a, b, f) { return [a[0] + (b[0] - a[0]) * f | 0, a[1] + (b[1] - a[1]) * f | 0, a[2] + (b[2] - a[2]) * f | 0]; }
+    function scene(sy, sh, t) {
+      var hr = new Date().getHours(), tod = mood === 'sleep' ? 'night' : (hr >= 6 && hr < 17) ? 'day' : (hr >= 17 && hr < 19) ? 'eve' : 'night';
+      var g = SKY[tod], ground = sh - 8, y, i;
+      for (y = 0; y < ground; y += 2) { c.fillStyle = hex(mix(g[0], g[1], y / ground)); c.fillRect(0, sy + y, W, 2); }
+      if (tod === 'night') {
+        for (i = 0; i < STARS.length; i++) { var tw = ((t / 400 + i * 7) | 0) % 9; c.fillStyle = tw === 0 ? '#7c86b8' : '#ffffff'; c.fillRect(STARS[i][0], sy + STARS[i][1], tw === 0 ? 1 : 2, tw === 0 ? 1 : 2); }
+        c.fillStyle = '#fff3c4'; c.beginPath(); c.arc(270, sy + 18, 10, 0, 7); c.fill();
+        c.fillStyle = hex(mix(g[0], g[1], 18 / ground)); c.beginPath(); c.arc(275, sy + 15, 9, 0, 7); c.fill();
+      } else {
+        c.fillStyle = tod === 'day' ? '#ffd84a' : '#ff9a4a'; c.beginPath(); c.arc(270, sy + (tod === 'day' ? 18 : 40), 10, 0, 7); c.fill();
+        if (tod === 'day') for (i = 0; i < 8; i++) { var a = i * .785 + t / 4000; c.fillRect(270 + Math.cos(a) * 15 - 1, sy + 18 + Math.sin(a) * 15 - 1, 3, 3); }
+        c.fillStyle = tod === 'day' ? '#ffffff' : '#ffd1b8';
+        for (i = 0; i < 3; i++) { var cx = ((t / (70 + i * 25) + i * 130) % 380) - 40, cy = sy + 10 + i * 13; c.fillRect(cx, cy + 4, 34, 6); c.fillRect(cx + 6, cy, 16, 6); c.fillRect(cx + 18, cy + 2, 10, 4); }
+      }
+      // ภูเขา 2 ชั้น
+      var far = tod === 'day' ? '#6f9fc9' : tod === 'eve' ? '#5b3f7a' : '#1b1f45', near = tod === 'day' ? '#4f8a6b' : tod === 'eve' ? '#3d2d5c' : '#141834';
+      for (i = 0; i < W; i += 4) {
+        var h1 = 18 + Math.round(Math.sin(i / 37) * 8 + Math.sin(i / 13) * 3), h2 = 10 + Math.round(Math.sin(i / 23 + 2) * 6 + Math.sin(i / 9) * 2);
+        c.fillStyle = far; c.fillRect(i, sy + ground - h1, 4, h1); c.fillStyle = near; c.fillRect(i, sy + ground - h2, 4, h2);
+      }
+      // พื้นหญ้า + ดิน
+      c.fillStyle = tod === 'night' ? '#2c6b3a' : '#45b04f'; c.fillRect(0, sy + ground, W, 3);
+      c.fillStyle = tod === 'night' ? '#3b2a1e' : '#7a4e2d'; c.fillRect(0, sy + ground + 3, W, sh - ground - 3);
+      c.fillStyle = tod === 'night' ? '#2f2118' : '#664026'; for (i = 0; i < W; i += 8) c.fillRect(i + ((i / 8) % 2) * 4, sy + ground + 5, 3, 2);
+      return sy + ground + 1;
+    }
+
     function frame(t) {
       if (!alive) return;
       if (still) t = 1000;
@@ -131,7 +164,7 @@
       c.clearRect(0, 0, W, H);
       var floor = H - 14;
       if (opt.chrome) opt.chrome(c, t);
-      if (opt.stage) { c.fillStyle = '#000000'; c.fillRect(0, opt.stage.y, W, opt.stage.h); floor = opt.stage.y + opt.stage.h - 4; c.fillStyle = '#1E293B'; c.fillRect(0, floor, W, 2); }
+      if (opt.stage) floor = scene(opt.stage.y, opt.stage.h, t);
       else { c.fillStyle = 'rgba(255,255,255,.06)'; c.fillRect(0, floor, W, 2); }
       var jump = 0;
       if (mood === 'on' && b.act === 'jump') jump = Math.max(0, Math.sin((t % 700) / 700 * Math.PI)) * 10;
@@ -142,7 +175,7 @@
       var x = b.x + (mood === 'bad' ? Math.sin(t / 45) * 2 : 0), face = (mood === 'on' || mood === 'work') ? b.face : 1;
       var hgt = ch.map.length * U;
       var y = floor - (noLeg ? 0 : U * 1.5) - hgt - jump - hop + (sit ? U : 0) + (mood === 'sleep' && !noLeg ? U * 1.5 : 0) + (mood === 'waking' ? Math.sin(t / 140) * 2 : 0);
-      c.fillStyle = '#020617'; c.beginPath(); c.ellipse(x, floor, Math.max(8, 5 * U - jump), 3, 0, 0, 7); c.fill();
+      c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x, floor, Math.max(8, 5 * U - jump), 3, 0, 0, 7); c.fill();
       sprite(x - 6 * U, y, face, Math.floor(t / 220) % 2, sit, t);
       extras(x, y, t);
       if (!still) raf = requestAnimationFrame(frame);

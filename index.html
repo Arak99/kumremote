@@ -16,6 +16,8 @@
                      แสดงตอน Claude ทำงานบนคอม (🤖), ปุ่ม "อยู่ต่อ" (ไม่ให้คอม Sleep เอง), ตั้งค่า: ตัวละคร / เปิดจอค้าง / บอทพูดตอบ
                      เลือกตัวละครแล้วจอบอร์ดตัวปลุก (KumWake v2.0) เปลี่ยนตามด้วย
     2.1 (26/11/2026) หน้าบอทบนมือถือ = จอบอร์ดจำลอง หน้าตาเหมือนจอบอร์ดตัวปลุก (แถบบน, สถานะ, บอท, ปุ่มปลุกในจอ — แตะปุ่มในจอ = ปลุกคอม)
+    2.2 (26/11/2026) ฉากหลังพิกเซลตามเวลาจริง (กลางวัน/เย็น/กลางคืน) เหมือนบนบอร์ด KumWake v2.2,
+                     ไมค์: คุยเล่น/ทักทาย/เล่ามุกได้ (บอทพูดตอบ + ทำท่า), ฟังนานขึ้น ~10 วินาที (เดิมปิดเร็ว)
 -->
 <html lang="th">
 <head>
@@ -209,7 +211,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.1 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.2 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -227,9 +229,9 @@
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.1"></script>
-<script src="bot.js?v=2.1"></script>
-<script src="voice.js?v=2.1"></script>
+<script src="characters.js?v=2.2"></script>
+<script src="bot.js?v=2.2"></script>
+<script src="voice.js?v=2.2"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -490,22 +492,24 @@ function doCmd(cmd, value) {
   else if (cmd === 'brighter') { setBri(curBri() + 20); speak('สว่างขึ้นแล้ว'); }
   else if (cmd === 'dimmer') { setBri(curBri() - 20); speak('หรี่ลงแล้ว'); }
   else if (cmd === 'dim') { $('dimSw').setAttribute('aria-checked', value ? 'false' : 'true'); $('dimSw').onclick(); speak(value ? 'เปิดหรี่เองแล้ว' : 'ปิดหรี่เองแล้ว'); }
+  else if (cmd === 'chat') { heard('🗨️ <b>' + esc(value.reply) + '</b>'); speak(value.reply); holdMood(value.mood || 'on', 4000); if (bot) bot.poke(); }
   else if (cmd === 'help') {
     heard('ลองพูดว่า: <b>ปลุกคอม</b> · <b>ให้คอมหลับ</b> · <b>คอมเปิดอยู่ไหม</b> · <b>อยู่ต่อ</b> · <b>ความสว่างห้าสิบ</b> · <b>หรี่จอ</b> · <b>ปิดเครื่อง</b>');
     speak('ลองพูดว่า ปลุกคอม ให้คอมหลับ หรือ คอมเปิดอยู่ไหม');
   }
 }
-var LABEL_TH = { wake: 'ปลุกคอม', sleep: 'Sleep', shutdown: 'ปิดเครื่อง', status: 'เช็คสถานะ', stay: 'อยู่ต่อ', bright: 'ปรับความสว่าง', brighter: 'จอสว่างขึ้น', dimmer: 'หรี่จอ', dim: 'หรี่เอง', help: 'ดูคำสั่ง' };
+var LABEL_TH = { chat: 'คุยเล่น', wake: 'ปลุกคอม', sleep: 'Sleep', shutdown: 'ปิดเครื่อง', status: 'เช็คสถานะ', stay: 'อยู่ต่อ', bright: 'ปรับความสว่าง', brighter: 'จอสว่างขึ้น', dimmer: 'หรี่จอ', dim: 'หรี่เอง', help: 'ดูคำสั่ง' };
 $('bMic').onclick = function () {
   if (listening) { KumVoice.stop(); return; }
   if (!window.KumVoice || !KumVoice.supported) { heard('มือถือ/เบราว์เซอร์นี้ฟังเสียงไม่ได้ — ลองเปิดหน้านี้ด้วย <b>Chrome</b>'); return; }
   listening = true; $('bMic').classList.add('on'); $('micT').textContent = 'กำลังฟัง… (แตะอีกครั้งเพื่อหยุด)';
-  heard('พูดได้เลย เช่น <b>ปลุกคอม</b>'); $('chips').hidden = true; updateBot();
+  heard('พูดได้เลย (ฟัง 10 วินาที) เช่น <b>ปลุกคอม</b> หรือ <b>สวัสดี</b>'); $('chips').hidden = true; updateBot();
   KumVoice.listen({
     onInterim: function (t) { heard('ได้ยินว่า: <b>' + esc(t) + '</b>'); },
     onFinal: function (t, intent, silent) {
       listening = false; updateBot();
       if (silent || !t) { heard('ไม่ได้ยินเสียง — แตะปุ่มแล้วพูดใหม่ได้เลย'); return; }
+      if (intent && intent.cmd === 'chat') { doCmd('chat', intent); return; }
       if (intent) { heard('ได้ยินว่า: <b>' + esc(t) + '</b> → ' + LABEL_TH[intent.cmd] + (intent.value !== undefined && intent.cmd === 'bright' ? ' ' + intent.value + '%' : '')); if (bot) bot.poke(); doCmd(intent.cmd, intent.value); return; }
       heard('ได้ยินว่า: <b>' + esc(t) + '</b> — ไม่แน่ใจว่าหมายถึงอันไหน เลือกให้หน่อย');
       $('chips').hidden = false; holdMood('bad', 3500); speak('ไม่แน่ใจ หมายถึงอันไหน');
