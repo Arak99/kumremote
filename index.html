@@ -7,6 +7,7 @@
     1.0 (26/11/2026) เวอร์ชันแรก: ปลุกคอม / Sleep / ปิดเครื่อง / เช็คสถานะ, เห็นผลตอบกลับในหน้าเดียว,
                      ถามยืนยันก่อน Sleep และปิดเครื่อง, บันทึกเหตุการณ์ล่าสุด, ติดตั้งเป็นไอคอนบนหน้าจอมือถือได้
     1.1 (26/11/2026) ตั้งความสว่างจอของตัวปลุกได้: แถบเลื่อน 10–100% + สวิตช์ "หรี่เองเมื่อไม่มีคนแตะ" (ต้องใช้บอร์ด KumWake v1.8 ขึ้นไป)
+    1.2 (26/11/2026) แก้: ข้อความ "ตั้งค่าแล้ว ✓" บางครั้งไม่ขึ้น เพราะการเช็คสถานะอัตโนมัติแทรกระหว่างรอคำตอบ
 -->
 <html lang="th">
 <head>
@@ -171,7 +172,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v1.1 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
+  <footer>KumRemote v1.2 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -306,7 +307,7 @@ function send(cmd, quiet, body) {
 }
 function askStatus() {
   var now = Date.now();
-  if (now - lastStatusAsk < 20000) return;
+  if (pending || now - lastStatusAsk < 20000) return;
   lastStatusAsk = now;
   send('status', true);
 }
