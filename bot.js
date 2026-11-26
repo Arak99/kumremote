@@ -3,7 +3,9 @@
   ใช้:  var bot = KumBot.create(canvas);  bot.setMood('on');  bot.setCharacter('pencil');  bot.poke();
   อารมณ์ (mood): on เดินเล่น · sleep หลับ · waking กำลังตื่น · work Claude ทำงาน · done เสร็จแล้ว · bad มีปัญหา · listen กำลังฟัง
   ข้อมูลตัวละครอยู่ใน characters.js (เพิ่มตัวใหม่ได้โดยไม่ต้องแก้ไฟล์นี้)
+  ตัวเลือก: { width, height, character, stage:{y,h} (โหมดจอบอร์ด: วาดบอทในแถบเดียวกับจอบอร์ด KumWake), chrome: function(ctx,t) วาดส่วนอื่นของจอ }
   ประวัติ: 1.0 (26/11/2026) เวอร์ชันแรก
+          1.1 (26/11/2026) โหมดจอบอร์ด (stage/chrome) + หน้าตา/ขนาด/ท่าทางให้ตรงกับบนบอร์ด KumWake v2.0
 */
 (function () {
   'use strict';
@@ -32,7 +34,8 @@
       canvas.width = W * dpr; canvas.height = H * dpr;
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.imageSmoothingEnabled = false;
-      U = Math.max(5, Math.floor(Math.min((H * 0.66) / (ch.map.length + (ch.legs.length ? 1.5 : 0)), (W * 0.42) / 12)));
+      if (opt.stage) { U = 6; while (U > 3 && ch.map.length * U + (ch.legs.length ? U * 1.5 : 0) + 14 > opt.stage.h) U--; }   // เหมือนบนบอร์ด
+      else U = Math.max(5, Math.floor(Math.min((H * 0.66) / (ch.map.length + (ch.legs.length ? 1.5 : 0)), (W * 0.42) / 12)));
     }
     fit();
 
@@ -75,7 +78,7 @@
           var chr = rows[j][i]; if (!chr || chr === '.') continue;
           var xx = cx(i), yy = y0 + j * U;
           if (pass === 0) { c.fillStyle = shade(ch.pal[chr] || '#888888', mood === 'sleep' ? .3 : .55); c.fillRect(xx + DEP, yy + DEP, U, U); }
-          else { c.fillStyle = pal[chr] || '#888'; c.fillRect(xx, yy, U, U); c.fillStyle = 'rgba(255,255,255,.13)'; c.fillRect(xx, yy, U, 1); }
+          else { c.fillStyle = pal[chr] || '#888'; c.fillRect(xx, yy, U, U); }
         }
       }
       if (ch.tail === 'devil' && mood !== 'sleep') {
@@ -97,7 +100,7 @@
         if (mood === 'done') { c.fillStyle = '#1b2333'; var s = Math.max(2, U * .3); c.fillRect(X0, Y0 + w * .45, w * .3, s); c.fillRect(X0 + w * .3, Y0 + w * .25, w * .4, s); c.fillRect(X0 + w * .7, Y0 + w * .45, w * .3, s); return; }
         if (mood === 'bad') {
           c.save(); c.translate(X0 + w / 2, Y0 + w / 2); c.fillStyle = '#1b2333';
-          c.rotate(.785); c.fillRect(-w * .5, -U * .18, w, U * .36); c.rotate(1.57); c.fillRect(-w * .5, -U * .18, w, U * .36); c.restore(); return;
+          c.restore(); c.strokeStyle = '#1b2333'; c.lineWidth = 2; c.beginPath(); c.moveTo(X0, Y0); c.lineTo(X0 + w, Y0 + w); c.moveTo(X0 + w, Y0); c.lineTo(X0, Y0 + w); c.stroke(); return;
         }
         var open = 1;
         if (mood === 'waking') open = Math.min(1, (t - since) / 2200) * (.6 + .4 * Math.abs(Math.sin(t / 400)));
@@ -110,15 +113,14 @@
       });
     }
 
-    function extras(x, top, t) {
-      var col = COL[mood], j, a;
+    function extras(x, y0, t) {
+      var col = COL[mood], j, a, top = y0 - 10;
       c.textAlign = 'center'; c.textBaseline = 'middle';
-      if (mood === 'sleep') for (j = 0; j < 3; j++) { var p = ((t / 2200) + j / 3) % 1; c.globalAlpha = 1 - p; c.fillStyle = '#9fb6ff'; c.font = '700 ' + (12 + j * 4) + 'px sans-serif'; c.fillText('Z', x + 6 * U + 10 + p * 20, top + 10 - p * 26); }
-      if (mood === 'work') for (j = 0; j < 3; j++) { c.globalAlpha = .3 + .7 * (Math.floor(t / 300) % 3 === j); c.fillStyle = col; c.fillRect(x - 14 + j * 12, top - 8, 8, 8); }
-      if (mood === 'done') for (j = 0; j < 4; j++) { a = j * 1.57 + t / 900; c.globalAlpha = (Math.sin(t / 300 + j) + 1) / 2; c.fillStyle = '#ffe066'; c.font = '16px sans-serif'; c.fillText('✦', x + Math.cos(a) * 7.5 * U, top + 5 * U + Math.sin(a) * 4 * U); }
-      if (mood === 'bad') { c.fillStyle = col; c.font = '700 26px sans-serif'; c.fillText('?', x + 6.5 * U + 8, top + 8); c.fillStyle = '#7fd3ff'; c.fillRect(x + 5 * U, top + 16 + ((t / 1500) % 1) * 20, 6, 8); }
-      if (mood === 'listen') { c.strokeStyle = col; c.lineWidth = 3; for (var sd = -1; sd <= 1; sd += 2) for (j = 0; j < 3; j++) { c.globalAlpha = .5 + .5 * Math.sin(t / 160 + j); c.beginPath(); c.arc(x + sd * (6 * U + 10), top + 5 * U, 10 + j * 9, sd > 0 ? -.6 : Math.PI - .6, sd > 0 ? .6 : Math.PI + .6); c.stroke(); } }
-      c.globalAlpha = 1;
+      if (mood === 'sleep') for (j = 0; j < 3; j++) { var p = ((t / 2200) + j / 3) % 1; if (p < .8) { c.fillStyle = '#9fb6ff'; c.font = '700 13px sans-serif'; c.fillText('Z', x + 6 * U + 10 + p * 18, top + 12 - p * 22); } }
+      if (mood === 'work') for (j = 0; j < 3; j++) { c.fillStyle = Math.floor(t / 300) % 3 === j ? col : '#334155'; c.fillRect(x - 12 + j * 10, Math.max(0, top - 4), 6, 6); }
+      if (mood === 'done') for (j = 0; j < 4; j++) { a = j * 1.57 + t / 900; if (Math.sin(t / 300 + j) > 0) { var sx = x + Math.cos(a) * 7 * U, sy = y0 + 4 * U + Math.sin(a) * 3 * U; c.fillStyle = '#ffe066'; c.fillRect(sx - 1, sy - 4, 3, 9); c.fillRect(sx - 4, sy - 1, 9, 3); } }
+      if (mood === 'bad') { c.fillStyle = col; c.font = '700 13px sans-serif'; c.fillText('?', x + 6 * U + 10, Math.max(8, top + 6)); c.fillStyle = '#7fd3ff'; c.fillRect(x + 5 * U, top + 14 + ((t / 1500) % 1) * 16, 4, 6); }
+      if (mood === 'listen') { c.strokeStyle = col; c.lineWidth = 3; for (var sd = -1; sd <= 1; sd += 2) for (j = 0; j < 3; j++) { c.globalAlpha = .5 + .5 * Math.sin(t / 160 + j); c.beginPath(); c.arc(x + sd * (6 * U + 10), y0 + 5 * U, 8 + j * 7, sd > 0 ? -.6 : Math.PI - .6, sd > 0 ? .6 : Math.PI + .6); c.stroke(); } c.globalAlpha = 1; }
     }
 
     function frame(t) {
@@ -128,19 +130,21 @@
       think(t, dt);
       c.clearRect(0, 0, W, H);
       var floor = H - 14;
-      c.fillStyle = 'rgba(255,255,255,.06)'; c.fillRect(0, floor, W, 2);
+      if (opt.chrome) opt.chrome(c, t);
+      if (opt.stage) { c.fillStyle = '#000000'; c.fillRect(0, opt.stage.y, W, opt.stage.h); floor = opt.stage.y + opt.stage.h - 4; c.fillStyle = '#1E293B'; c.fillRect(0, floor, W, 2); }
+      else { c.fillStyle = 'rgba(255,255,255,.06)'; c.fillRect(0, floor, W, 2); }
       var jump = 0;
-      if (mood === 'on' && b.act === 'jump') jump = Math.max(0, Math.sin((t % 700) / 700 * Math.PI)) * 14;
-      if (mood === 'done') jump = Math.abs(Math.sin(t / 260)) * 16;
-      if (t - poked < 600) jump = Math.max(jump, Math.sin((t - poked) / 600 * Math.PI) * 20);
+      if (mood === 'on' && b.act === 'jump') jump = Math.max(0, Math.sin((t % 700) / 700 * Math.PI)) * 10;
+      if (mood === 'done') jump = Math.abs(Math.sin(t / 260)) * 10;
+      if (t - poked < 600) jump = Math.max(jump, Math.sin((t - poked) / 600 * Math.PI) * 12);
       var noLeg = !ch.legs.length, sit = b.act === 'sit' && mood === 'on';
-      var hop = noLeg && b.act === 'walk' && (mood === 'on' || mood === 'work') ? Math.abs(Math.sin(t / 180)) * 5 : 0;
+      var hop = noLeg && b.act === 'walk' && (mood === 'on' || mood === 'work') ? Math.abs(Math.sin(t / 180)) * 4 : 0;
       var x = b.x + (mood === 'bad' ? Math.sin(t / 45) * 2 : 0), face = (mood === 'on' || mood === 'work') ? b.face : 1;
       var hgt = ch.map.length * U;
       var y = floor - (noLeg ? 0 : U * 1.5) - hgt - jump - hop + (sit ? U : 0) + (mood === 'sleep' && !noLeg ? U * 1.5 : 0) + (mood === 'waking' ? Math.sin(t / 140) * 2 : 0);
-      c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x, floor + 1, Math.max(10, 5 * U - jump), 5, 0, 0, 7); c.fill();
+      c.fillStyle = '#020617'; c.beginPath(); c.ellipse(x, floor, Math.max(8, 5 * U - jump), 3, 0, 0, 7); c.fill();
       sprite(x - 6 * U, y, face, Math.floor(t / 220) % 2, sit, t);
-      extras(x, y - 14, t);
+      extras(x, y, t);
       if (!still) raf = requestAnimationFrame(frame);
     }
     raf = requestAnimationFrame(frame);

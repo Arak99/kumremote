@@ -1,5 +1,5 @@
 // KumRemote service worker v1.0 — โหลดจากเน็ตก่อนเสมอ (ได้เวอร์ชันใหม่ทันที) ถ้าไม่มีเน็ตค่อยใช้ที่เก็บไว้
-const CACHE = 'kumremote-v2.0';
+const CACHE = 'kumremote-v2.1';
 self.addEventListener('install', (e) => { self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
 self.addEventListener('fetch', (e) => {

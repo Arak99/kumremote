@@ -15,6 +15,7 @@
                      ปุ่มไมค์สั่งด้วยเสียงภาษาไทย (voice.js) + บอทพูดตอบ, คำที่ฟังไม่ออกส่งให้ KumCom จดไว้,
                      แสดงตอน Claude ทำงานบนคอม (🤖), ปุ่ม "อยู่ต่อ" (ไม่ให้คอม Sleep เอง), ตั้งค่า: ตัวละคร / เปิดจอค้าง / บอทพูดตอบ
                      เลือกตัวละครแล้วจอบอร์ดตัวปลุก (KumWake v2.0) เปลี่ยนตามด้วย
+    2.1 (26/11/2026) หน้าบอทบนมือถือ = จอบอร์ดจำลอง หน้าตาเหมือนจอบอร์ดตัวปลุก (แถบบน, สถานะ, บอท, ปุ่มปลุกในจอ — แตะปุ่มในจอ = ปลุกคอม)
 -->
 <html lang="th">
 <head>
@@ -48,7 +49,8 @@
   header .net.no::before{content:"● ";color:var(--bad)}
 
   .status{background:radial-gradient(120% 90% at 50% 0%,#18233a,var(--card));border:1px solid var(--line);border-radius:22px;padding:10px 12px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
-  #bot{width:100%;aspect-ratio:320/190;display:block;cursor:pointer;image-rendering:pixelated}
+  #bot{width:100%;aspect-ratio:320/240;display:block;cursor:pointer;image-rendering:pixelated;border-radius:10px;border:3px solid #222;box-shadow:0 0 0 8px #e9c13b,0 10px 0 8px #c9a227;margin:10px 0 18px}
+  .status .txt .big{display:none}
   .status .txt{margin-top:2px}
   .heard{margin-top:10px;background:#0e1626;border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-size:15px;color:#c9d6ea;max-width:100%}
   .heard b{color:var(--accent);font-weight:600}
@@ -181,7 +183,7 @@
     </div>
 
     <section class="grid">
-      <button class="act wake" id="bWake">
+      <button class="act wake" id="bWake" hidden>
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>ปลุกคอม
       </button>
       <button class="act sleep" id="bSleep">
@@ -207,7 +209,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.0 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.1 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -420,7 +422,30 @@ window.addEventListener('online', function () { if (topic) { loadHistory().then(
 
 /* ---------- บอท ---------- */
 var CHAR_KEY = 'kumremote_char', claude = { mode: null, at: 0, title: '' }, listening = false, moodHold = null;
-var bot = window.KumBot ? KumBot.create($('bot'), { character: store(CHAR_KEY) }) : null;
+// จอบอร์ดจำลอง: วาดเหมือนจอ KumWake v2.0 (320x240)
+var BOARD_BTN = { x: 6, y: 184, w: 308, h: 52 };
+function boardChrome(c, t) {
+  var F = 'system-ui,"Noto Sans Thai","Leelawadee UI",sans-serif', now = new Date();
+  c.fillStyle = '#0F172A'; c.fillRect(0, 0, 320, 240);
+  c.fillStyle = '#1E293B'; c.fillRect(0, 0, 320, 34);
+  c.textBaseline = 'middle'; c.textAlign = 'left'; c.fillStyle = '#F1F5F9'; c.font = '700 17px ' + F; c.fillText('ตัวปลุกคอม', 8, 18);
+  c.fillStyle = '#334155'; c.beginPath(); c.roundRect(114, 2, 60, 30, 8); c.fill();
+  c.fillStyle = '#F1F5F9'; c.font = '700 13px ' + F; c.textAlign = 'center'; c.fillText('ตั้งค่า', 144, 18);
+  c.textAlign = 'right'; c.font = '700 15px ' + F; c.fillText(('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2), 278, 18);
+  var ok = $('net').className.indexOf('ok') >= 0;
+  for (var i = 0; i < 4; i++) { c.fillStyle = ok ? '#F1F5F9' : '#475569'; c.fillRect(288 + i * 6, 24 - (4 + i * 4), 4, 4 + i * 4); }
+  var st = state === 'on' ? 'เปิดอยู่' : (state === 'off' || state === 'sleeping' || state === 'shuttingdown') ? 'ปิด / หลับอยู่' : state === 'waking' ? 'กำลังปลุก...' : 'กำลังเช็ค...';
+  c.textAlign = 'left'; c.fillStyle = '#F1F5F9'; c.font = '700 26px ' + F; c.fillText(st, 8, 60);
+  if ((state === 'on' || state === 'off') && stateAt) { var w = c.measureText(st).width; c.fillStyle = '#94A3B8'; c.font = '15px ' + F; c.fillText('ตั้งแต่ ' + hhmm(stateAt), 8 + w + 10, 62); }
+  c.fillStyle = ok ? '#16A34A' : '#D97706'; c.beginPath(); c.arc(306, 46, 5, 0, 7); c.fill();
+  var bc = '#16A34A', bt = 'ปลุกคอม', bs = 24;
+  if (state === 'waking') { bc = '#D97706'; bt = 'ส่งสัญญาณปลุกแล้ว รอสักครู่'; bs = 17; }
+  else if (state === 'wakefail' || state === 'noboard') { bc = '#DC2626'; bt = 'ปลุกไม่ขึ้น แตะเพื่อลองใหม่'; bs = 17; }
+  else if (state === 'on') { bc = '#475569'; bt = 'คอมเปิดอยู่แล้ว'; bs = 20; }
+  c.fillStyle = bc; c.beginPath(); c.roundRect(BOARD_BTN.x, BOARD_BTN.y, BOARD_BTN.w, BOARD_BTN.h, 14); c.fill();
+  c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.font = '700 ' + bs + 'px ' + F; c.fillText(bt, 160, BOARD_BTN.y + BOARD_BTN.h / 2 + 1);
+}
+var bot = window.KumBot ? KumBot.create($('bot'), { character: store(CHAR_KEY), width: 320, height: 240, stage: { y: 86, h: 94 }, chrome: boardChrome }) : null;
 function claudeNow() {
   if (!claude.mode) return null;
   var age = Date.now() / 1000 - claude.at;
@@ -439,7 +464,12 @@ function updateBot() {
 }
 function holdMood(m, ms) { moodHold = { mood: m, until: Date.now() + ms }; updateBot(); setTimeout(updateBot, ms + 50); }
 setInterval(function () { if (claude.mode) render(); }, 5000);
-$('bot').onclick = function () { if (bot) bot.poke(); lastStatusAsk = 0; askStatus(); };
+$('bot').onclick = function (e) {
+  var r = this.getBoundingClientRect(), y = (e.clientY - r.top) * 240 / r.height, x = (e.clientX - r.left) * 320 / r.width;
+  if (y >= BOARD_BTN.y) { $('bWake').onclick(); speak(SAY.wake); return; }       // ปุ่มปลุกในจอจำลอง
+  if (y < 34 && x >= 114 && x < 174) { $('bSet').onclick(); return; }            // ปุ่มตั้งค่าในจอจำลอง
+  if (bot) bot.poke(); lastStatusAsk = 0; askStatus();
+};
 
 /* ---------- สั่งด้วยเสียง ---------- */
 var SPEAK_KEY = 'kumremote_speak';
