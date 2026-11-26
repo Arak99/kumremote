@@ -6,6 +6,7 @@
   cmd: wake, sleep, shutdown, status, stay, bright (value 10-100), brighter, dimmer, dim (value true/false), help
   เพิ่มคำใหม่ได้ที่ WORDS ด้านล่าง (คำที่ฟังไม่ออก KumCom จะจดไว้ใน logs\voice_unheard.txt ให้ Claude มาเพิ่ม)
   ประวัติ: 1.0 (26/11/2026) เวอร์ชันแรก
+          1.2 (26/11/2026) กดค้างแล้วพูด ปล่อยเมื่อพูดจบ (opts.hold), แจ้งตอนไมค์พร้อมจริง (onReady → สั่นเบาๆ)
           1.1 (26/11/2026) คุยเล่น/ทักทายได้ (cmd 'chat' + คำตอบ), ฟังนานขึ้น: ไม่ได้ยินเสียงจะฟังต่อเองจนครบ ~10 วินาที (เดิมปิดเร็ว)
 */
 (function () {
@@ -83,31 +84,46 @@
   }
 
   var Rec = window.SpeechRecognition || window.webkitSpeechRecognition, cur = null, stopped = false;
-  // ฟังได้นานสุด ~10 วินาที: ถ้ายังไม่ได้ยินอะไร มือถือจะปิดเองเร็ว → เปิดฟังต่อให้เองจนครบเวลา
-  function listen(cb) {
+  // listen(cb, {hold:true}) = ฟังไปเรื่อยๆ จนกว่าจะเรียก stop() (กดค้างแล้วพูด)
+  // listen(cb)              = แตะครั้งเดียว: ได้ยินประโยคแรกแล้วจบ / ไม่ได้ยินอะไรจะฟังต่อเองจนครบ ~10 วิ
+  function listen(cb, opts) {
+    opts = opts || {};
     if (!Rec) { cb.onError && cb.onError('unsupported'); cb.onEnd && cb.onEnd(); return null; }
     if (cur) { try { cur.abort(); } catch (e) {} }
     stopped = false;
-    var deadline = Date.now() + 10000, done = false, lastErr = null;
+    var hold = !!opts.hold, deadline = Date.now() + (hold ? 30000 : 10000), finished = false, ready = false, lastErr = null;
+    var finalText = '', interim = '', alts = [];
+    function finish() {
+      if (finished) return; finished = true;
+      var text = (finalText + ' ' + interim).replace(/\s+/g, ' ').trim(), intent = parse(text);
+      for (var i = 0; i < alts.length && !intent; i++) { intent = parse(alts[i]); if (intent) text = alts[i]; }
+      if (!text && lastErr && lastErr !== 'no-speech' && lastErr !== 'aborted') cb.onError && cb.onError(lastErr);
+      else cb.onFinal && cb.onFinal(text, intent, !text);
+      cb.onEnd && cb.onEnd();
+    }
     function round() {
       var r = new Rec(); cur = r;
-      r.lang = 'th-TH'; r.interimResults = true; r.maxAlternatives = 4; r.continuous = false;
+      r.lang = 'th-TH'; r.interimResults = true; r.maxAlternatives = 4; r.continuous = hold;
+      r.onaudiostart = function () { if (!ready) { ready = true; cb.onReady && cb.onReady(); } };
       r.onresult = function (ev) {
-        var res = ev.results[ev.results.length - 1];
-        if (!res.isFinal) { cb.onInterim && cb.onInterim(res[0].transcript); return; }
-        done = true;
-        var best = res[0].transcript, intent = null;
-        for (var i = 0; i < res.length && !intent; i++) { intent = parse(res[i].transcript); if (intent) best = res[i].transcript; }
-        cb.onFinal && cb.onFinal(best, intent);
+        interim = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          var res = ev.results[i];
+          if (res.isFinal) { finalText += ' ' + res[0].transcript; alts = []; for (var j = 1; j < res.length; j++) alts.push(res[j].transcript); }
+          else interim += res[0].transcript;
+        }
+        cb.onInterim && cb.onInterim((finalText + ' ' + interim).trim());
+        if ((!hold || (opts.endOnFinal && opts.endOnFinal())) && finalText.trim()) { stopped = true; try { r.stop(); } catch (e) {} }
       };
       r.onerror = function (ev) { lastErr = ev.error || 'error'; };
       r.onend = function () {
         cur = null;
-        if (!done && !stopped && (lastErr === null || lastErr === 'no-speech' || lastErr === 'aborted') && Date.now() < deadline) { lastErr = null; setTimeout(round, 150); return; }
-        if (!done) { if (lastErr && lastErr !== 'no-speech' && lastErr !== 'aborted') cb.onError && cb.onError(lastErr); else cb.onFinal && cb.onFinal('', null, true); }
-        cb.onEnd && cb.onEnd();
+        var heardSomething = (finalText + interim).trim().length > 0;
+        var retry = !stopped && Date.now() < deadline && (lastErr === null || lastErr === 'no-speech' || lastErr === 'aborted') && (hold || !heardSomething);
+        if (retry) { lastErr = null; setTimeout(round, 120); return; }   // มือถือตัดการฟังเอง → ฟังต่อ
+        finish();
       };
-      try { r.start(); } catch (e) { cb.onError && cb.onError('start'); cb.onEnd && cb.onEnd(); }
+      try { r.start(); } catch (e) { lastErr = 'start'; finish(); }
     }
     round();
     return true;

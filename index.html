@@ -18,6 +18,8 @@
     2.1 (26/11/2026) หน้าบอทบนมือถือ = จอบอร์ดจำลอง หน้าตาเหมือนจอบอร์ดตัวปลุก (แถบบน, สถานะ, บอท, ปุ่มปลุกในจอ — แตะปุ่มในจอ = ปลุกคอม)
     2.2 (26/11/2026) ฉากหลังพิกเซลตามเวลาจริง (กลางวัน/เย็น/กลางคืน) เหมือนบนบอร์ด KumWake v2.2,
                      ไมค์: คุยเล่น/ทักทาย/เล่ามุกได้ (บอทพูดตอบ + ทำท่า), ฟังนานขึ้น ~10 วินาที (เดิมปิดเร็ว)
+    2.3 (26/11/2026) ไมค์ใช้ง่ายขึ้น: กดค้างแล้วพูด ปล่อยเมื่อจบ (แตะสั้น = ฟังจนจบประโยค), สั่นเบาๆ ตอนไมค์พร้อม,
+                     ช่องพิมพ์คำสั่ง (ใช้ไมค์ของคีย์บอร์ดมือถือได้ ลื่นกว่า)
 -->
 <html lang="th">
 <head>
@@ -58,6 +60,10 @@
   .heard b{color:var(--accent);font-weight:600}
   .mic{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;border-radius:20px;background:linear-gradient(160deg,#2a1d4d,#1a1f3d);border:1px solid #4b3a86;font-size:19px;font-weight:650}
   .mic svg{width:26px;height:26px;color:#c08cff}
+  .mic{user-select:none;-webkit-user-select:none;touch-action:none;-webkit-touch-callout:none}
+  .txt2{display:flex;gap:8px}
+  .txt2 input{flex:1;font:inherit;font-size:16px;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:#0e1626;color:var(--text);min-width:0}
+  .txt2 button{background:#24304a;border-radius:14px;padding:0 18px;font-weight:650}
   .mic.on{background:linear-gradient(160deg,#5b2fb0,#3a1f7a);border-color:#c08cff;animation:pulse 1.2s ease-in-out infinite}
   .mic[disabled]{opacity:.5}
   .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
@@ -179,7 +185,8 @@
       <div class="txt"><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="small" id="small">&nbsp;</div></div>
       <div class="heard" id="heard" hidden></div>
     </section>
-    <button class="mic" id="bMic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a.9.9 0 0 0-1.8 0 4.2 4.2 0 0 1-8.4 0 .9.9 0 0 0-1.8 0 6 6 0 0 0 5.1 5.9V20H8.5a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8h-2.6v-2.6a6 6 0 0 0 5.1-5.9z"/></svg><span id="micT">กดแล้วพูดสั่ง</span></button>
+    <button class="mic" id="bMic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a.9.9 0 0 0-1.8 0 4.2 4.2 0 0 1-8.4 0 .9.9 0 0 0-1.8 0 6 6 0 0 0 5.1 5.9V20H8.5a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8h-2.6v-2.6a6 6 0 0 0 5.1-5.9z"/></svg><span id="micT">กดค้างแล้วพูด · ปล่อยเมื่อพูดจบ</span></button>
+    <form class="txt2" id="txtF" autocomplete="off"><input id="txtIn" placeholder="หรือพิมพ์ / กดไมค์บนคีย์บอร์ด" enterkeyhint="send" aria-label="พิมพ์คำสั่ง"><button type="submit">ส่ง</button></form>
     <div class="chips" id="chips" hidden>
       <button data-c="wake">ปลุกคอม</button><button data-c="sleep">Sleep</button><button data-c="status">เช็คสถานะ</button><button data-c="stay">อยู่ต่อ</button><button data-c="cancel">ไม่ใช่ทั้งหมด</button>
     </div>
@@ -211,7 +218,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.2 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.3 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -229,9 +236,9 @@
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.2"></script>
-<script src="bot.js?v=2.2"></script>
-<script src="voice.js?v=2.2"></script>
+<script src="characters.js?v=2.3"></script>
+<script src="bot.js?v=2.3"></script>
+<script src="voice.js?v=2.3"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -499,29 +506,50 @@ function doCmd(cmd, value) {
   }
 }
 var LABEL_TH = { chat: 'คุยเล่น', wake: 'ปลุกคอม', sleep: 'Sleep', shutdown: 'ปิดเครื่อง', status: 'เช็คสถานะ', stay: 'อยู่ต่อ', bright: 'ปรับความสว่าง', brighter: 'จอสว่างขึ้น', dimmer: 'หรี่จอ', dim: 'หรี่เอง', help: 'ดูคำสั่ง' };
-$('bMic').onclick = function () {
-  if (listening) { KumVoice.stop(); return; }
-  if (!window.KumVoice || !KumVoice.supported) { heard('มือถือ/เบราว์เซอร์นี้ฟังเสียงไม่ได้ — ลองเปิดหน้านี้ด้วย <b>Chrome</b>'); return; }
-  listening = true; $('bMic').classList.add('on'); $('micT').textContent = 'กำลังฟัง… (แตะอีกครั้งเพื่อหยุด)';
-  heard('พูดได้เลย (ฟัง 10 วินาที) เช่น <b>ปลุกคอม</b> หรือ <b>สวัสดี</b>'); $('chips').hidden = true; updateBot();
+var MIC_IDLE = 'กดค้างแล้วพูด · ปล่อยเมื่อพูดจบ', micDown = 0, tapMode = false, tapTimer = null;
+function handleHeard(t, intent) {
+  if (!t) { heard('ไม่ได้ยินเสียง — กดค้างแล้วพูด ปล่อยนิ้วเมื่อพูดจบ'); return; }
+  if (intent && intent.cmd === 'chat') { doCmd('chat', intent); return; }
+  if (intent) { heard('ได้ยินว่า: <b>' + esc(t) + '</b> → ' + LABEL_TH[intent.cmd] + (intent.value !== undefined && intent.cmd === 'bright' ? ' ' + intent.value + '%' : '')); if (bot) bot.poke(); doCmd(intent.cmd, intent.value); return; }
+  heard('ได้ยินว่า: <b>' + esc(t) + '</b> — ไม่แน่ใจว่าหมายถึงอันไหน เลือกให้หน่อย');
+  $('chips').hidden = false; holdMood('bad', 3500); speak('ไม่แน่ใจ หมายถึงอันไหน');
+  if (topic) fetch(NTFY + topic, { method: 'POST', body: '🎤? ' + t }).catch(function () {});   // ให้ KumCom จดคำที่ฟังไม่ออก
+}
+function micReset() { listening = false; clearTimeout(tapTimer); $('bMic').classList.remove('on'); $('micT').textContent = MIC_IDLE; updateBot(); }
+function micStart() {
+  if (!window.KumVoice || !KumVoice.supported) { heard('มือถือ/เบราว์เซอร์นี้ฟังเสียงไม่ได้ — ใช้ช่องพิมพ์ด้านล่าง แล้วกดไมค์บนคีย์บอร์ดแทนได้'); return; }
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  listening = true; tapMode = false; $('bMic').classList.add('on'); $('micT').textContent = 'กำลังเปิดไมค์…';
+  $('chips').hidden = true; heard('กำลังเปิดไมค์…'); updateBot();
   KumVoice.listen({
+    onReady: function () { try { navigator.vibrate && navigator.vibrate(40); } catch (e) {} $('micT').textContent = tapMode ? 'กำลังฟัง… (แตะอีกครั้งเพื่อจบ)' : 'กำลังฟัง… ปล่อยนิ้วเมื่อพูดจบ'; heard('🎙️ <b>พูดได้เลย</b>'); },
     onInterim: function (t) { heard('ได้ยินว่า: <b>' + esc(t) + '</b>'); },
-    onFinal: function (t, intent, silent) {
-      listening = false; updateBot();
-      if (silent || !t) { heard('ไม่ได้ยินเสียง — แตะปุ่มแล้วพูดใหม่ได้เลย'); return; }
-      if (intent && intent.cmd === 'chat') { doCmd('chat', intent); return; }
-      if (intent) { heard('ได้ยินว่า: <b>' + esc(t) + '</b> → ' + LABEL_TH[intent.cmd] + (intent.value !== undefined && intent.cmd === 'bright' ? ' ' + intent.value + '%' : '')); if (bot) bot.poke(); doCmd(intent.cmd, intent.value); return; }
-      heard('ได้ยินว่า: <b>' + esc(t) + '</b> — ไม่แน่ใจว่าหมายถึงอันไหน เลือกให้หน่อย');
-      $('chips').hidden = false; holdMood('bad', 3500); speak('ไม่แน่ใจ หมายถึงอันไหน');
-      if (topic) fetch(NTFY + topic, { method: 'POST', body: '🎤? ' + t }).catch(function () {});   // ให้ KumCom จดคำที่ฟังไม่ออก
-    },
+    onFinal: function (t, intent) { micReset(); handleHeard(t, intent); },
     onError: function (e) {
-      listening = false; updateBot();
       heard(e === 'not-allowed' || e === 'service-not-allowed' ? 'มือถือไม่อนุญาตให้ใช้ไมค์ — กดอนุญาตไมค์ให้เว็บนี้ แล้วลองใหม่' :
-            e === 'network' ? 'ฟังเสียงต้องใช้เน็ต — เช็คเน็ตแล้วลองใหม่' : e === 'no-speech' ? 'ไม่ได้ยินเสียง — แตะปุ่มแล้วพูดใหม่ได้เลย' : 'ฟังไม่สำเร็จ — ลองใหม่อีกครั้ง');
+            e === 'network' ? 'ฟังเสียงต้องใช้เน็ต — เช็คเน็ตแล้วลองใหม่' : 'ฟังไม่สำเร็จ — ลองใหม่อีกครั้ง หรือใช้ช่องพิมพ์ด้านล่าง');
     },
-    onEnd: function () { listening = false; $('bMic').classList.remove('on'); $('micT').textContent = 'กดแล้วพูดสั่ง'; updateBot(); }
-  });
+    onEnd: micReset
+  }, { hold: true, endOnFinal: function () { return tapMode; } });
+}
+$('bMic').addEventListener('pointerdown', function (e) {
+  e.preventDefault();
+  if (listening) { KumVoice.stop(); return; }          // แตะอีกครั้ง = จบ
+  micDown = Date.now(); micStart();
+  try { this.setPointerCapture(e.pointerId); } catch (x) {}
+});
+function micUp() {
+  if (!listening || !micDown) return;
+  var held = Date.now() - micDown; micDown = 0;
+  if (held >= 450) KumVoice.stop();                      // กดค้าง → ปล่อย = พูดจบ
+  else { tapMode = true; $('micT').textContent = 'กำลังฟัง… (แตะอีกครั้งเพื่อจบ)'; tapTimer = setTimeout(function () { if (listening) KumVoice.stop(); }, 10000); }   // แตะสั้น = ฟังจนจบประโยค (สูงสุด 10 วิ)
+}
+$('bMic').addEventListener('pointerup', micUp);
+$('bMic').addEventListener('pointercancel', micUp);
+$('bMic').addEventListener('contextmenu', function (e) { e.preventDefault(); });
+$('txtF').onsubmit = function (e) {
+  e.preventDefault(); var t = $('txtIn').value.trim(); if (!t) return;
+  $('txtIn').value = ''; $('txtIn').blur(); handleHeard(t, KumVoice.parse(t));
 };
 $('chips').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; var c = b.getAttribute('data-c'); if (c === 'cancel') { $('chips').hidden = true; heard(''); return; } doCmd(c); };
 
