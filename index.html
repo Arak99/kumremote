@@ -8,6 +8,8 @@
                      ถามยืนยันก่อน Sleep และปิดเครื่อง, บันทึกเหตุการณ์ล่าสุด, ติดตั้งเป็นไอคอนบนหน้าจอมือถือได้
     1.1 (26/11/2026) ตั้งความสว่างจอของตัวปลุกได้: แถบเลื่อน 10–100% + สวิตช์ "หรี่เองเมื่อไม่มีคนแตะ" (ต้องใช้บอร์ด KumWake v1.8 ขึ้นไป)
     1.2 (26/11/2026) แก้: ข้อความ "ตั้งค่าแล้ว ✓" บางครั้งไม่ขึ้น เพราะการเช็คสถานะอัตโนมัติแทรกระหว่างรอคำตอบ
+    1.3 (26/11/2026) แก้: เลื่อนแถบความสว่างแล้วแถบเด้งไปค่าก่อนหน้าชั่วครู่ (คำตอบของค่าก่อนหน้ามาถึงทีหลัง) → ยึดค่าที่เลือกล่าสุดไว้จนบอร์ดตอบตรงกัน,
+                     เลื่อนหลายครั้งติดกันจะส่งเฉพาะค่าสุดท้าย
 -->
 <html lang="th">
 <head>
@@ -172,7 +174,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v1.2 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
+  <footer>KumRemote v1.3 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -185,7 +187,8 @@
 var NTFY = 'https://ntfy.sh/';
 var KEY = 'kumremote_topic';
 var topic = null, es = null, seen = {}, msgs = [], state = 'unknown', stateAt = 0, pending = null, lastStatusAsk = 0;
-var scr = null, scrAt = 0, sliding = false;   // ค่าจอตัวปลุกล่าสุดที่บอร์ดบอกมา {bri, dim}
+var scr = null, scrAt = 0, sliding = false;
+var want = { bri: null, dim: null, t: 0 }, briTimer = null, holdTimer = null, HOLD = 12000;   // ค่าที่ผู้ใช้เพิ่งเลือก (ยึดไว้จนบอร์ดตอบตรงกัน)   // ค่าจอตัวปลุกล่าสุดที่บอร์ดบอกมา {bri, dim}
 var $ = function (id) { return document.getElementById(id); };
 
 function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
@@ -245,8 +248,10 @@ function renderScr() {
   var box = $('scr');
   if (!scr) { box.classList.add('unknown'); $('briVal').textContent = '–'; return; }
   box.classList.remove('unknown');
-  if (!sliding) { $('bri').value = scr.bri; $('briVal').textContent = scr.bri + '%'; }
-  $('dimSw').setAttribute('aria-checked', scr.dim ? 'true' : 'false');
+  var hold = Date.now() - want.t < HOLD;
+  var b = (hold && want.bri !== null) ? want.bri : scr.bri, d = (hold && want.dim !== null) ? want.dim : scr.dim;
+  if (!sliding) { $('bri').value = b; $('briVal').textContent = b + '%'; }
+  $('dimSw').setAttribute('aria-checked', d ? 'true' : 'false');
 }
 function note(text, cls) { var n = $('note'); n.textContent = text || ''; n.className = 'note' + (cls ? ' ' + cls : ''); }
 
@@ -259,7 +264,7 @@ function handle(m, live) {
   if (msgs.length > 60) msgs.shift();
   if (c.state && m.time >= stateAt) { state = c.state; stateAt = m.time; }
   var sm = /💡[^\n]*?(\d+)%[^\n]*?หรี่เอง:\s*(เปิด|ปิด)/.exec(m.message || '');
-  if (sm && m.time >= scrAt) { scr = { bri: +sm[1], dim: sm[2] === 'เปิด' }; scrAt = m.time; }
+  if (sm && m.time >= scrAt) { scr = { bri: +sm[1], dim: sm[2] === 'เปิด' }; scrAt = m.time; if (want.bri === scr.bri) want.bri = null; if (want.dim === scr.dim) want.dim = null; }
   if (live && pending) {
     if ((c.kind === 'ack' && c.cmd === pending.cmd) || (pending.cmd === 'status' && c.kind === 'status') ||
         (pending.cmd === 'wake' && (c.state === 'on' || c.state === 'waking'))) {
@@ -340,8 +345,12 @@ $('bWake').onclick = function () { state = state === 'on' ? 'on' : 'waking'; ren
 $('bSleep').onclick = function () { ask('สั่งคอม Sleep?', 'คอมจะหลับทันที งานที่เปิดค้างไว้ยังอยู่ ปลุกกลับได้ด้วยปุ่มปลุกคอม', 'Sleep เลย', false, function () { send('sleep'); }); };
 $('bOff').onclick = function () { ask('สั่งปิดเครื่อง?', 'โปรแกรมที่เปิดอยู่จะถูกปิดทั้งหมด งานที่ยังไม่ได้เซฟจะหาย', 'ปิดเครื่อง', true, function () { send('shutdown'); }); };
 $('bri').oninput = function () { sliding = true; $('briVal').textContent = this.value + '%'; };
-$('bri').onchange = function () { sliding = false; var v = +this.value; if (scr) scr.bri = v; $('briVal').textContent = v + '%'; send('screen', false, 'bright ' + v); };
-$('dimSw').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); if (scr) scr.dim = on; send('screen', false, 'dim ' + (on ? 'on' : 'off')); };
+function holdNow() { want.t = Date.now(); clearTimeout(holdTimer); holdTimer = setTimeout(renderScr, HOLD + 300); }
+$('bri').onchange = function () {
+  sliding = false; var v = +this.value; want.bri = v; holdNow(); $('briVal').textContent = v + '%';
+  clearTimeout(briTimer); briTimer = setTimeout(function () { send('screen', false, 'bright ' + v); }, 600);
+};
+$('dimSw').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); want.dim = on; holdNow(); send('screen', false, 'dim ' + (on ? 'on' : 'off')); };
 $('bCheck').onclick = function () { lastStatusAsk = Date.now(); send('status'); };
 $('askNo').onclick = closeAsk;
 $('veil').onclick = function (e) { if (e.target === $('veil')) closeAsk(); };
