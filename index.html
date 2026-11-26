@@ -1,0 +1,325 @@
+<!doctype html>
+<!--
+  KumRemote (คุมคอม) — ปุ่มสั่งคอมจากมือถือ  ·  Arak Lab Tools
+  หน้านี้ไม่มีลิงก์ลับอยู่ข้างใน: ชื่อช่องสั่งงาน (ntfy) ถูกเก็บไว้ในมือถือของเจ้าของเท่านั้น
+
+  ประวัติเวอร์ชัน
+    1.0 (26/11/2026) เวอร์ชันแรก: ปลุกคอม / Sleep / ปิดเครื่อง / เช็คสถานะ, เห็นผลตอบกลับในหน้าเดียว,
+                     ถามยืนยันก่อน Sleep และปิดเครื่อง, บันทึกเหตุการณ์ล่าสุด, ติดตั้งเป็นไอคอนบนหน้าจอมือถือได้
+-->
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="robots" content="noindex,nofollow">
+<title>คุมคอม</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --bg:#0b1220; --card:#131c2e; --line:#243049; --text:#eef2f8; --dim:#8b98b0;
+    --on:#34d399; --off:#64748b; --warn:#fbbf24; --bad:#f87171; --accent:#38bdf8;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Noto Sans Thai","Leelawadee UI",sans-serif;
+    font-size:17px;line-height:1.45;
+    padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 18px);
+  }
+  main{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-height:100%}
+  header{display:flex;align-items:baseline;justify-content:space-between;padding:2px 4px}
+  header h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px}
+  header .net{font-size:13px;color:var(--dim)}
+  header .net.ok::before{content:"● ";color:var(--on)}
+  header .net.no::before{content:"● ";color:var(--bad)}
+
+  .status{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 20px;display:flex;gap:16px;align-items:center}
+  .lamp{width:58px;height:58px;border-radius:50%;flex:none;background:var(--off);position:relative;transition:background .3s}
+  .lamp::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid currentColor;opacity:.28}
+  .status[data-s=on] .lamp{background:var(--on);color:var(--on);box-shadow:0 0 26px rgba(52,211,153,.45)}
+  .status[data-s=off] .lamp{background:var(--off);color:var(--off)}
+  .status[data-s=busy] .lamp{background:var(--warn);color:var(--warn);animation:pulse 1.1s ease-in-out infinite}
+  .status[data-s=bad] .lamp{background:var(--bad);color:var(--bad)}
+  .status[data-s=unknown] .lamp{background:#334155;color:#334155;animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(.86);opacity:.6}}
+  .status .big{font-size:25px;font-weight:700;line-height:1.2}
+  .status .small{font-size:14px;color:var(--dim);margin-top:4px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  button{font:inherit;color:inherit;border:0;cursor:pointer}
+  .act{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 12px 16px;min-height:112px;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:650;font-size:18px;
+       transition:transform .08s,background .15s}
+  .act:active{transform:scale(.97);background:#1a2540}
+  .act svg{width:34px;height:34px}
+  .act.wake{grid-column:1 / -1;min-height:124px;background:linear-gradient(160deg,#0f3a2e,#12283a);border-color:#1f6b55;font-size:22px}
+  .act.wake svg{width:42px;height:42px;color:var(--on)}
+  .act.sleep svg{color:#a5b4fc}
+  .act.off svg{color:var(--bad)}
+  .act[disabled]{opacity:.45}
+  .check{background:transparent;border:1px solid var(--line);border-radius:14px;padding:13px;color:var(--dim);font-size:16px;width:100%}
+  .check:active{background:var(--card)}
+
+  .note{min-height:24px;text-align:center;font-size:15px;color:var(--dim);padding:0 6px}
+  .note.ok{color:var(--on)} .note.warn{color:var(--warn)} .note.bad{color:var(--bad)}
+
+  .log{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 16px}
+  .log h2{font-size:13px;color:var(--dim);font-weight:600;margin:10px 0 4px;letter-spacing:.4px}
+  .log ul{list-style:none;margin:0;padding:0}
+  .log li{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+  .log li:first-child{border-top:0}
+  .log time{color:var(--dim);flex:none;font-variant-numeric:tabular-nums;width:44px}
+  .log .me{color:var(--accent)}
+  .log .empty{color:var(--dim);padding:10px 0 14px;font-size:15px}
+  footer{margin-top:auto;text-align:center;color:#56627a;font-size:12.5px;padding-top:6px}
+  footer button{background:none;color:#56627a;text-decoration:underline;font-size:12.5px;padding:6px}
+
+  /* แผ่นถามยืนยัน */
+  .veil{position:fixed;inset:0;background:rgba(3,7,18,.66);display:none;align-items:flex-end;justify-content:center;z-index:5}
+  .veil.show{display:flex}
+  .sheet{background:#172136;border:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;max-width:460px;
+         padding:22px 20px calc(env(safe-area-inset-bottom) + 20px)}
+  .sheet h3{margin:0 0 6px;font-size:21px}
+  .sheet p{margin:0 0 18px;color:var(--dim);font-size:15.5px}
+  .sheet .row{display:flex;gap:12px}
+  .sheet button{flex:1;border-radius:16px;padding:16px;font-size:18px;font-weight:650}
+  .sheet .no{background:#24304a}
+  .sheet .yes{background:var(--accent);color:#04121f}
+  .sheet .yes.danger{background:var(--bad);color:#2a0606}
+
+  /* หน้าตั้งค่าครั้งแรก */
+  .setup{display:none;flex-direction:column;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 20px}
+  .setup h2{margin:0;font-size:21px}
+  .setup p{margin:0;color:var(--dim);font-size:15.5px}
+  .setup input{font:inherit;width:100%;padding:15px;border-radius:14px;border:1px solid var(--line);background:#0e1626;color:var(--text)}
+  .setup button{background:var(--accent);color:#04121f;border-radius:16px;padding:16px;font-size:18px;font-weight:650}
+  .app{display:contents}
+  body.needsetup .app{display:none} body.needsetup .setup{display:flex}
+  .install{display:none;background:#10263a;border:1px solid #1d4a6b;border-radius:16px;padding:13px 15px;font-size:14.5px;color:#b9dcf5}
+  .install.show{display:block}
+  .install button{background:var(--accent);color:#04121f;border-radius:12px;padding:10px 14px;font-weight:650;margin-top:9px;width:100%}
+  @media (prefers-reduced-motion:reduce){.lamp{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <header><h1>คุมคอม</h1><span class="net" id="net">กำลังเชื่อมต่อ…</span></header>
+
+  <section class="setup" id="setup">
+    <h2>ตั้งค่าครั้งแรก</h2>
+    <p>วางลิงก์ปลุกคอม (ลิงก์ที่ขึ้นต้นด้วย ntfy.sh ใน README บนคอม) ลงในช่องนี้ แล้วกดบันทึก ทำครั้งเดียว</p>
+    <input id="setupIn" placeholder="https://ntfy.sh/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="setupBtn">บันทึก</button>
+    <div class="note" id="setupNote"></div>
+  </section>
+
+  <div class="app">
+    <div class="install" id="install">
+      <span id="installText">ใช้งานได้แล้ว — เพิ่มเป็นไอคอนบนหน้าจอมือถือ จะได้กดเข้าง่ายเหมือนแอป</span>
+      <button id="installBtn">เพิ่มไอคอนลงหน้าจอ</button>
+    </div>
+
+    <section class="status" id="status" data-s="unknown" aria-live="polite">
+      <div class="lamp"></div>
+      <div><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="small" id="small">&nbsp;</div></div>
+    </section>
+
+    <section class="grid">
+      <button class="act wake" id="bWake">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>ปลุกคอม
+      </button>
+      <button class="act sleep" id="bSleep">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></svg>Sleep
+      </button>
+      <button class="act off" id="bOff">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>ปิดเครื่อง
+      </button>
+    </section>
+    <button class="check" id="bCheck">เช็คสถานะตอนนี้</button>
+    <div class="note" id="note"></div>
+
+    <section class="log">
+      <h2>ล่าสุด</h2>
+      <ul id="log"><li class="empty">ยังไม่มีเหตุการณ์</li></ul>
+    </section>
+  </div>
+
+  <footer>KumRemote v1.0 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
+</main>
+
+<div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
+  <h3 id="askT"></h3><p id="askP"></p>
+  <div class="row"><button class="no" id="askNo">ยกเลิก</button><button class="yes" id="askYes">ยืนยัน</button></div>
+</div></div>
+
+<script>
+'use strict';
+var NTFY = 'https://ntfy.sh/';
+var KEY = 'kumremote_topic';
+var topic = null, es = null, seen = {}, msgs = [], state = 'unknown', stateAt = 0, pending = null, lastStatusAsk = 0;
+var $ = function (id) { return document.getElementById(id); };
+
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+function pickTopic(s) {
+  s = (s || '').trim();
+  var m = s.match(/ntfy\.sh\/([A-Za-z0-9_-]{6,64})/);
+  if (m) return m[1];
+  return /^[A-Za-z0-9_-]{6,64}$/.test(s) ? s : null;
+}
+function hhmm(t) { var d = new Date(t * 1000); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+
+/* ---------- แปลข้อความจากบอร์ด / คอม ---------- */
+var CMDS = { wake: ['wake', 'ปลุก', 'ปลุกคอม', '/wake'], sleep: ['sleep', 'สลีป', 'หลับ'], shutdown: ['shutdown', 'ปิดเครื่อง', 'ปิดคอม'], status: ['status', 'สถานะ', '/status'] };
+var CMD_LABEL = { wake: 'สั่งปลุกคอม', sleep: 'สั่ง Sleep', shutdown: 'สั่งปิดเครื่อง', status: 'ขอสถานะ' };
+function classify(text) {
+  var t = (text || '').trim(), low = t.toLowerCase(), k;
+  for (k in CMDS) if (CMDS[k].indexOf(low) >= 0) return { kind: 'cmd', cmd: k };
+  var has = function (s) { return t.indexOf(s) >= 0; };
+  if (t.indexOf('📡') === 0 || t.indexOf('🔌') === 0) return { kind: 'status', state: has('⚡ กำลังปลุก') ? 'waking' : has('🟢') ? 'on' : has('⚫') ? 'off' : null };
+  if (t.indexOf('✅') === 0 || t.indexOf('🟢') === 0 || t.indexOf('🖥') === 0) return { kind: 'info', state: 'on' };
+  if (t.indexOf('⚫') === 0) return { kind: 'info', state: 'off' };
+  if (t.indexOf('😴') === 0) return { kind: 'ack', cmd: 'sleep', state: 'sleeping' };
+  if (t.indexOf('⏻') === 0) return { kind: 'ack', cmd: 'shutdown', state: 'shuttingdown' };
+  if (t.indexOf('⚡') === 0) return { kind: 'ack', cmd: 'wake', state: 'waking' };
+  if (t.indexOf('⚠') === 0) return { kind: 'info', state: 'wakefail' };
+  return { kind: 'other' };
+}
+function firstLine(text) { var s = (text || '').trim().split('\n')[0]; return s.length > 70 ? s.slice(0, 69) + '…' : s; }
+
+/* ---------- วาดหน้าจอ ---------- */
+var VIEW = {
+  on: ['on', 'คอมเปิดอยู่'], off: ['off', 'คอมหลับหรือปิดอยู่'], waking: ['busy', 'กำลังปลุกคอม…'],
+  sleeping: ['busy', 'กำลัง Sleep…'], shuttingdown: ['busy', 'กำลังปิดเครื่อง…'],
+  wakefail: ['bad', 'ปลุกไม่ขึ้น'], unknown: ['unknown', 'กำลังเช็คสถานะ…'], noboard: ['bad', 'ตัวปลุกไม่ตอบ']
+};
+function render() {
+  var v = VIEW[state] || VIEW.unknown;
+  $('status').setAttribute('data-s', v[0]);
+  $('big').textContent = v[1];
+  var small = stateAt ? 'ข้อมูลเมื่อ ' + hhmm(stateAt) : ' ';
+  if (state === 'wakefail') small = 'เช็คว่าคอมเสียบสายแลนและมีไฟเข้า แล้วลองอีกครั้ง';
+  if (state === 'noboard') small = 'เช็คว่าบอร์ดตัวปลุกมีไฟ และต่อ WiFi ร้านอยู่';
+  $('small').textContent = small;
+  var ul = $('log'); ul.textContent = '';
+  var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && m.c.cmd === 'status') && m.c.kind !== 'other'; }).slice(-8).reverse();
+  if (!list.length) { var e = document.createElement('li'); e.className = 'empty'; e.textContent = 'ยังไม่มีเหตุการณ์'; ul.appendChild(e); }
+  list.forEach(function (m) {
+    var li = document.createElement('li'), tm = document.createElement('time'), sp = document.createElement('span');
+    tm.textContent = hhmm(m.t);
+    if (m.c.kind === 'cmd') { sp.className = 'me'; sp.textContent = CMD_LABEL[m.c.cmd]; } else sp.textContent = firstLine(m.text);
+    li.appendChild(tm); li.appendChild(sp); ul.appendChild(li);
+  });
+}
+function note(text, cls) { var n = $('note'); n.textContent = text || ''; n.className = 'note' + (cls ? ' ' + cls : ''); }
+
+/* ---------- รับข้อความ ---------- */
+function handle(m, live) {
+  if (!m || m.event !== 'message' || !m.id || seen[m.id]) return;
+  seen[m.id] = 1;
+  var c = classify(m.message);
+  msgs.push({ t: m.time, text: m.message, c: c });
+  if (msgs.length > 60) msgs.shift();
+  if (c.state && m.time >= stateAt) { state = c.state; stateAt = m.time; }
+  if (live && pending) {
+    if ((c.kind === 'ack' && c.cmd === pending.cmd) || (pending.cmd === 'status' && c.kind === 'status') ||
+        (pending.cmd === 'wake' && (c.state === 'on' || c.state === 'waking'))) {
+      clearTimeout(pending.timer); pending = null;
+      note(c.kind === 'status' ? 'อัปเดตสถานะแล้ว' : 'ได้รับคำสั่งแล้ว ✓', 'ok');
+    }
+  }
+}
+function loadHistory() {
+  return fetch(NTFY + topic + '/json?poll=1&since=6h').then(function (r) { return r.text(); }).then(function (txt) {
+    txt.split('\n').forEach(function (ln) { if (ln.trim()) { try { handle(JSON.parse(ln), false); } catch (e) {} } });
+    setNet(true); render();
+  }).catch(function () { setNet(false); });
+}
+function setNet(ok) { var n = $('net'); n.textContent = ok ? 'เชื่อมต่อแล้ว' : 'ไม่มีเน็ต'; n.className = 'net ' + (ok ? 'ok' : 'no'); }
+function connect() {
+  if (es) { try { es.close(); } catch (e) {} }
+  es = new EventSource(NTFY + topic + '/sse');
+  es.onopen = function () { setNet(true); };
+  es.onerror = function () { if (navigator.onLine === false) setNet(false); };
+  es.onmessage = function (ev) { try { handle(JSON.parse(ev.data), true); render(); } catch (e) {} };
+}
+
+/* ---------- ส่งคำสั่ง ---------- */
+var WAIT_MSG = {
+  wake: ['ส่งคำสั่งปลุกแล้ว รอสักครู่…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่'],
+  sleep: ['ส่งคำสั่ง Sleep แล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
+  shutdown: ['ส่งคำสั่งปิดเครื่องแล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
+  status: ['กำลังเช็คสถานะ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่']
+};
+function send(cmd, quiet) {
+  if (pending) { clearTimeout(pending.timer); pending = null; }
+  if (!quiet) note(WAIT_MSG[cmd][0]);
+  return fetch(NTFY + topic, { method: 'POST', body: cmd }).then(function (r) {
+    if (!r.ok) throw new Error('http ' + r.status);
+    setNet(true);
+    pending = { cmd: cmd, timer: setTimeout(function () {
+      var c = pending && pending.cmd; pending = null;
+      if (c === 'status' || c === 'wake') { state = 'noboard'; render(); }
+      note(WAIT_MSG[cmd][1], 'warn');
+    }, cmd === 'wake' ? 20000 : 14000) };
+  }).catch(function () { setNet(false); note('ส่งไม่ได้ — เช็คเน็ตมือถือแล้วลองใหม่', 'bad'); });
+}
+function askStatus() {
+  var now = Date.now();
+  if (now - lastStatusAsk < 20000) return;
+  lastStatusAsk = now;
+  send('status', true);
+}
+var askCb = null;
+function ask(title, text, yesLabel, danger, cb) {
+  $('askT').textContent = title; $('askP').textContent = text;
+  var y = $('askYes'); y.textContent = yesLabel; y.className = 'yes' + (danger ? ' danger' : '');
+  askCb = cb; $('veil').classList.add('show');
+}
+function closeAsk() { $('veil').classList.remove('show'); askCb = null; }
+
+/* ---------- เริ่มทำงาน ---------- */
+function start() {
+  document.body.classList.remove('needsetup');
+  loadHistory().then(function () { connect(); askStatus(); });
+}
+function init() {
+  var fromHash = pickTopic(decodeURIComponent((location.hash || '').replace(/^#/, '')));
+  if (fromHash) { store(KEY, fromHash); try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  topic = fromHash || pickTopic(store(KEY));
+  if (!topic) { document.body.classList.add('needsetup'); $('net').textContent = ''; return; }
+  start();
+}
+$('setupBtn').onclick = function () {
+  var t = pickTopic($('setupIn').value);
+  if (!t) { $('setupNote').textContent = 'ลิงก์ไม่ถูก — ต้องเป็นลิงก์ที่มี ntfy.sh/… '; $('setupNote').className = 'note bad'; return; }
+  store(KEY, t); topic = t; start();
+};
+$('bWake').onclick = function () { state = state === 'on' ? 'on' : 'waking'; render(); send('wake'); };
+$('bSleep').onclick = function () { ask('สั่งคอม Sleep?', 'คอมจะหลับทันที งานที่เปิดค้างไว้ยังอยู่ ปลุกกลับได้ด้วยปุ่มปลุกคอม', 'Sleep เลย', false, function () { send('sleep'); }); };
+$('bOff').onclick = function () { ask('สั่งปิดเครื่อง?', 'โปรแกรมที่เปิดอยู่จะถูกปิดทั้งหมด งานที่ยังไม่ได้เซฟจะหาย', 'ปิดเครื่อง', true, function () { send('shutdown'); }); };
+$('bCheck').onclick = function () { lastStatusAsk = Date.now(); send('status'); };
+$('askNo').onclick = closeAsk;
+$('veil').onclick = function (e) { if (e.target === $('veil')) closeAsk(); };
+$('askYes').onclick = function () { var cb = askCb; closeAsk(); if (cb) cb(); };
+$('reset').onclick = function () { ask('ตั้งค่าลิงก์ใหม่?', 'จะลบลิงก์ที่จำไว้ในมือถือเครื่องนี้ แล้วให้วางลิงก์ใหม่', 'ลบและตั้งใหม่', true, function () { store(KEY, null); location.reload(); }); };
+document.addEventListener('visibilitychange', function () { if (!document.hidden && topic) { loadHistory().then(function () { connect(); askStatus(); }); } });
+window.addEventListener('online', function () { if (topic) { loadHistory().then(connect); } });
+
+/* ---------- ติดตั้งเป็นไอคอน ---------- */
+var deferred = null;
+var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone;
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; if (!standalone) $('install').classList.add('show'); });
+window.addEventListener('appinstalled', function () { $('install').classList.remove('show'); });
+$('installBtn').onclick = function () { if (deferred) { deferred.prompt(); deferred = null; $('install').classList.remove('show'); } };
+if (!standalone) setTimeout(function () {
+  if (!deferred && topic) { $('installText').textContent = 'เพิ่มเป็นไอคอน: กดปุ่มเมนู ⋮ (หรือ ☰) ของเบราว์เซอร์ → "เพิ่มลงในหน้าจอหลัก" / "ติดตั้งแอป"'; $('installBtn').style.display = 'none'; $('install').classList.add('show'); }
+}, 4000);
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
+init();
+</script>
+</body>
+</html>
