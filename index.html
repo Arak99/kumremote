@@ -10,6 +10,7 @@
     1.2 (26/11/2026) แก้: ข้อความ "ตั้งค่าแล้ว ✓" บางครั้งไม่ขึ้น เพราะการเช็คสถานะอัตโนมัติแทรกระหว่างรอคำตอบ
     1.3 (26/11/2026) แก้: เลื่อนแถบความสว่างแล้วแถบเด้งไปค่าก่อนหน้าชั่วครู่ (คำตอบของค่าก่อนหน้ามาถึงทีหลัง) → ยึดค่าที่เลือกล่าสุดไว้จนบอร์ดตอบตรงกัน,
                      เลื่อนหลายครั้งติดกันจะส่งเฉพาะค่าสุดท้าย
+    1.4 (26/11/2026) แสดงข้อความเรื่องการอัปเดตตัวปลุก (🔧 อัปเดตเรียบร้อย / อัปเดตไม่สำเร็จ ถอยกลับเวอร์ชันเดิม) ในรายการล่าสุด
 -->
 <html lang="th">
 <head>
@@ -174,7 +175,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v1.3 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
+  <footer>KumRemote v1.4 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -216,6 +217,7 @@ function classify(text) {
   if (t.indexOf('⏻') === 0) return { kind: 'ack', cmd: 'shutdown', state: 'shuttingdown' };
   if (t.indexOf('⚡') === 0) return { kind: 'ack', cmd: 'wake', state: 'waking' };
   if (t.indexOf('⚠') === 0) return { kind: 'info', state: 'wakefail' };
+  if (t.indexOf('🔧') === 0) return { kind: 'info' };
   return { kind: 'other' };
 }
 function firstLine(text) { var s = (text || '').trim().split('\n')[0]; return s.length > 70 ? s.slice(0, 69) + '…' : s; }
