@@ -12,18 +12,18 @@
     es     ขนาดตา (1 = ปกติ)        eyeStyle 'white' (ตาขาวลูกตาดำ, ค่าเริ่มต้น) หรือ 'dark' (ตาดำเงา)
     legs   คอลัมน์ของขา [ซ้าย, ขวา]  ใส่ [] = ไม่มีขา (กระโดดดึ๋งๆ แทนการเดิน)
     tail   'devil' = หางลูกศร (ไม่ใส่ก็ได้)
-  ทุกตัวในไฟล์นี้ออกแบบใหม่ทั้งหมดสำหรับร้าน
+  ทุกตัวในไฟล์นี้ออกแบบใหม่ทั้งหมดสำหรับร้าน · ตัวแรกในรายการ = ตัวเริ่มต้น (ตอนนี้: ปีศาจน้อยสีแดง ที่ Arak เลือก)
 */
 window.KUM_CHARACTERS = [
+  { id: 'devil', name: 'ปีศาจน้อยสีแดง',
+    pal: { A: '#ff3b30', B: '#ff9a8f', C: '#ff9f1c', K: '#2a0a08' },
+    legs: [3, 8], eyes: [[2, 4], [7, 4]], es: 1.45,
+    map: ['C..........C', 'CC........CC', '.CC.AAAA.CC.', '..AAAAAAAA..', '.ABBAAAAAAA.', 'ABAAAAAAAAAA', 'AAAAAAAAAAAA', 'AAAAAAAAAAAA', 'AAAKAAAAKAAA', 'AAAAKKKKAAAA', 'AAAAAAAAAAAA', '.AAAAAAAAAA.'] },
   { id: 'pencil', name: 'ดินสอใส่หมวก',
     pal: { A: '#ff3b30', B: '#ff9a8f', D: '#c8241b', H: '#8f1d2c', S: '#ffffff', W: '#f3d19c', G: '#3a3a44', K: '#2a0a08', P: '#ff8fb0' },
     legs: [], eyes: [[3, 6], [7, 6]], es: 1.2,
     map: ['.....SS.....', '....SSSS....', '....HHHH....', '...HHHHHH...', '.HSHSHSHSHH.', '..ABAAAADA..', '..ABAAAADA..', '..ABAAAADA..', '..ABAAAADA..',
           '..APAAAAPA..', '..ABKAAKDA..', '..ABAKKADA..', '..ABAAAADA..', '..WWWWWWWW..', '...WWWWWW...', '....WWWW....', '.....GG.....'] },
-  { id: 'devil', name: 'ปีศาจน้อยสีแดง',
-    pal: { A: '#ff3b30', B: '#ff9a8f', C: '#ff9f1c', K: '#2a0a08' },
-    legs: [3, 8], eyes: [[2, 4], [7, 4]], es: 1.45,
-    map: ['C..........C', 'CC........CC', '.CC.AAAA.CC.', '..AAAAAAAA..', '.ABBAAAAAAA.', 'ABAAAAAAAAAA', 'AAAAAAAAAAAA', 'AAAAAAAAAAAA', 'AAAKAAAAKAAA', 'AAAAKKKKAAAA', 'AAAAAAAAAAAA', '.AAAAAAAAAA.'] },
   { id: 'jelly', name: 'เยลลี่สี่เหลี่ยม',
     pal: { A: '#3d8bff', B: '#8fc0ff', C: '#ff8fb0' },
     legs: [3, 8], eyes: [[3, 3], [7, 3]],
