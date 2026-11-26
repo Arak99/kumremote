@@ -11,6 +11,9 @@
     1.3 (26/11/2026) แก้: เลื่อนแถบความสว่างแล้วแถบเด้งไปค่าก่อนหน้าชั่วครู่ (คำตอบของค่าก่อนหน้ามาถึงทีหลัง) → ยึดค่าที่เลือกล่าสุดไว้จนบอร์ดตอบตรงกัน,
                      เลื่อนหลายครั้งติดกันจะส่งเฉพาะค่าสุดท้าย
     1.4 (26/11/2026) แสดงข้อความเรื่องการอัปเดตตัวปลุก (🔧 อัปเดตเรียบร้อย / อัปเดตไม่สำเร็จ ถอยกลับเวอร์ชันเดิม) ในรายการล่าสุด
+    2.0 (26/11/2026) บอทพิกเซลนูนขยับตามสถานะจริง (bot.js + ตัวละครใน characters.js เลือกได้ในตั้งค่า เพิ่มตัวใหม่ได้ไม่ต้องรื้อ),
+                     ปุ่มไมค์สั่งด้วยเสียงภาษาไทย (voice.js) + บอทพูดตอบ, คำที่ฟังไม่ออกส่งให้ KumCom จดไว้,
+                     แสดงตอน Claude ทำงานบนคอม (🤖), ปุ่ม "อยู่ต่อ" (ไม่ให้คอม Sleep เอง), ตั้งค่า: ตัวละคร / เปิดจอค้าง / บอทพูดตอบ
 -->
 <html lang="th">
 <head>
@@ -28,6 +31,7 @@
     --on:#34d399; --off:#64748b; --warn:#fbbf24; --bad:#f87171; --accent:#38bdf8;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  [hidden]{display:none!important}
   html,body{margin:0;height:100%}
   body{
     background:var(--bg);color:var(--text);
@@ -42,7 +46,29 @@
   header .net.ok::before{content:"● ";color:var(--on)}
   header .net.no::before{content:"● ";color:var(--bad)}
 
-  .status{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 20px;display:flex;gap:16px;align-items:center}
+  .status{background:radial-gradient(120% 90% at 50% 0%,#18233a,var(--card));border:1px solid var(--line);border-radius:22px;padding:10px 12px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
+  #bot{width:100%;aspect-ratio:320/190;display:block;cursor:pointer;image-rendering:pixelated}
+  .status .txt{margin-top:2px}
+  .heard{margin-top:10px;background:#0e1626;border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-size:15px;color:#c9d6ea;max-width:100%}
+  .heard b{color:var(--accent);font-weight:600}
+  .mic{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;border-radius:20px;background:linear-gradient(160deg,#2a1d4d,#1a1f3d);border:1px solid #4b3a86;font-size:19px;font-weight:650}
+  .mic svg{width:26px;height:26px;color:#c08cff}
+  .mic.on{background:linear-gradient(160deg,#5b2fb0,#3a1f7a);border-color:#c08cff;animation:pulse 1.2s ease-in-out infinite}
+  .mic[disabled]{opacity:.5}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .chips button{background:#1b2740;border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-size:15.5px;min-height:44px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .set .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line);font-size:16px;width:100%;background:none;text-align:left}
+  .set .item:first-of-type{border-top:0}
+  .set .knob{width:52px;height:30px;border-radius:30px;background:#33405c;position:relative;flex:none}
+  .set .knob::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+  .set .item[aria-checked=true] .knob{background:var(--on)}
+  .set .item[aria-checked=true] .knob::after{left:25px}
+  .chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:4px 0 10px}
+  .chars button{background:#0e1626;border:2px solid var(--line);border-radius:14px;padding:6px 4px 8px;font-size:13.5px}
+  .chars button[aria-pressed=true]{border-color:var(--accent)}
+  .chars canvas{width:100%;aspect-ratio:150/110;display:block}
+  .sheet .close{width:100%;margin-top:8px;background:#24304a;border-radius:16px;padding:14px;font-size:17px;font-weight:650}
   .lamp{width:58px;height:58px;border-radius:50%;flex:none;background:var(--off);position:relative;transition:background .3s}
   .lamp::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid currentColor;opacity:.28}
   .status[data-s=on] .lamp{background:var(--on);color:var(--on);box-shadow:0 0 26px rgba(52,211,153,.45)}
@@ -122,7 +148,7 @@
   .install{display:none;background:#10263a;border:1px solid #1d4a6b;border-radius:16px;padding:13px 15px;font-size:14.5px;color:#b9dcf5}
   .install.show{display:block}
   .install button{background:var(--accent);color:#04121f;border-radius:12px;padding:10px 14px;font-weight:650;margin-top:9px;width:100%}
-  @media (prefers-reduced-motion:reduce){.lamp{animation:none!important}}
+  @media (prefers-reduced-motion:reduce){.lamp,.mic.on{animation:none!important}}
 </style>
 </head>
 <body>
@@ -144,9 +170,14 @@
     </div>
 
     <section class="status" id="status" data-s="unknown" aria-live="polite">
-      <div class="lamp"></div>
-      <div><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="small" id="small">&nbsp;</div></div>
+      <canvas id="bot" role="img" aria-label="บอทคุมคอม (แตะเพื่อเช็คสถานะ)"></canvas>
+      <div class="txt"><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="small" id="small">&nbsp;</div></div>
+      <div class="heard" id="heard" hidden></div>
     </section>
+    <button class="mic" id="bMic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a.9.9 0 0 0-1.8 0 4.2 4.2 0 0 1-8.4 0 .9.9 0 0 0-1.8 0 6 6 0 0 0 5.1 5.9V20H8.5a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8h-2.6v-2.6a6 6 0 0 0 5.1-5.9z"/></svg><span id="micT">กดแล้วพูดสั่ง</span></button>
+    <div class="chips" id="chips" hidden>
+      <button data-c="wake">ปลุกคอม</button><button data-c="sleep">Sleep</button><button data-c="status">เช็คสถานะ</button><button data-c="stay">อยู่ต่อ</button><button data-c="cancel">ไม่ใช่ทั้งหมด</button>
+    </div>
 
     <section class="grid">
       <button class="act wake" id="bWake">
@@ -159,7 +190,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>ปิดเครื่อง
       </button>
     </section>
-    <button class="check" id="bCheck">เช็คสถานะตอนนี้</button>
+    <div class="row2"><button class="check" id="bCheck">เช็คสถานะ</button><button class="check" id="bStay">อยู่ต่อ (ไม่หลับเอง)</button></div>
     <div class="note" id="note"></div>
 
     <section class="scr unknown" id="scr">
@@ -175,7 +206,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v1.4 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
+  <footer>KumRemote v2.0 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -183,6 +214,19 @@
   <div class="row"><button class="no" id="askNo">ยกเลิก</button><button class="yes" id="askYes">ยืนยัน</button></div>
 </div></div>
 
+<div class="veil" id="setVeil"><div class="sheet set" role="dialog" aria-modal="true" aria-labelledby="setT">
+  <h3 id="setT">ตั้งค่า</h3>
+  <p style="margin:0 0 6px">ตัวละคร (แตะเพื่อเลือก)</p>
+  <div class="chars" id="chars"></div>
+  <button class="item" id="swKeep" role="switch" aria-checked="false"><span>เปิดจอค้างไว้<br><small style="color:var(--dim)">จอมือถือไม่ดับเองตอนเปิดหน้านี้ (ควรเสียบชาร์จ)</small></span><span class="knob"></span></button>
+  <button class="item" id="swSpeak" role="switch" aria-checked="true"><span>บอทพูดตอบ</span><span class="knob"></span></button>
+  <button class="item" id="reset"><span>ตั้งค่าลิงก์ใหม่</span><span style="color:var(--dim)">›</span></button>
+  <button class="close" id="setClose">เสร็จ</button>
+</div></div>
+
+<script src="characters.js"></script>
+<script src="bot.js"></script>
+<script src="voice.js"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -202,13 +246,18 @@ function pickTopic(s) {
 function hhmm(t) { var d = new Date(t * 1000); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
 
 /* ---------- แปลข้อความจากบอร์ด / คอม ---------- */
-var CMDS = { wake: ['wake', 'ปลุก', 'ปลุกคอม', '/wake'], sleep: ['sleep', 'สลีป', 'หลับ'], shutdown: ['shutdown', 'ปิดเครื่อง', 'ปิดคอม'], status: ['status', 'สถานะ', '/status'] };
-var CMD_LABEL = { wake: 'สั่งปลุกคอม', sleep: 'สั่ง Sleep', shutdown: 'สั่งปิดเครื่อง', status: 'ขอสถานะ', screen: 'ตั้งค่าจอ' };
+var CMDS = { wake: ['wake', 'ปลุก', 'ปลุกคอม', '/wake'], sleep: ['sleep', 'สลีป', 'หลับ'], shutdown: ['shutdown', 'ปิดเครื่อง', 'ปิดคอม'], status: ['status', 'สถานะ', '/status'], stay: ['stay', 'อยู่ต่อ', 'ไม่ต้องหลับ'] };
+var CMD_LABEL = { wake: 'สั่งปลุกคอม', sleep: 'สั่ง Sleep', shutdown: 'สั่งปิดเครื่อง', status: 'ขอสถานะ', screen: 'ตั้งค่าจอ', stay: 'สั่งอยู่ต่อ' };
 function classify(text) {
   var t = (text || '').trim(), low = t.toLowerCase(), k;
   for (k in CMDS) if (CMDS[k].indexOf(low) >= 0) return { kind: 'cmd', cmd: k };
   if (/^(bright|dim) /.test(low)) return { kind: 'cmd', cmd: 'screen' };
   if (t.indexOf('💡') === 0) return { kind: 'ack', cmd: 'screen' };
+  if (t.indexOf('🎤') === 0) return { kind: 'other' };
+  if (t.indexOf('🤖✅') === 0) return { kind: 'claude', claude: 'done' };
+  if (t.indexOf('🤖⚠') === 0) return { kind: 'claude', claude: 'bad' };
+  if (t.indexOf('🤖') === 0) return { kind: 'claude', claude: 'work' };
+  if (t.indexOf('🖥') === 0 && t.indexOf('อยู่ต่อ') >= 0) return { kind: 'ack', cmd: 'stay', state: 'on' };
   var has = function (s) { return t.indexOf(s) >= 0; };
   if (t.indexOf('📡') === 0 || t.indexOf('🔌') === 0) return { kind: 'status', state: has('⚡ กำลังปลุก') ? 'waking' : has('🟢') ? 'on' : has('⚫') ? 'off' : null };
   if (t.indexOf('✅') === 0 || t.indexOf('🟢') === 0 || t.indexOf('🖥') === 0) return { kind: 'info', state: 'on' };
@@ -235,7 +284,11 @@ function render() {
   var small = stateAt ? 'ข้อมูลเมื่อ ' + hhmm(stateAt) : ' ';
   if (state === 'wakefail') small = 'เช็คว่าคอมเสียบสายแลนและมีไฟเข้า แล้วลองอีกครั้ง';
   if (state === 'noboard') small = 'เช็คว่าบอร์ดตัวปลุกมีไฟ และต่อ WiFi ร้านอยู่';
+  // Claude ทำงานบนคอม: ทับข้อความหลักชั่วคราว
+  var cl = claudeNow();
+  if (cl) { $('big').textContent = cl.mode === 'work' ? 'Claude กำลังทำงาน' : cl.mode === 'done' ? 'Claude ทำงานเสร็จ ✓' : 'งานของ Claude ไม่สำเร็จ'; small = cl.title; }
   $('small').textContent = small;
+  updateBot();
   var ul = $('log'); ul.textContent = '';
   var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && (m.c.cmd === 'status' || m.c.cmd === 'screen')) && m.c.kind !== 'other'; }).slice(-8).reverse();
   if (!list.length) { var e = document.createElement('li'); e.className = 'empty'; e.textContent = 'ยังไม่มีเหตุการณ์'; ul.appendChild(e); }
@@ -265,6 +318,7 @@ function handle(m, live) {
   msgs.push({ t: m.time, text: m.message, c: c });
   if (msgs.length > 60) msgs.shift();
   if (c.state && m.time >= stateAt) { state = c.state; stateAt = m.time; }
+  if (c.kind === 'claude' && m.time >= claude.at) { claude = { mode: c.claude, at: m.time, title: firstLine((m.message || '').replace(/^🤖(✅|⚠️?)?\s*/, '')) }; if (live && c.claude !== 'work') speak(c.claude === 'done' ? 'เสร็จแล้ว' : 'งานไม่สำเร็จ'); }
   var sm = /💡[^\n]*?(\d+)%[^\n]*?หรี่เอง:\s*(เปิด|ปิด)/.exec(m.message || '');
   if (sm && m.time >= scrAt) { scr = { bri: +sm[1], dim: sm[2] === 'เปิด' }; scrAt = m.time; if (want.bri === scr.bri) want.bri = null; if (want.dim === scr.dim) want.dim = null; }
   if (live && pending) {
@@ -296,6 +350,7 @@ var WAIT_MSG = {
   sleep: ['ส่งคำสั่ง Sleep แล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
   shutdown: ['ส่งคำสั่งปิดเครื่องแล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
   status: ['กำลังเช็คสถานะ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่'],
+  stay: ['บอกคอมว่าอยู่ต่อ…', 'คอมไม่ตอบ — คอมอาจหลับอยู่ (ปลุกก่อน)'],
   screen: ['กำลังตั้งค่าจอ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่ (ต้องเป็น KumWake v1.8 ขึ้นไป)']
 };
 function send(cmd, quiet, body) {
@@ -354,12 +409,113 @@ $('bri').onchange = function () {
 };
 $('dimSw').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); want.dim = on; holdNow(); send('screen', false, 'dim ' + (on ? 'on' : 'off')); };
 $('bCheck').onclick = function () { lastStatusAsk = Date.now(); send('status'); };
+$('bStay').onclick = function () { send('stay'); };
 $('askNo').onclick = closeAsk;
 $('veil').onclick = function (e) { if (e.target === $('veil')) closeAsk(); };
 $('askYes').onclick = function () { var cb = askCb; closeAsk(); if (cb) cb(); };
-$('reset').onclick = function () { ask('ตั้งค่าลิงก์ใหม่?', 'จะลบลิงก์ที่จำไว้ในมือถือเครื่องนี้ แล้วให้วางลิงก์ใหม่', 'ลบและตั้งใหม่', true, function () { store(KEY, null); location.reload(); }); };
+$('reset').onclick = function () { closeSet(); ask('ตั้งค่าลิงก์ใหม่?', 'จะลบลิงก์ที่จำไว้ในมือถือเครื่องนี้ แล้วให้วางลิงก์ใหม่', 'ลบและตั้งใหม่', true, function () { store(KEY, null); location.reload(); }); };
 document.addEventListener('visibilitychange', function () { if (!document.hidden && topic) { loadHistory().then(function () { connect(); askStatus(); }); } });
 window.addEventListener('online', function () { if (topic) { loadHistory().then(connect); } });
+
+/* ---------- บอท ---------- */
+var CHAR_KEY = 'kumremote_char', claude = { mode: null, at: 0, title: '' }, listening = false, moodHold = null;
+var bot = window.KumBot ? KumBot.create($('bot'), { character: store(CHAR_KEY) }) : null;
+function claudeNow() {
+  if (!claude.mode) return null;
+  var age = Date.now() / 1000 - claude.at;
+  if (claude.mode === 'work' && age < 20 * 60) return claude;
+  if (claude.mode !== 'work' && age < 12) return claude;
+  return null;
+}
+var MOOD = { on: 'on', off: 'sleep', waking: 'waking', sleeping: 'sleep', shuttingdown: 'sleep', wakefail: 'bad', noboard: 'bad', unknown: 'waking' };
+function updateBot() {
+  if (!bot) return;
+  var m = MOOD[state] || 'waking', cl = claudeNow();
+  if (cl && state !== 'off') m = cl.mode;
+  if (moodHold && Date.now() < moodHold.until) m = moodHold.mood;
+  if (listening) m = 'listen';
+  bot.setMood(m); bot.redraw();
+}
+function holdMood(m, ms) { moodHold = { mood: m, until: Date.now() + ms }; updateBot(); setTimeout(updateBot, ms + 50); }
+setInterval(function () { if (claude.mode) render(); }, 5000);
+$('bot').onclick = function () { if (bot) bot.poke(); lastStatusAsk = 0; askStatus(); };
+
+/* ---------- สั่งด้วยเสียง ---------- */
+var SPEAK_KEY = 'kumremote_speak';
+function speak(t) { if (store(SPEAK_KEY) !== '0' && window.KumVoice) KumVoice.say(t); }
+function heard(html) { var h = $('heard'); if (!html) { h.hidden = true; return; } h.hidden = false; h.innerHTML = html; }
+function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+function curBri() { var hold = Date.now() - want.t < HOLD; return (hold && want.bri !== null) ? want.bri : (scr ? scr.bri : 100); }
+function setBri(v) { v = Math.max(10, Math.min(100, v)); want.bri = v; holdNow(); $('bri').value = v; $('briVal').textContent = v + '%'; send('screen', false, 'bright ' + v); }
+var SAY = { wake: 'ปลุกคอมให้แล้ว', status: 'กำลังเช็คให้', stay: 'โอเค คอมจะยังไม่หลับ', bright: 'ปรับจอให้แล้ว', dim: 'ตั้งให้แล้ว' };
+function doCmd(cmd, value) {
+  $('chips').hidden = true;
+  if (cmd === 'wake') { $('bWake').onclick(); speak(SAY.wake); }
+  else if (cmd === 'sleep') { speak('จะให้คอม Sleep ใช่ไหม'); $('bSleep').onclick(); }
+  else if (cmd === 'shutdown') { speak('จะปิดเครื่องใช่ไหม'); $('bOff').onclick(); }
+  else if (cmd === 'status') { lastStatusAsk = Date.now(); send('status'); speak(SAY.status); }
+  else if (cmd === 'stay') { send('stay'); speak(SAY.stay); }
+  else if (cmd === 'bright') { setBri(value); speak('ความสว่าง ' + value + ' เปอร์เซ็นต์'); }
+  else if (cmd === 'brighter') { setBri(curBri() + 20); speak('สว่างขึ้นแล้ว'); }
+  else if (cmd === 'dimmer') { setBri(curBri() - 20); speak('หรี่ลงแล้ว'); }
+  else if (cmd === 'dim') { $('dimSw').setAttribute('aria-checked', value ? 'false' : 'true'); $('dimSw').onclick(); speak(value ? 'เปิดหรี่เองแล้ว' : 'ปิดหรี่เองแล้ว'); }
+  else if (cmd === 'help') {
+    heard('ลองพูดว่า: <b>ปลุกคอม</b> · <b>ให้คอมหลับ</b> · <b>คอมเปิดอยู่ไหม</b> · <b>อยู่ต่อ</b> · <b>ความสว่างห้าสิบ</b> · <b>หรี่จอ</b> · <b>ปิดเครื่อง</b>');
+    speak('ลองพูดว่า ปลุกคอม ให้คอมหลับ หรือ คอมเปิดอยู่ไหม');
+  }
+}
+var LABEL_TH = { wake: 'ปลุกคอม', sleep: 'Sleep', shutdown: 'ปิดเครื่อง', status: 'เช็คสถานะ', stay: 'อยู่ต่อ', bright: 'ปรับความสว่าง', brighter: 'จอสว่างขึ้น', dimmer: 'หรี่จอ', dim: 'หรี่เอง', help: 'ดูคำสั่ง' };
+$('bMic').onclick = function () {
+  if (listening) { KumVoice.stop(); return; }
+  if (!window.KumVoice || !KumVoice.supported) { heard('มือถือ/เบราว์เซอร์นี้ฟังเสียงไม่ได้ — ลองเปิดหน้านี้ด้วย <b>Chrome</b>'); return; }
+  listening = true; $('bMic').classList.add('on'); $('micT').textContent = 'กำลังฟัง… (แตะอีกครั้งเพื่อหยุด)';
+  heard('พูดได้เลย เช่น <b>ปลุกคอม</b>'); $('chips').hidden = true; updateBot();
+  KumVoice.listen({
+    onInterim: function (t) { heard('ได้ยินว่า: <b>' + esc(t) + '</b>'); },
+    onFinal: function (t, intent, silent) {
+      listening = false; updateBot();
+      if (silent || !t) { heard('ไม่ได้ยินเสียง — แตะปุ่มแล้วพูดใหม่ได้เลย'); return; }
+      if (intent) { heard('ได้ยินว่า: <b>' + esc(t) + '</b> → ' + LABEL_TH[intent.cmd] + (intent.value !== undefined && intent.cmd === 'bright' ? ' ' + intent.value + '%' : '')); if (bot) bot.poke(); doCmd(intent.cmd, intent.value); return; }
+      heard('ได้ยินว่า: <b>' + esc(t) + '</b> — ไม่แน่ใจว่าหมายถึงอันไหน เลือกให้หน่อย');
+      $('chips').hidden = false; holdMood('bad', 3500); speak('ไม่แน่ใจ หมายถึงอันไหน');
+      if (topic) fetch(NTFY + topic, { method: 'POST', body: '🎤? ' + t }).catch(function () {});   // ให้ KumCom จดคำที่ฟังไม่ออก
+    },
+    onError: function (e) {
+      listening = false; updateBot();
+      heard(e === 'not-allowed' || e === 'service-not-allowed' ? 'มือถือไม่อนุญาตให้ใช้ไมค์ — กดอนุญาตไมค์ให้เว็บนี้ แล้วลองใหม่' :
+            e === 'network' ? 'ฟังเสียงต้องใช้เน็ต — เช็คเน็ตแล้วลองใหม่' : e === 'no-speech' ? 'ไม่ได้ยินเสียง — แตะปุ่มแล้วพูดใหม่ได้เลย' : 'ฟังไม่สำเร็จ — ลองใหม่อีกครั้ง');
+    },
+    onEnd: function () { listening = false; $('bMic').classList.remove('on'); $('micT').textContent = 'กดแล้วพูดสั่ง'; updateBot(); }
+  });
+};
+$('chips').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; var c = b.getAttribute('data-c'); if (c === 'cancel') { $('chips').hidden = true; heard(''); return; } doCmd(c); };
+
+/* ---------- ตั้งค่า ---------- */
+var KEEP_KEY = 'kumremote_keepon', lock = null;
+function keepOn(on) {
+  if (!on) { if (lock) { try { lock.release(); } catch (e) {} lock = null; } return; }
+  if (navigator.wakeLock && !document.hidden) navigator.wakeLock.request('screen').then(function (l) { lock = l; }).catch(function () {});
+}
+function sw(id, on) { $(id).setAttribute('aria-checked', on ? 'true' : 'false'); }
+function buildChars() {
+  var box = $('chars'), cur = store(CHAR_KEY) || ((window.KUM_CHARACTERS || [])[0] || {}).id; box.textContent = '';
+  (window.KUM_CHARACTERS || []).forEach(function (ch) {
+    var b = document.createElement('button'), cv = document.createElement('canvas'), n = document.createElement('div');
+    b.setAttribute('aria-pressed', ch.id === cur ? 'true' : 'false'); n.textContent = ch.name;
+    b.appendChild(cv); b.appendChild(n); box.appendChild(b);
+    var mini = KumBot.create(cv, { character: ch.id, width: 150, height: 110 }); minis.push(mini);
+    b.onclick = function () { store(CHAR_KEY, ch.id); if (bot) { bot.setCharacter(ch.id); bot.poke(); } for (var i = 0; i < box.children.length; i++) box.children[i].setAttribute('aria-pressed', box.children[i] === b ? 'true' : 'false'); };
+  });
+}
+var minis = [];
+$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); buildChars(); $('setVeil').classList.add('show'); };
+function closeSet() { $('setVeil').classList.remove('show'); minis.forEach(function (m) { m.destroy(); }); minis = []; }
+$('setClose').onclick = closeSet;
+$('setVeil').onclick = function (e) { if (e.target === $('setVeil')) closeSet(); };
+$('swKeep').onclick = function () { var on = store(KEEP_KEY) !== '1'; store(KEEP_KEY, on ? '1' : '0'); sw('swKeep', on); keepOn(on); };
+$('swSpeak').onclick = function () { var on = store(SPEAK_KEY) === '0'; store(SPEAK_KEY, on ? '1' : '0'); sw('swSpeak', on); if (on) speak('บอทพูดตอบแล้ว'); };
+document.addEventListener('visibilitychange', function () { if (!document.hidden && store(KEEP_KEY) === '1') keepOn(true); });
+if (store(KEEP_KEY) === '1') keepOn(true);
 
 /* ---------- ติดตั้งเป็นไอคอน ---------- */
 var deferred = null;
