@@ -6,6 +6,7 @@
   ประวัติเวอร์ชัน
     1.0 (26/11/2026) เวอร์ชันแรก: ปลุกคอม / Sleep / ปิดเครื่อง / เช็คสถานะ, เห็นผลตอบกลับในหน้าเดียว,
                      ถามยืนยันก่อน Sleep และปิดเครื่อง, บันทึกเหตุการณ์ล่าสุด, ติดตั้งเป็นไอคอนบนหน้าจอมือถือได้
+    1.1 (26/11/2026) ตั้งความสว่างจอของตัวปลุกได้: แถบเลื่อน 10–100% + สวิตช์ "หรี่เองเมื่อไม่มีคนแตะ" (ต้องใช้บอร์ด KumWake v1.8 ขึ้นไป)
 -->
 <html lang="th">
 <head>
@@ -64,6 +65,21 @@
   .check{background:transparent;border:1px solid var(--line);border-radius:14px;padding:13px;color:var(--dim);font-size:16px;width:100%}
   .check:active{background:var(--card)}
 
+  .scr{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px 12px}
+  .scr .top{display:flex;justify-content:space-between;align-items:baseline;font-size:15.5px}
+  .scr .top b{font-size:17px;color:var(--warn);font-variant-numeric:tabular-nums}
+  .scr input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:36px;background:transparent;margin:6px 0 2px}
+  .scr input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:8px;background:linear-gradient(90deg,#3b4763,#fbbf24)}
+  .scr input[type=range]::-moz-range-track{height:8px;border-radius:8px;background:linear-gradient(90deg,#3b4763,#fbbf24)}
+  .scr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;margin-top:-10px;box-shadow:0 1px 6px rgba(0,0,0,.5)}
+  .scr input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff}
+  .scr .ends{display:flex;justify-content:space-between;font-size:12.5px;color:var(--dim)}
+  .scr .sw{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:15.5px;width:100%;background:none;text-align:left}
+  .scr .knob{width:52px;height:30px;border-radius:30px;background:#33405c;position:relative;flex:none;transition:background .15s}
+  .scr .knob::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+  .scr .sw[aria-checked=true] .knob{background:var(--on)}
+  .scr .sw[aria-checked=true] .knob::after{left:25px}
+  .scr.unknown input,.scr.unknown .sw{opacity:.5}
   .note{min-height:24px;text-align:center;font-size:15px;color:var(--dim);padding:0 6px}
   .note.ok{color:var(--on)} .note.warn{color:var(--warn)} .note.bad{color:var(--bad)}
 
@@ -142,13 +158,20 @@
     <button class="check" id="bCheck">เช็คสถานะตอนนี้</button>
     <div class="note" id="note"></div>
 
+    <section class="scr unknown" id="scr">
+      <div class="top"><span>ความสว่างจอตัวปลุก</span><b id="briVal">–</b></div>
+      <input type="range" id="bri" min="10" max="100" step="10" value="100" aria-label="ความสว่างจอตัวปลุก">
+      <div class="ends"><span>มืด</span><span>สว่าง</span></div>
+      <button class="sw" id="dimSw" role="switch" aria-checked="true"><span>หรี่เองเมื่อไม่มีคนแตะจอ</span><span class="knob"></span></button>
+    </section>
+
     <section class="log">
       <h2>ล่าสุด</h2>
       <ul id="log"><li class="empty">ยังไม่มีเหตุการณ์</li></ul>
     </section>
   </div>
 
-  <footer>KumRemote v1.0 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
+  <footer>KumRemote v1.1 · <button id="reset">ตั้งค่าลิงก์ใหม่</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -161,6 +184,7 @@
 var NTFY = 'https://ntfy.sh/';
 var KEY = 'kumremote_topic';
 var topic = null, es = null, seen = {}, msgs = [], state = 'unknown', stateAt = 0, pending = null, lastStatusAsk = 0;
+var scr = null, scrAt = 0, sliding = false;   // ค่าจอตัวปลุกล่าสุดที่บอร์ดบอกมา {bri, dim}
 var $ = function (id) { return document.getElementById(id); };
 
 function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
@@ -174,10 +198,12 @@ function hhmm(t) { var d = new Date(t * 1000); return ('0' + d.getHours()).slice
 
 /* ---------- แปลข้อความจากบอร์ด / คอม ---------- */
 var CMDS = { wake: ['wake', 'ปลุก', 'ปลุกคอม', '/wake'], sleep: ['sleep', 'สลีป', 'หลับ'], shutdown: ['shutdown', 'ปิดเครื่อง', 'ปิดคอม'], status: ['status', 'สถานะ', '/status'] };
-var CMD_LABEL = { wake: 'สั่งปลุกคอม', sleep: 'สั่ง Sleep', shutdown: 'สั่งปิดเครื่อง', status: 'ขอสถานะ' };
+var CMD_LABEL = { wake: 'สั่งปลุกคอม', sleep: 'สั่ง Sleep', shutdown: 'สั่งปิดเครื่อง', status: 'ขอสถานะ', screen: 'ตั้งค่าจอ' };
 function classify(text) {
   var t = (text || '').trim(), low = t.toLowerCase(), k;
   for (k in CMDS) if (CMDS[k].indexOf(low) >= 0) return { kind: 'cmd', cmd: k };
+  if (/^(bright|dim) /.test(low)) return { kind: 'cmd', cmd: 'screen' };
+  if (t.indexOf('💡') === 0) return { kind: 'ack', cmd: 'screen' };
   var has = function (s) { return t.indexOf(s) >= 0; };
   if (t.indexOf('📡') === 0 || t.indexOf('🔌') === 0) return { kind: 'status', state: has('⚡ กำลังปลุก') ? 'waking' : has('🟢') ? 'on' : has('⚫') ? 'off' : null };
   if (t.indexOf('✅') === 0 || t.indexOf('🟢') === 0 || t.indexOf('🖥') === 0) return { kind: 'info', state: 'on' };
@@ -205,7 +231,7 @@ function render() {
   if (state === 'noboard') small = 'เช็คว่าบอร์ดตัวปลุกมีไฟ และต่อ WiFi ร้านอยู่';
   $('small').textContent = small;
   var ul = $('log'); ul.textContent = '';
-  var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && m.c.cmd === 'status') && m.c.kind !== 'other'; }).slice(-8).reverse();
+  var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && (m.c.cmd === 'status' || m.c.cmd === 'screen')) && m.c.kind !== 'other'; }).slice(-8).reverse();
   if (!list.length) { var e = document.createElement('li'); e.className = 'empty'; e.textContent = 'ยังไม่มีเหตุการณ์'; ul.appendChild(e); }
   list.forEach(function (m) {
     var li = document.createElement('li'), tm = document.createElement('time'), sp = document.createElement('span');
@@ -213,6 +239,13 @@ function render() {
     if (m.c.kind === 'cmd') { sp.className = 'me'; sp.textContent = CMD_LABEL[m.c.cmd]; } else sp.textContent = firstLine(m.text);
     li.appendChild(tm); li.appendChild(sp); ul.appendChild(li);
   });
+}
+function renderScr() {
+  var box = $('scr');
+  if (!scr) { box.classList.add('unknown'); $('briVal').textContent = '–'; return; }
+  box.classList.remove('unknown');
+  if (!sliding) { $('bri').value = scr.bri; $('briVal').textContent = scr.bri + '%'; }
+  $('dimSw').setAttribute('aria-checked', scr.dim ? 'true' : 'false');
 }
 function note(text, cls) { var n = $('note'); n.textContent = text || ''; n.className = 'note' + (cls ? ' ' + cls : ''); }
 
@@ -224,18 +257,20 @@ function handle(m, live) {
   msgs.push({ t: m.time, text: m.message, c: c });
   if (msgs.length > 60) msgs.shift();
   if (c.state && m.time >= stateAt) { state = c.state; stateAt = m.time; }
+  var sm = /💡[^\n]*?(\d+)%[^\n]*?หรี่เอง:\s*(เปิด|ปิด)/.exec(m.message || '');
+  if (sm && m.time >= scrAt) { scr = { bri: +sm[1], dim: sm[2] === 'เปิด' }; scrAt = m.time; }
   if (live && pending) {
     if ((c.kind === 'ack' && c.cmd === pending.cmd) || (pending.cmd === 'status' && c.kind === 'status') ||
         (pending.cmd === 'wake' && (c.state === 'on' || c.state === 'waking'))) {
       clearTimeout(pending.timer); pending = null;
-      note(c.kind === 'status' ? 'อัปเดตสถานะแล้ว' : 'ได้รับคำสั่งแล้ว ✓', 'ok');
+      note(c.kind === 'status' ? 'อัปเดตสถานะแล้ว' : c.cmd === 'screen' ? 'ตั้งค่าจอแล้ว ✓' : 'ได้รับคำสั่งแล้ว ✓', 'ok');
     }
   }
 }
 function loadHistory() {
   return fetch(NTFY + topic + '/json?poll=1&since=6h').then(function (r) { return r.text(); }).then(function (txt) {
     txt.split('\n').forEach(function (ln) { if (ln.trim()) { try { handle(JSON.parse(ln), false); } catch (e) {} } });
-    setNet(true); render();
+    setNet(true); render(); renderScr();
   }).catch(function () { setNet(false); });
 }
 function setNet(ok) { var n = $('net'); n.textContent = ok ? 'เชื่อมต่อแล้ว' : 'ไม่มีเน็ต'; n.className = 'net ' + (ok ? 'ok' : 'no'); }
@@ -244,7 +279,7 @@ function connect() {
   es = new EventSource(NTFY + topic + '/sse');
   es.onopen = function () { setNet(true); };
   es.onerror = function () { if (navigator.onLine === false) setNet(false); };
-  es.onmessage = function (ev) { try { handle(JSON.parse(ev.data), true); render(); } catch (e) {} };
+  es.onmessage = function (ev) { try { handle(JSON.parse(ev.data), true); render(); renderScr(); } catch (e) {} };
 }
 
 /* ---------- ส่งคำสั่ง ---------- */
@@ -252,17 +287,19 @@ var WAIT_MSG = {
   wake: ['ส่งคำสั่งปลุกแล้ว รอสักครู่…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่'],
   sleep: ['ส่งคำสั่ง Sleep แล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
   shutdown: ['ส่งคำสั่งปิดเครื่องแล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
-  status: ['กำลังเช็คสถานะ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่']
+  status: ['กำลังเช็คสถานะ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่'],
+  screen: ['กำลังตั้งค่าจอ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่ (ต้องเป็น KumWake v1.8 ขึ้นไป)']
 };
-function send(cmd, quiet) {
+function send(cmd, quiet, body) {
   if (pending) { clearTimeout(pending.timer); pending = null; }
   if (!quiet) note(WAIT_MSG[cmd][0]);
-  return fetch(NTFY + topic, { method: 'POST', body: cmd }).then(function (r) {
+  return fetch(NTFY + topic, { method: 'POST', body: body || cmd }).then(function (r) {
     if (!r.ok) throw new Error('http ' + r.status);
     setNet(true);
     pending = { cmd: cmd, timer: setTimeout(function () {
       var c = pending && pending.cmd; pending = null;
       if (c === 'status' || c === 'wake') { state = 'noboard'; render(); }
+      if (c === 'screen') { renderScr(); }
       note(WAIT_MSG[cmd][1], 'warn');
     }, cmd === 'wake' ? 20000 : 14000) };
   }).catch(function () { setNet(false); note('ส่งไม่ได้ — เช็คเน็ตมือถือแล้วลองใหม่', 'bad'); });
@@ -301,6 +338,9 @@ $('setupBtn').onclick = function () {
 $('bWake').onclick = function () { state = state === 'on' ? 'on' : 'waking'; render(); send('wake'); };
 $('bSleep').onclick = function () { ask('สั่งคอม Sleep?', 'คอมจะหลับทันที งานที่เปิดค้างไว้ยังอยู่ ปลุกกลับได้ด้วยปุ่มปลุกคอม', 'Sleep เลย', false, function () { send('sleep'); }); };
 $('bOff').onclick = function () { ask('สั่งปิดเครื่อง?', 'โปรแกรมที่เปิดอยู่จะถูกปิดทั้งหมด งานที่ยังไม่ได้เซฟจะหาย', 'ปิดเครื่อง', true, function () { send('shutdown'); }); };
+$('bri').oninput = function () { sliding = true; $('briVal').textContent = this.value + '%'; };
+$('bri').onchange = function () { sliding = false; var v = +this.value; if (scr) scr.bri = v; $('briVal').textContent = v + '%'; send('screen', false, 'bright ' + v); };
+$('dimSw').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); if (scr) scr.dim = on; send('screen', false, 'dim ' + (on ? 'on' : 'off')); };
 $('bCheck').onclick = function () { lastStatusAsk = Date.now(); send('status'); };
 $('askNo').onclick = closeAsk;
 $('veil').onclick = function (e) { if (e.target === $('veil')) closeAsk(); };
