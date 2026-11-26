@@ -14,6 +14,7 @@
     2.0 (26/11/2026) บอทพิกเซลนูนขยับตามสถานะจริง (bot.js + ตัวละครใน characters.js เลือกได้ในตั้งค่า เพิ่มตัวใหม่ได้ไม่ต้องรื้อ),
                      ปุ่มไมค์สั่งด้วยเสียงภาษาไทย (voice.js) + บอทพูดตอบ, คำที่ฟังไม่ออกส่งให้ KumCom จดไว้,
                      แสดงตอน Claude ทำงานบนคอม (🤖), ปุ่ม "อยู่ต่อ" (ไม่ให้คอม Sleep เอง), ตั้งค่า: ตัวละคร / เปิดจอค้าง / บอทพูดตอบ
+                     เลือกตัวละครแล้วจอบอร์ดตัวปลุก (KumWake v2.0) เปลี่ยนตามด้วย
 -->
 <html lang="th">
 <head>
@@ -253,7 +254,7 @@ function classify(text) {
   for (k in CMDS) if (CMDS[k].indexOf(low) >= 0) return { kind: 'cmd', cmd: k };
   if (/^(bright|dim) /.test(low)) return { kind: 'cmd', cmd: 'screen' };
   if (t.indexOf('💡') === 0) return { kind: 'ack', cmd: 'screen' };
-  if (t.indexOf('🎤') === 0) return { kind: 'other' };
+  if (t.indexOf('🎤') === 0 || t.indexOf('🎨') === 0 || /^char /.test(low)) return { kind: 'other' };
   if (t.indexOf('🤖✅') === 0) return { kind: 'claude', claude: 'done' };
   if (t.indexOf('🤖⚠') === 0) return { kind: 'claude', claude: 'bad' };
   if (t.indexOf('🤖') === 0) return { kind: 'claude', claude: 'work' };
@@ -504,7 +505,7 @@ function buildChars() {
     b.setAttribute('aria-pressed', ch.id === cur ? 'true' : 'false'); n.textContent = ch.name;
     b.appendChild(cv); b.appendChild(n); box.appendChild(b);
     var mini = KumBot.create(cv, { character: ch.id, width: 150, height: 110 }); minis.push(mini);
-    b.onclick = function () { store(CHAR_KEY, ch.id); if (bot) { bot.setCharacter(ch.id); bot.poke(); } for (var i = 0; i < box.children.length; i++) box.children[i].setAttribute('aria-pressed', box.children[i] === b ? 'true' : 'false'); };
+    b.onclick = function () { store(CHAR_KEY, ch.id); if (bot) { bot.setCharacter(ch.id); bot.poke(); } if (topic) fetch(NTFY + topic, { method: 'POST', body: 'char ' + ch.id }).catch(function () {}); for (var i = 0; i < box.children.length; i++) box.children[i].setAttribute('aria-pressed', box.children[i] === b ? 'true' : 'false'); };
   });
 }
 var minis = [];
