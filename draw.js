@@ -181,6 +181,9 @@
     var lb2 = el('label', 'opt'); X.autosend = el('input'); X.autosend.type = 'checkbox'; X.autosend.checked = true; lb2.appendChild(X.autosend); lb2.appendChild(document.createTextNode('ทำจากรูป: แปลงเสร็จแล้วบันทึก + ส่งขึ้นบอร์ดให้เลย')); op.appendChild(lb2);
     X.delRow = el('div', 'orow'); X.delRow.appendChild(el('span', '', 'ลบตัวนี้ออกจากมือถือ'));
     X.bDel = el('button', 'mini danger', 'ลบตัวนี้'); X.bDel.onclick = doDelete; X.delRow.appendChild(X.bDel); op.appendChild(X.delRow);
+    // v2.19 จำว่ากาง/หุบ "ตัวเลือกเพิ่มเติม" ไว้ (เปิดครั้งหน้า/รีเฟรช อยู่แบบเดิม)
+    try { det.open = localStorage.getItem('kumremote_drawopts') === '1'; } catch (e) {}
+    det.addEventListener('toggle', function () { try { localStorage.setItem('kumremote_drawopts', det.open ? '1' : '0'); } catch (e) {} });
     sh.appendChild(det);
     // แถบบันทึกติดล่าง
     X.msg = el('div', 'msg'); X.msg.setAttribute('aria-live', 'polite');
