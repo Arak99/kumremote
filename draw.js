@@ -5,6 +5,7 @@
   ตัวละครที่วาดเอง เก็บใน localStorage 'kumremote_customchars' และถูกเติมเข้า window.KUM_CHARACTERS ตอนโหลดไฟล์นี้ (โหลดหลัง characters.js ก่อนบอท)
   ข้อความที่ส่งให้บอร์ด (ntfy):  charset {"id":"c_ab12","n":"ชื่อ","p":{"A":"#ff3b30",...},"m":["แถว12ตัวอักษร",...],"e":[[3,4],[7,4]],"s":1.2,"l":[3,8]}  (≤ 4KB, ใช้เฉพาะสีที่ใช้จริง)
   ประวัติ: 1.0 (26/11/2026) เวอร์ชันแรก
+          1.5 (27/11/2026) เลือกความละเอียดรูปได้: สูงมาก 32×32 (ค่าเริ่มต้น) หรือ 24×24 (32×32 ต้อง KumWake v2.10)
           1.4 (27/11/2026) หน้าครอบรูปจัดรูปให้เองอัตโนมัติ (หากรอบตัวละคร ซูม+เลื่อนให้เต็มกรอบ; ลากปรับต่อได้) · แปลงรูปใช้สีที่พบมากสุดในแต่ละช่อง (คมกว่า ไม่เลอะที่ขอบ)
           1.3 (27/11/2026) ตาจากรูปที่ขยับได้: กรอบตา (🔲) → บอร์ดตัดตาในรูปไปกะพริบ/เลื่อนมอง (ต้อง KumWake v2.8) · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ
           1.2 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ปิดตาของระบบ → ส่ง e:[] ให้บอร์ด; ต้อง KumWake v2.6) ทั้งตอนครอบรูปและปุ่มสลับในหน้าวาด
@@ -16,7 +17,7 @@
   var DEFPAL = ['#ff3b30', '#ff9f1c', '#ffd60a', '#34c759', '#14b8a6', '#3d8bff', '#7c5cff', '#ff6fa8', '#ffffff', '#c9d1dc', '#5b6678', '#1b1f2a', '#7a4e2d', '#f3d19c', '#ffb3a3', '#8fe3ff'];
   var PAL = DEFPAL.slice();
   var LET = 'ABCDEFGHIJKLMNOP', zoomed = false;
-  function sizes() { return N > 12 ? [['เล็ก', 1.5], ['กลาง', 2], ['ใหญ่', 2.5]] : [['เล็ก', 1], ['กลาง', 1.25], ['ใหญ่', 1.5]]; }
+  function sizes() { return N > 24 ? [['เล็ก', 2], ['กลาง', 2.5], ['ใหญ่', 3]] : N > 12 ? [['เล็ก', 1.5], ['กลาง', 2], ['ใหญ่', 2.5]] : [['เล็ก', 1], ['กลาง', 1.25], ['ใหญ่', 1.5]]; }
   var api = {}, st = null, undo = [], opts = null, root = null, preview = null, painting = false, lastCell = '', boxStart = null, boxIdx = 0, boxNext = 0;
 
   // ---------- เก็บ/โหลด ----------
@@ -234,6 +235,7 @@
       var cv = el('canvas', 'cropcv'); cv.width = cv.height = S; cv.setAttribute('aria-label', 'กรอบครอบรูป ลากเพื่อเลื่อนรูป'); sh.appendChild(cv);
       var zr = el('input', 'zr'); zr.type = 'range'; zr.min = 30; zr.max = 500; zr.value = 100; zr.setAttribute('aria-label', 'ซูมรูป'); sh.appendChild(zr);
       var lb = el('label', 'opt'), cb = el('input'); cb.type = 'checkbox'; cb.checked = X.nobg.checked; lb.appendChild(cb); lb.appendChild(document.createTextNode('ลบพื้นหลังให้ (ใช้ได้ดีกับรูปที่พื้นหลังสีเรียบ)')); sh.appendChild(lb);
+      var lbr = el('label', 'opt'), rs = el('select'); [['32', 'ความละเอียด: สูงมาก 32×32 ช่อง (ละเอียดที่สุด)'], ['24', 'ความละเอียด: 24×24 ช่อง (มาตรฐาน)']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; rs.appendChild(op); }); lbr.appendChild(rs); sh.appendChild(lbr);
       var lb3 = el('label', 'opt'), cb3 = el('select'); [['0', 'ตา: ระบบวาดตาให้ (กะพริบ/เหลือบมอง)'], ['1', 'ตา: ใช้ตาในรูป (อยู่นิ่ง)'], ['2', 'ตา: ใช้ตาในรูป + ให้ขยับได้ (ลากกรอบตาปรับได้)']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; cb3.appendChild(op); }); lb3.appendChild(cb3); sh.appendChild(lb3);
       var row = el('div', 'bot2'), ok = el('button', 'save', 'ใช้รูปนี้'), no = el('button', 'cancel', 'ยกเลิก'); row.appendChild(ok); row.appendChild(no); sh.appendChild(row);
       ov.appendChild(sh); root.appendChild(ov); ov.classList.add('show');
@@ -272,8 +274,8 @@
       no.onclick = done;
       ok.onclick = function () {
         X.nobg.checked = cb.checked;
-        var HR = 24 * 8, hc = document.createElement('canvas'); hc.width = hc.height = HR; var g = hc.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; paint(g, HR);
-        var info = cornerInfo(img); info.hasEyes = +cb3.value; done(); convert(hc, info, file.name || '');
+        var RES = +rs.value, HR = RES * 8, hc = document.createElement('canvas'); hc.width = hc.height = HR; var g = hc.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; paint(g, HR);
+        var info = cornerInfo(img); info.hasEyes = +cb3.value; info.res = RES; done(); convert(hc, info, file.name || '');
       };
       show();
     };
@@ -281,7 +283,7 @@
   }
   function convert(hc, info, fname) {
     msg('กำลังแปลงรูป…');
-    st = blank(24); undo = []; X.name.value = '';   // รูปใหม่ = ตัวละครใหม่เสมอ (ไม่ทับตัวเดิม)
+    st = blank(info.res || 24); undo = []; X.name.value = '';   // รูปใหม่ = ตัวละครใหม่เสมอ (ไม่ทับตัวเดิม)
     var Z = N * 4, c2 = document.createElement('canvas'); c2.width = c2.height = Z; var g2 = c2.getContext('2d', { willReadFrequently: true });
     g2.imageSmoothingEnabled = true; g2.imageSmoothingQuality = 'high'; g2.drawImage(hc, 0, 0, Z, Z);
     var d = g2.getImageData(0, 0, Z, Z).data, px = [], empty = [], i, j, u, v;
@@ -309,6 +311,14 @@
         q.push([p[0] + 1, p[1]], [p[0] - 1, p[1]], [p[0], p[1] + 1], [p[0], p[1] - 1]);
       }
     }
+    if (X.nobg.checked && info.alpha > 200) {   // v1.5 ตัดช่องสีเทาจางๆ ที่ติดขอบพื้นหลัง (เศษขอบรูป) 1 รอบ
+      var rm = [];
+      for (j = 0; j < N; j++) for (i = 0; i < N; i++) {
+        if (empty[j][i] || dist(px[j][i], info.bg) > 2 * 105 * 105) continue;
+        if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (q) { var a = i + q[0], b = j + q[1]; return a < 0 || b < 0 || a >= N || b >= N || empty[b][a]; })) rm.push([i, j]);
+      }
+      rm.forEach(function (q) { empty[q[1]][q[0]] = true; });
+    }
     var cols = [], cnt = 0; for (j = 0; j < N; j++) for (i = 0; i < N; i++) if (!empty[j][i]) { cols.push(px[j][i]); cnt++; }
     if (!cnt) { msg('แปลงแล้วไม่เหลือพิกเซลเลย ลองจัดรูปใหม่ หรือปิดตัวเลือก "ลบพื้นหลัง"', 'bad'); upd(); return; }
     // พาเลตของตัวนี้ = สีหลักของรูป (สูงสุด 12 สี) + ขาว/ดำเข้ม + เติมสีมาตรฐานจนครบ 16
@@ -325,7 +335,7 @@
     // ใส่ตาให้เองบริเวณ 1/3 บนของตัว (แก้ได้ด้วยเครื่องมือ "วางตา")
     var top = N, bot = -1, l = N, r = -1; for (j = 0; j < N; j++) for (i = 0; i < N; i++) if (st.grid[j][i] !== '.') { top = Math.min(top, j); bot = Math.max(bot, j); l = Math.min(l, i); r = Math.max(r, i); }
     var ey = Math.min(N - 2, top + Math.max(1, Math.round((bot - top) * .3))), mid = (l + r) / 2, sp = Math.max(3, Math.round((r - l) * .2));
-    st.eyes = [[Math.max(0, Math.min(N - 2, Math.round(mid - sp - 1))), ey], [Math.max(0, Math.min(N - 2, Math.round(mid + sp - 1))), ey]]; st.hasLegs = false; st.es = 2; st.noEyes = info.hasEyes > 0; st.ec = info.hasEyes === 2 ? defaultBoxes() : []; if (info.hasEyes === 2) st.tool = 'ebox';
+    st.eyes = [[Math.max(0, Math.min(N - 2, Math.round(mid - sp - 1))), ey], [Math.max(0, Math.min(N - 2, Math.round(mid + sp - 1))), ey]]; st.hasLegs = false; st.es = N > 24 ? 2.5 : 2; st.noEyes = info.hasEyes > 0; st.ec = info.hasEyes === 2 ? defaultBoxes() : []; if (info.hasEyes === 2) st.tool = 'ebox';
     if (!st.name) { st.name = fname.replace(/\.[^.]+$/, '').slice(0, 24); X.name.value = st.name; }
     msg('แปลงรูปเสร็จแล้ว — ปรับสี/ตาต่อได้เลย', 'ok'); upd();
     if (X.autosend && X.autosend.checked) doSave(true);
