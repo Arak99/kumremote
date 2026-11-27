@@ -5,6 +5,7 @@
   ตัวละครที่วาดเอง เก็บใน localStorage 'kumremote_customchars' และถูกเติมเข้า window.KUM_CHARACTERS ตอนโหลดไฟล์นี้ (โหลดหลัง characters.js ก่อนบอท)
   ข้อความที่ส่งให้บอร์ด (ntfy):  charset {"id":"c_ab12","n":"ชื่อ","p":{"A":"#ff3b30",...},"m":["แถว12ตัวอักษร",...],"e":[[3,4],[7,4]],"s":1.2,"l":[3,8]}  (≤ 4KB, ใช้เฉพาะสีที่ใช้จริง)
   ประวัติ: 1.0 (26/11/2026) เวอร์ชันแรก
+          1.4 (27/11/2026) หน้าครอบรูปจัดรูปให้เองอัตโนมัติ (หากรอบตัวละคร ซูม+เลื่อนให้เต็มกรอบ; ลากปรับต่อได้) · แปลงรูปใช้สีที่พบมากสุดในแต่ละช่อง (คมกว่า ไม่เลอะที่ขอบ)
           1.3 (27/11/2026) ตาจากรูปที่ขยับได้: กรอบตา (🔲) → บอร์ดตัดตาในรูปไปกะพริบ/เลื่อนมอง (ต้อง KumWake v2.8) · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ
           1.2 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ปิดตาของระบบ → ส่ง e:[] ให้บอร์ด; ต้อง KumWake v2.6) ทั้งตอนครอบรูปและปุ่มสลับในหน้าวาด
           1.1 (27/11/2026) ตัวละคร 24×24 (ละเอียดขึ้น 4 เท่า; ตัวเก่า 12×12 ยังใช้ได้) · หน้าครอบรูป (ลากเลื่อน/ซูม) ก่อนแปลง · พาเลตสีของตัวละครมาจากสีหลักของรูป (ไม่ตายตัว 16 สี) · ปุ่มซูม/เลื่อนดูตอนระบายมือ · ส่งขึ้นบอร์ดต้อง KumWake v2.5
@@ -237,6 +238,25 @@
       var row = el('div', 'bot2'), ok = el('button', 'save', 'ใช้รูปนี้'), no = el('button', 'cancel', 'ยกเลิก'); row.appendChild(ok); row.appendChild(no); sh.appendChild(row);
       ov.appendChild(sh); root.appendChild(ov); ov.classList.add('show');
       function paint(g, Z) { var k = Math.min(Z / img.width, Z / img.height) * zf, w = img.width * k, h = img.height * k, sc = Z / S; g.drawImage(img, Z / 2 + ox * sc - w / 2, Z / 2 + oy * sc - h / 2, w, h); }
+      // v1.4 จัดรูปให้อัตโนมัติ: หากรอบของตัวละคร (ส่วนที่ไม่ใช่พื้นหลัง) แล้วซูม/เลื่อนให้เต็มกรอบ
+      (function autoFit() {
+        try {
+          var R = 160, c = document.createElement('canvas'); c.width = c.height = R; var g = c.getContext('2d', { willReadFrequently: true });
+          var k0 = Math.min(R / img.width, R / img.height), w0 = img.width * k0, h0 = img.height * k0, X0 = (R - w0) / 2, Y0 = (R - h0) / 2;
+          g.drawImage(img, X0, Y0, w0, h0); var d = g.getImageData(0, 0, R, R).data, info = cornerInfo(img);
+          var l = R, r = -1, t = R, b = -1, x, y, cnt = 0;
+          for (y = 0; y < R; y++) for (x = 0; x < R; x++) {
+            if (x < X0 || x >= X0 + w0 || y < Y0 || y >= Y0 + h0) continue;
+            var o = (y * R + x) * 4, fg = info.alpha < 200 ? d[o + 3] > 40 : (d[o + 3] > 40 && dist([d[o], d[o + 1], d[o + 2]], info.bg) > 2 * 60 * 60 * 2.2);
+            if (fg) { cnt++; if (x < l) l = x; if (x > r) r = x; if (y < t) t = y; if (y > b) b = y; }
+          }
+          if (cnt < 30 || r < l || b < t) return;
+          var bw = (r - l + 1) / k0, bh = (b - t + 1) / k0, cx = ((l + r + 1) / 2 - X0) / k0, cy = ((t + b + 1) / 2 - Y0) / k0;   // หน่วยพิกเซลรูปจริง
+          var base = Math.min(S / img.width, S / img.height), want = .86 * S / Math.max(bw, bh);
+          zf = Math.max(.3, Math.min(5, want / base)); var kk = base * zf;
+          ox = img.width * kk / 2 - cx * kk; oy = img.height * kk / 2 - cy * kk; zr.value = Math.round(zf * 100);
+        } catch (e) {}
+      })();
       function show() {
         var g = cv.getContext('2d'), x, y; g.clearRect(0, 0, S, S);
         for (y = 0; y < S; y += 20) for (x = 0; x < S; x += 20) { g.fillStyle = ((x + y) / 20) % 2 ? '#1b2640' : '#141d33'; g.fillRect(x, y, 20, 20); }
@@ -268,14 +288,19 @@
     for (j = 0; j < N; j++) {
       px.push([]); empty.push([]);
       for (i = 0; i < N; i++) {
-        var rs = 0, gs = 0, bs = 0, as = 0;
-        for (v = 0; v < 4; v++) for (u = 0; u < 4; u++) { var o = ((j * 4 + v) * Z + (i * 4 + u)) * 4, a = d[o + 3] / 255; rs += d[o] * a; gs += d[o + 1] * a; bs += d[o + 2] * a; as += a; }
+        var rs = 0, gs = 0, bs = 0, as = 0, all = [], fgs = [], useBg = X.nobg.checked && info.alpha > 200;
+        for (v = 0; v < 4; v++) for (u = 0; u < 4; u++) { var o = ((j * 4 + v) * Z + (i * 4 + u)) * 4, a = d[o + 3] / 255; as += a; if (a > .5) { var sp = [d[o], d[o + 1], d[o + 2]]; all.push(sp); if (!useBg || dist(sp, info.bg) > 2 * 60 * 60 * 2.2) fgs.push(sp); } }
+        // v1.4 ใช้ "สีที่พบมากสุดในช่อง" แทนค่าเฉลี่ย (รูปพิกเซลจะคมไม่เลอะ) และไม่เอาสีพื้นหลังมาผสมที่ขอบ
+        var lst = fgs.length ? fgs : all, best = null, bn = -1;
+        lst.forEach(function (a1) { var n1 = 0; lst.forEach(function (b1) { if (dist(a1, b1) < 2 * 45 * 45) n1++; }); if (n1 > bn) { bn = n1; best = a1; } });
+        if (best) { lst.forEach(function (b1) { if (dist(best, b1) < 2 * 45 * 45) { rs += b1[0]; gs += b1[1]; bs += b1[2]; } }); rs /= bn; gs /= bn; bs /= bn; as = 1; px[j].push([rs, gs, bs]); empty[j].push(all.length < 8); continue; }
+        as = 0;
         px[j].push(as > 0 ? [rs / as, gs / as, bs / as] : [0, 0, 0]); empty[j].push(as / 16 < .5);
       }
     }
     // ลบพื้นหลัง: เติมจากขอบกรอบเข้ามา เฉพาะช่องที่สีใกล้สีมุมของรูป (รูปโปร่งใสอยู่แล้วไม่ต้องลบ)
     if (X.nobg.checked && info.alpha > 200) {
-      var q = [], seen = {}, TH = 2 * 60 * 60 * 2.2;
+      var q = [], seen = {}, TH = 2 * 85 * 85;
       for (i = 0; i < N; i++) q.push([i, 0], [i, N - 1]); for (j = 0; j < N; j++) q.push([0, j], [N - 1, j]);
       while (q.length) {
         var p = q.pop(), k = p[0] + ',' + p[1]; if (seen[k]) continue; seen[k] = 1;
