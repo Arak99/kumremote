@@ -5,6 +5,7 @@
   ตัวละครที่วาดเอง เก็บใน localStorage 'kumremote_customchars' และถูกเติมเข้า window.KUM_CHARACTERS ตอนโหลดไฟล์นี้ (โหลดหลัง characters.js ก่อนบอท)
   ข้อความที่ส่งให้บอร์ด (ntfy):  charset {"id":"c_ab12","n":"ชื่อ","p":{"A":"#ff3b30",...},"m":["แถว12ตัวอักษร",...],"e":[[3,4],[7,4]],"s":1.2,"l":[3,8]}  (≤ 4KB, ใช้เฉพาะสีที่ใช้จริง)
   ประวัติ: 1.0 (26/11/2026) เวอร์ชันแรก
+          1.2 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ปิดตาของระบบ → ส่ง e:[] ให้บอร์ด; ต้อง KumWake v2.6) ทั้งตอนครอบรูปและปุ่มสลับในหน้าวาด
           1.1 (27/11/2026) ตัวละคร 24×24 (ละเอียดขึ้น 4 เท่า; ตัวเก่า 12×12 ยังใช้ได้) · หน้าครอบรูป (ลากเลื่อน/ซูม) ก่อนแปลง · พาเลตสีของตัวละครมาจากสีหลักของรูป (ไม่ตายตัว 16 สี) · ปุ่มซูม/เลื่อนดูตอนระบายมือ · ส่งขึ้นบอร์ดต้อง KumWake v2.5
 */
 (function () {
@@ -35,10 +36,10 @@
   function grid0() { var g = []; for (var j = 0; j < MAXROWS; j++) g.push(new Array(N).fill('.')); return g; }
   function blank(n) {
     setDims(n || 24); var f = N / 12, R = Math.round; PAL = DEFPAL.slice();
-    return { id: null, name: '', grid: grid0(), eyes: [[R(3 * f), R(4 * f)], [R(7 * f), R(4 * f)]], es: N > 12 ? 2 : 1.25, legs: [R(3 * f), R(8 * f)], hasLegs: true, color: 0, tool: 'paint', pal: PAL };
+    return { id: null, name: '', grid: grid0(), eyes: [[R(3 * f), R(4 * f)], [R(7 * f), R(4 * f)]], es: N > 12 ? 2 : 1.25, legs: [R(3 * f), R(8 * f)], hasLegs: true, color: 0, tool: 'paint', pal: PAL, noEyes: false };
   }
   function fromData(d) {
-    var s = blank(d.cols || 12); if (d.pal) { s.pal = d.pal.slice(); PAL = s.pal; } s.id = d.id; s.name = d.name; s.es = d.es || 1.25; s.eyes = d.eyes.map(function (e) { return e.slice(); });
+    var s = blank(d.cols || 12); if (d.pal) { s.pal = d.pal.slice(); PAL = s.pal; } s.noEyes = !!d.eyes && d.eyes.length === 0; s.id = d.id; s.name = d.name; s.es = d.es || 1.25; if (d.eyes.length) s.eyes = d.eyes.map(function (e) { return e.slice(); });
     s.hasLegs = !!(d.legs && d.legs.length); if (s.hasLegs) s.legs = d.legs.slice();
     d.map.forEach(function (row, j) { for (var i = 0; i < N; i++) s.grid[j][i] = row[i] || '.'; });
     return s;
@@ -49,7 +50,7 @@
   }
   function isEmpty() { return rows().join('').replace(/\./g, '') === ''; }
   function curData() {
-    var m = rows(), eyes = st.eyes.map(function (e) { return [e[0], Math.min(e[1], Math.max(0, m.length - 2))]; });
+    var m = rows(), eyes = st.noEyes ? [] : st.eyes.map(function (e) { return [e[0], Math.min(e[1], Math.max(0, m.length - 2))]; });
     return { id: st.id || newId(), name: (st.name || '').trim() || 'ตัวของฉัน', map: m, eyes: eyes, es: st.es, legs: st.hasLegs ? st.legs.slice() : [], cols: N, pal: st.pal.slice() };
   }
   function pushUndo() { undo.push(JSON.stringify([st.grid, st.eyes, st.pal])); if (undo.length > 60) undo.shift(); upd(); }
@@ -96,7 +97,7 @@
     [['paint', '🖌️ ระบายสี'], ['erase', '🧽 ยางลบ'], ['eye', '👀 วางตา'], ['pan', '✋ เลื่อนดู']].forEach(function (t) { var b = el('button', '', t[1]); b.dataset.t = t[0]; b.onclick = function () { st.tool = t[0]; upd(); }; X.tools.appendChild(b); });
     sh.appendChild(X.tools);
     var o2 = el('div', 'tools'); X.legs = el('button'); X.legs.onclick = function () { st.hasLegs = !st.hasLegs; upd(); }; o2.appendChild(X.legs);
-    X.es = el('button'); X.es.onclick = function () { var SZ = sizes(), k = 0; SZ.forEach(function (s, i) { if (Math.abs(s[1] - st.es) < .01) k = i; }); st.es = SZ[(k + 1) % SZ.length][1]; upd(); }; o2.appendChild(X.es); X.zoom = el('button'); X.zoom.onclick = function () { zoomed = !zoomed; upd(); }; o2.appendChild(X.zoom); sh.appendChild(o2);
+    X.es = el('button'); X.es.onclick = function () { var SZ = sizes(), k = 0; SZ.forEach(function (s, i) { if (Math.abs(s[1] - st.es) < .01) k = i; }); st.es = SZ[(k + 1) % SZ.length][1]; upd(); }; o2.appendChild(X.es); X.eyeMode = el('button'); X.eyeMode.onclick = function () { st.noEyes = !st.noEyes; upd(); }; o2.appendChild(X.eyeMode); X.zoom = el('button'); X.zoom.onclick = function () { zoomed = !zoomed; upd(); }; o2.appendChild(X.zoom); sh.appendChild(o2);
     var a = el('div', 'acts');
     X.undo = el('button', '', '↩️ ย้อนกลับ'); X.undo.onclick = function () { if (!undo.length) return; var p = JSON.parse(undo.pop()); st.grid = p[0]; st.eyes = p[1]; if (p[2]) { st.pal = p[2]; PAL = st.pal; } upd(); }; a.appendChild(X.undo);
     X.clear = el('button', '', '🗑️ ล้างทั้งหมด'); X.clear.onclick = function () { if (isEmpty()) return; pushUndo(); st.grid = grid0(); upd(); }; a.appendChild(X.clear);
@@ -135,18 +136,20 @@
     for (j = 0; j < MAXROWS; j++) for (i = 0; i < N; i++) { g.fillStyle = (i + j) % 2 ? '#111b2e' : '#0e1626'; g.fillRect(i * s, j * s, s, s); }
     for (j = 0; j < MAXROWS; j++) for (i = 0; i < N; i++) { var v = st.grid[j][i]; if (v !== '.') { g.fillStyle = PAL[LET.indexOf(v)]; g.fillRect(i * s + 1, j * s + 1, s - 2, s - 2); } }
     g.strokeStyle = 'rgba(255,255,255,.06)'; g.lineWidth = 1; for (i = 0; i <= N; i++) { g.beginPath(); g.moveTo(i * s, 0); g.lineTo(i * s, X.cv.height); g.stroke(); g.beginPath(); g.moveTo(0, i * s); g.lineTo(X.cv.width, i * s); g.stroke(); }
-    st.eyes.forEach(function (e) { var w = s * 2 * st.es, cx = e[0] * s + s, cy = e[1] * s + s; g.fillStyle = '#fff'; g.fillRect(cx - w / 2, cy - w / 2, w, w); g.fillStyle = '#1b2333'; g.fillRect(cx + w * .02, cy - w * .1, w * .38, w * .46); });
+    if (!st.noEyes) st.eyes.forEach(function (e) { var w = s * 2 * st.es, cx = e[0] * s + s, cy = e[1] * s + s; g.fillStyle = '#fff'; g.fillRect(cx - w / 2, cy - w / 2, w, w); g.fillStyle = '#1b2333'; g.fillRect(cx + w * .02, cy - w * .1, w * .38, w * .46); });
     if (st.hasLegs) { g.fillStyle = 'rgba(255,255,255,.35)'; st.legs.forEach(function (l) { g.fillRect(l * s + s * .2, MAXROWS * s - 5, s * .6, 4); }); }
   }
   function upd(light) {
     drawGrid();
     if (light) { refreshPreview(); return; }
     Array.prototype.forEach.call(X.pal.children, function (b, i) { b.setAttribute('aria-pressed', st.tool === 'paint' && i === st.color ? 'true' : 'false'); });
-    Array.prototype.forEach.call(X.tools.children, function (b) { b.setAttribute('aria-pressed', b.dataset.t === st.tool ? 'true' : 'false'); });
+    Array.prototype.forEach.call(X.tools.children, function (b) { b.setAttribute('aria-pressed', b.dataset.t === st.tool ? 'true' : 'false'); if (b.dataset.t === 'eye') b.hidden = !!st.noEyes; });
+    if (st.noEyes && st.tool === 'eye') st.tool = 'paint';
     X.legs.textContent = st.hasLegs ? '🦵 มีขา: เปิด (แตะเพื่อปิด)' : '🦵 มีขา: ปิด (แตะเพื่อเปิด)';
     var sz = '';
     sizes().forEach(function (s) { if (Math.abs(s[1] - st.es) < .01) sz = s[0]; });
-    X.es.textContent = '👁️ ขนาดตา: ' + sz + ' (แตะเพื่อเปลี่ยน)';
+    X.es.textContent = '👁️ ขนาดตา: ' + sz + ' (แตะเพื่อเปลี่ยน)'; X.es.hidden = !!st.noEyes;
+    X.eyeMode.textContent = st.noEyes ? '👀 ตา: ใช้ตาในรูป (ไม่ขยับ) — แตะเพื่อใช้ตาของระบบ' : '👀 ตา: ระบบวาดให้ (กะพริบ/เหลือบมอง) — แตะเพื่อใช้ตาในรูป';
     X.gw.classList.toggle('zoom', zoomed); X.cv.style.touchAction = st.tool === 'pan' ? 'auto' : 'none';
     X.zoom.textContent = zoomed ? '🔍 ซูม: เปิด (แตะเพื่อปิด)' : '🔍 ซูมเข้า (ช่องใหญ่ขึ้น)';
     Array.prototype.forEach.call(X.pal.children, function (b, i) { b.style.background = st.pal[i]; });
@@ -206,6 +209,7 @@
       var cv = el('canvas', 'cropcv'); cv.width = cv.height = S; cv.setAttribute('aria-label', 'กรอบครอบรูป ลากเพื่อเลื่อนรูป'); sh.appendChild(cv);
       var zr = el('input', 'zr'); zr.type = 'range'; zr.min = 30; zr.max = 500; zr.value = 100; zr.setAttribute('aria-label', 'ซูมรูป'); sh.appendChild(zr);
       var lb = el('label', 'opt'), cb = el('input'); cb.type = 'checkbox'; cb.checked = X.nobg.checked; lb.appendChild(cb); lb.appendChild(document.createTextNode('ลบพื้นหลังให้ (ใช้ได้ดีกับรูปที่พื้นหลังสีเรียบ)')); sh.appendChild(lb);
+      var lb3 = el('label', 'opt'), cb3 = el('input'); cb3.type = 'checkbox'; cb3.checked = false; lb3.appendChild(cb3); lb3.appendChild(document.createTextNode('รูปนี้มีตาอยู่แล้ว → ใช้ตาในรูป (ตาจะไม่กะพริบ/ไม่ขยับ)')); sh.appendChild(lb3);
       var row = el('div', 'bot2'), ok = el('button', 'save', 'ใช้รูปนี้'), no = el('button', 'cancel', 'ยกเลิก'); row.appendChild(ok); row.appendChild(no); sh.appendChild(row);
       ov.appendChild(sh); root.appendChild(ov); ov.classList.add('show');
       function paint(g, Z) { var k = Math.min(Z / img.width, Z / img.height) * zf, w = img.width * k, h = img.height * k, sc = Z / S; g.drawImage(img, Z / 2 + ox * sc - w / 2, Z / 2 + oy * sc - h / 2, w, h); }
@@ -225,7 +229,7 @@
       ok.onclick = function () {
         X.nobg.checked = cb.checked;
         var HR = 24 * 8, hc = document.createElement('canvas'); hc.width = hc.height = HR; var g = hc.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; paint(g, HR);
-        var info = cornerInfo(img); done(); convert(hc, info, file.name || '');
+        var info = cornerInfo(img); info.hasEyes = cb3.checked; done(); convert(hc, info, file.name || '');
       };
       show();
     };
@@ -272,7 +276,7 @@
     // ใส่ตาให้เองบริเวณ 1/3 บนของตัว (แก้ได้ด้วยเครื่องมือ "วางตา")
     var top = N, bot = -1, l = N, r = -1; for (j = 0; j < N; j++) for (i = 0; i < N; i++) if (st.grid[j][i] !== '.') { top = Math.min(top, j); bot = Math.max(bot, j); l = Math.min(l, i); r = Math.max(r, i); }
     var ey = Math.min(N - 2, top + Math.max(1, Math.round((bot - top) * .3))), mid = (l + r) / 2, sp = Math.max(3, Math.round((r - l) * .2));
-    st.eyes = [[Math.max(0, Math.min(N - 2, Math.round(mid - sp - 1))), ey], [Math.max(0, Math.min(N - 2, Math.round(mid + sp - 1))), ey]]; st.hasLegs = false; st.es = 2;
+    st.eyes = [[Math.max(0, Math.min(N - 2, Math.round(mid - sp - 1))), ey], [Math.max(0, Math.min(N - 2, Math.round(mid + sp - 1))), ey]]; st.hasLegs = false; st.es = 2; st.noEyes = !!info.hasEyes;
     if (!st.name) { st.name = fname.replace(/\.[^.]+$/, '').slice(0, 24); X.name.value = st.name; }
     msg('แปลงรูปเสร็จแล้ว — ปรับสี/ตาต่อได้เลย', 'ok'); upd();
     if (X.autosend && X.autosend.checked) doSave(true);
