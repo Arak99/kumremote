@@ -375,6 +375,8 @@
     if (photo && !d && X.file) X.file.click();
   }
   function close() { if (preview) { preview.destroy(); preview = null; } var list = window.KUM_CHARACTERS || []; for (var k = list.length - 1; k >= 0; k--) if (list[k].id === '__preview') list.splice(k, 1); if (root) { Array.prototype.forEach.call(root.querySelectorAll('.kdcrop'), function (n) { n.parentNode.removeChild(n); }); root.classList.remove('show'); } if (opts && opts.onClose) opts.onClose(); }
+  // v2.16 ลบตัวละครที่ทำเองจากหน้าตั้งค่าได้เลย
+  api.remove = function (id) { saveAll(loadAll().filter(function (d) { return d.id !== id; })); register(); };
   api.open = open; api.close = close; api.payloadOf = function (id) { var d = loadAll().filter(function (x) { return x.id === id; })[0]; return d ? payload(d) : null; }; api.isOpen = function () { return !!(root && root.classList.contains('show')); };
   window.KumDraw = api;
 })();

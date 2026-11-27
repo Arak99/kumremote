@@ -33,6 +33,8 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.16 (27/11/2026) แก้: กดเปลี่ยนแท็บในตั้งค่าแล้วเมนูเด้งขึ้นลง — กล่องตั้งค่าสูงเท่ากันทุกแท็บ แถบแท็บอยู่ที่เดิม ปุ่ม "เสร็จ" อยู่ล่างสุดเสมอ
+                     · ลบตัวละครที่ทำเองได้จากแท็บตัวละคร (ปุ่ม 🗑️ ลบตัวละคร → แตะตัวที่จะลบ → ยืนยัน) ถ้าลบตัวที่ใช้อยู่ บอร์ดเปลี่ยนเป็นตัวแรกให้เอง
     2.15 (27/11/2026) เลื่อนหน้าจอด้วยนิ้วได้ไม่โดนคำสั่ง: ไมค์เปิดเฉพาะตอนแตะ/กดค้างนิ่งๆ (ไถผ่านแล้วจอเลื่อนตามปกติ),
                      ย้ายแถบความสว่างจอบอร์ดไปไว้ในตั้งค่า, ปุ่มเตี้ยลง หน้าหลักสั้นลง
                      · ตั้งค่าแบ่งเป็นแท็บ: ตัวละคร / จอบอร์ด / คอม / แอป (จำแท็บล่าสุด) ปุ่ม "เสร็จ" อยู่ล่างเสมอ
@@ -91,7 +93,8 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .set .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line);font-size:16px;width:100%;background:none;text-align:left}
   .set .item:first-of-type{border-top:0}
-  .sheet.set{padding-top:0;padding-bottom:0}
+  .sheet.set{padding-top:0;padding-bottom:0;height:88vh;height:88dvh;display:flex;flex-direction:column}
+  .sheet.set > *{flex:none}
   .sethead{position:sticky;top:0;z-index:3;background:#172136;padding:16px 0 10px;margin:0 0 6px;border-bottom:1px solid var(--line)}
   .sethead h3{margin:0 0 10px}
   .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -100,7 +103,7 @@
   .tab{display:none;padding-bottom:8px}
   .tab.on{display:block}
   .tab .lead{font-size:14px;color:var(--dim);margin:2px 0 10px}
-  .setfoot{position:sticky;bottom:0;z-index:3;background:#172136;padding:10px 0 calc(env(safe-area-inset-bottom) + 14px);border-top:1px solid var(--line)}
+  .setfoot{margin-top:auto;position:sticky;bottom:0;z-index:3;background:#172136;padding:10px 0 calc(env(safe-area-inset-bottom) + 14px);border-top:1px solid var(--line)}
   .setfoot .close{margin-top:0}
   .tab .scr{margin:4px 0 10px;background:#101a2c}
   .pvbox{background:#e8b923;border-radius:16px;padding:9px 11px 13px;margin:6px 0 4px}
@@ -122,6 +125,14 @@
   .set .item[aria-checked=true] .knob::after{left:25px}
   .chars{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 10px}
   .sheet .chars button{flex:none;background:#0e1626;border:2px solid var(--line);border-radius:14px;padding:4px 3px 6px;font-size:12.5px;font-weight:600;line-height:1.3;min-width:0}
+  .delbar{display:flex;align-items:center;gap:10px;margin:0 0 8px;flex-wrap:wrap}
+  .sheet .delbar button{flex:none;background:#24304a;border-radius:12px;padding:9px 14px;font-size:14.5px;font-weight:650;min-height:42px}
+  .delbar span{font-size:13.5px;color:var(--dim)}
+  .chars.del button{border-color:#7f1d1d;position:relative}
+  .chars.del button.fixed{opacity:.35;border-color:var(--line)}
+  .chars.del button:not(.fixed)::after{content:'✕';position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:var(--bad);color:#fff;font-size:13px;line-height:22px;font-weight:800}
+  .sheet .delbar.on button{background:var(--bad);color:#fff}
+  #veil{z-index:7}
   .chars button div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
   .chars button[aria-pressed=true]{border-color:var(--accent)}
   .chars canvas{width:100%;aspect-ratio:150/110;display:block}
@@ -268,7 +279,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.15 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.16 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -294,6 +305,7 @@
   <div class="tab on" data-tab="char">
     <p class="lead">แตะเพื่อเลือก — ตัวบนบอร์ดเปลี่ยนตามทันที</p>
     <div class="chars" id="chars"></div>
+    <div class="delbar"><button id="bDelMode">🗑️ ลบตัวละคร</button><span id="delHint"></span></div>
     <button class="item" id="bPhotoChar"><span>🖼️ ทำตัวละครจากรูป (อัตโนมัติ)<br><small style="color:var(--dim)">เลือกรูป → จัดกรอบ → แอปแปลงแล้วส่งขึ้นบอร์ดให้เอง</small></span><span style="color:var(--dim)">›</span></button>
     <button class="item" id="bDrawChar"><span>✏️ วาดตัวละครของฉัน<br><small style="color:var(--dim)">ระบายเอง หรือเลือกรูปจากมือถือ แล้วส่งให้บอร์ดได้</small></span><span style="color:var(--dim)">›</span></button>
   </div>
@@ -317,11 +329,11 @@
   <div class="setfoot"><button class="close" id="setClose">เสร็จ</button></div>
 </div></div>
 
-<script src="characters.js?v=2.15"></script>
-<script src="draw.js?v=2.15"></script>
-<script src="bot.js?v=2.15"></script>
-<script src="voice.js?v=2.15"></script>
-<script src="show.js?v=2.15"></script>
+<script src="characters.js?v=2.16"></script>
+<script src="draw.js?v=2.16"></script>
+<script src="bot.js?v=2.16"></script>
+<script src="voice.js?v=2.16"></script>
+<script src="show.js?v=2.16"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -754,6 +766,25 @@ function keepOn(on) {
   if (navigator.wakeLock && !document.hidden) navigator.wakeLock.request('screen').then(function (l) { lock = l; }).catch(function () {});
 }
 function sw(id, on) { $(id).setAttribute('aria-checked', on ? 'true' : 'false'); }
+var delMode = false;
+function setDelMode(on) {
+  var customs = (window.KUM_CHARACTERS || []).filter(function (c) { return c.custom; }).length;
+  delMode = on && customs > 0;
+  $('chars').classList.toggle('del', delMode); $('bDelMode').parentNode.classList.toggle('on', delMode);
+  $('bDelMode').textContent = delMode ? '✓ เลิกลบ' : '🗑️ ลบตัวละคร';
+  $('delHint').textContent = delMode ? 'แตะตัวที่มี ✕ เพื่อลบ (ตัวมาตรฐานลบไม่ได้)' : (customs ? '' : 'ยังไม่มีตัวที่ทำเอง — ลบได้เฉพาะตัวที่ทำ/วาดเอง');
+}
+function rebuildChars() { minis.forEach(function (m) { m.destroy(); }); minis = []; buildChars(); setDelMode(delMode); }
+function delChar(ch) {
+  ask('ลบตัวละคร?', 'ลบ "' + ch.name + '" ออกจากมือถือเครื่องนี้ — ลบแล้วเอาคืนไม่ได้', 'ลบ', true, function () {
+    var wasCur = store(CHAR_KEY) === ch.id;
+    KumDraw.remove(ch.id);
+    if (wasCur) { var f = (window.KUM_CHARACTERS || [])[0]; if (f) { store(CHAR_KEY, f.id); if (bot) bot.setCharacter(f.id); sendChar(f.id); } }
+    note('ลบ "' + ch.name + '" แล้ว' + (wasCur ? ' — เปลี่ยนเป็นตัวแรกให้' : ''), 'ok');
+    rebuildChars();
+  });
+}
+$('bDelMode').onclick = function () { setDelMode(!delMode); };
 function buildChars() {
   var box = $('chars'), cur = store(CHAR_KEY) || ((window.KUM_CHARACTERS || [])[0] || {}).id; box.textContent = '';
   (window.KUM_CHARACTERS || []).forEach(function (ch) {
@@ -761,7 +792,8 @@ function buildChars() {
     b.setAttribute('aria-pressed', ch.id === cur ? 'true' : 'false'); n.textContent = ch.name;
     b.appendChild(cv); b.appendChild(n); box.appendChild(b);
     var mini = KumBot.create(cv, { character: ch.id, width: 150, height: 110 }); minis.push(mini);
-    b.onclick = function () { store(CHAR_KEY, ch.id); if (bot) { bot.setCharacter(ch.id); bot.poke(); } sendChar(ch.id); for (var i = 0; i < box.children.length; i++) box.children[i].setAttribute('aria-pressed', box.children[i] === b ? 'true' : 'false'); };
+    if (!ch.custom) b.className = 'fixed';
+    b.onclick = function () { if (delMode) { if (ch.custom) delChar(ch); return; } store(CHAR_KEY, ch.id); if (bot) { bot.setCharacter(ch.id); bot.poke(); } sendChar(ch.id); for (var i = 0; i < box.children.length; i++) box.children[i].setAttribute('aria-pressed', box.children[i] === b ? 'true' : 'false'); };
   });
 }
 var minis = [];
@@ -773,7 +805,7 @@ function setTab(t) {
   store(TAB_KEY, t); document.querySelector('#setVeil .sheet').scrollTop = 0; pvLoop();
 }
 (function () { var tabs = document.querySelectorAll('#setVeil [role=tab]'); for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { setTab(this.getAttribute('data-tab')); }; })();
-$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); buildChars(); buildShowSet(); buildSdSet(); $('setVeil').classList.add('show'); setTab(store(TAB_KEY) || 'char'); renderScr(); };
+$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); delMode = false; buildChars(); setDelMode(false); buildShowSet(); buildSdSet(); $('setVeil').classList.add('show'); setTab(store(TAB_KEY) || 'char'); renderScr(); };
 function closeSet() { $('setVeil').classList.remove('show'); minis.forEach(function (m) { m.destroy(); }); minis = []; pvStop(); }
 /* ---------- จอตัวอย่างโหมดโชว์ (v2.15) ---------- */
 var pv = { raf: 0, idx: 0, since: 0, page: null };
