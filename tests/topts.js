@@ -6,7 +6,7 @@ let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,
   await ctx.route(/sabaijai|ntfy\.sh/, r => r.request().url().includes('/sse') ? r.fulfill({status:200,headers:{'content-type':'text/event-stream'},body:': x\n\n'}) : r.fulfill({ status: 200, body: r.request().url().includes('/sub') ? '{"messages":[],"last":0}' : '{}' }));
   const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(String(e)));
   await p.addInitScript(() => { localStorage.setItem('kumremote_topic', 'shottest_abcdef'); window.WebSocket = undefined; });
-  const openDraw = async () => { await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(700); await p.click('#bSet'); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(400); };
+  const openDraw = async () => { await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(700); await p.evaluate(() => document.getElementById('bSet').click()); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(400); };
   const isOpen = () => p.evaluate(()=>document.querySelector('.kd details').open);
   await openDraw();
   ok(!(await isOpen()), 'first time: options folded');

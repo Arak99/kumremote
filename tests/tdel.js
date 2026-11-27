@@ -14,7 +14,7 @@ let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,
       localStorage.setItem('kumremote_char','c_test1'); }
   });
   await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(1200);
-  await p.click('#bSet'); await p.click('#setVeil [data-tab=char]'); await p.waitForTimeout(400);
+  await p.evaluate(() => document.getElementById('bSet').click()); await p.click('#setVeil [data-tab=char]'); await p.waitForTimeout(400);
   const n0 = await p.evaluate(()=>document.querySelectorAll('#chars button').length);
   await p.click('#bDelMode'); await p.waitForTimeout(200);
   await p.screenshot({ path: '/tmp/del_mode.png' });

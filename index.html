@@ -33,6 +33,10 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.25 (28/11/2026) ปุ่มตามสถานะจริง: คอมเปิดอยู่ → ปุ่มปลุกคอมจาง · คอมปิด/หลับ → ปุ่มคอมหลับ/ปิดคอมจาง · กำลังปลุก/กำลังจะปิด → ปุ่มที่ไม่มีผลจาง
+                     (ไม่แน่ใจสถานะ เช่น ข้อมูลเก่าเกิน 15 นาที → ทุกปุ่มกดได้) · แตะปุ่มจาง = บอกเหตุผล ไม่ส่งคำสั่ง
+                     เลขเวอร์ชันย้ายมาอยู่หลังชื่อ "สบายใจ" บนหัวแอป · ตัดแถบล่าง (ตั้งค่า = ปุ่มตั้งค่าบนจอ) และปุ่ม "เช็คสถานะ"
+                     (แอปเช็คเองตอนเปิด/กลับมาที่แอป/ข้อมูลเก่าเกิน 15 นาที, แตะจอเพื่อเช็คทันที) · ถ้าไม่มีอะไรค้าง ขึ้นบรรทัด "✓ ไม่มีคำสั่งค้าง" ให้เห็นชัด (ไม่ต้องเดา)
     2.24 (28/11/2026) ทำแบบง่าย ตรงไปตรงมา (คู่กับตัวบนคอม v2.11): หน้าหลักเหลือ ⚡ ปลุกคอม · 😴 คอมหลับ · ⏻ ปิดคอม · 🔄 เช็คสถานะ
                      ตัดปุ่ม "อยู่ต่อ" และเมนู "Sleep เมื่องานเสร็จ" ในตั้งค่า (แท็บคอม) ออก — คอมไม่หลับเองแล้ว หลับเฉพาะตอนสั่ง
                      กด คอมหลับ ตอน Claude ทำงานอยู่ → เลือก "คอมหลับเลยตอนนี้" หรือ "คอมหลับเมื่อ Claude ทำงานเสร็จ"
@@ -88,6 +92,8 @@
   main{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-height:100%}
   header{display:flex;align-items:baseline;justify-content:space-between;padding:2px 4px}
   header h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px}
+  header h1 .ver{font-size:13px;font-weight:500;color:var(--dim);margin-left:4px}
+  .nopend{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:8px 14px;border-radius:14px;border:1px solid var(--line);color:var(--dim);font-size:14px}
   header .net{font-size:13px;color:var(--dim)}
   header .net.ok::before{content:"● ";color:var(--on)}
   header .net.no::before{content:"● ";color:var(--bad)}
@@ -183,6 +189,7 @@
   .act.wake svg{width:34px;height:34px;color:var(--on)}
   .act.sleep svg{color:#a5b4fc}
   .act.off svg{color:var(--bad)}
+  .act.dim{opacity:.35;filter:grayscale(.7)} .act.dim:active{transform:none}
   .act[disabled]{opacity:.45}
   .check{background:transparent;border:1px solid var(--line);border-radius:14px;padding:13px;color:var(--dim);font-size:16px;width:100%}
   .check:active{background:var(--card)}
@@ -266,7 +273,7 @@
 </head>
 <body>
 <main>
-  <header><h1>สบายใจ</h1><span class="net" id="net">กำลังเชื่อมต่อ…</span></header>
+  <header><h1>สบายใจ <span class="ver">v2.25</span></h1><span class="net" id="net">กำลังเชื่อมต่อ…</span></header>
 
   <section class="setup" id="setup">
     <h2>ตั้งค่าครั้งแรก</h2>
@@ -305,7 +312,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>ปิดคอม
       </button>
     </section>
-    <button class="check" id="bCheck">🔄 เช็คสถานะ</button>
     <div class="note" id="note"></div>
     <section class="log">
       <h2 style="display:flex;justify-content:space-between;align-items:center">ล่าสุด <button class="more" id="bHist">ดูทั้งหมด ›</button></h2>
@@ -313,7 +319,7 @@
     </section>
   </div>
 
-  <footer>สบายใจ v2.24 · <button id="bSet">ตั้งค่า</button></footer>
+  <button id="bSet" hidden aria-hidden="true"></button>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -361,11 +367,11 @@
   <div class="setfoot"><button class="close" id="setClose">เสร็จ</button></div>
 </div></div>
 
-<script src="characters.js?v=2.24"></script>
-<script src="draw.js?v=2.24"></script>
-<script src="bot.js?v=2.24"></script>
-<script src="voice.js?v=2.24"></script>
-<script src="show.js?v=2.24"></script>
+<script src="characters.js?v=2.25"></script>
+<script src="draw.js?v=2.25"></script>
+<script src="bot.js?v=2.25"></script>
+<script src="voice.js?v=2.25"></script>
+<script src="show.js?v=2.25"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -461,7 +467,7 @@ function pendNow() {
   if (out.sd && !out.sd.warn) out.sd.text = ' ' + out.sd.text.replace('งานในกล่องงานเสร็จ', 'Claude ทำงานเสร็จ').trim();
   return out;
 }
-var shutTick = null;
+var shutTick = null, histReady = false;
 function pendBtn(cls, ic, big, small, onTap) {
   var b = document.createElement('button'); b.className = 'pend' + (cls ? ' ' + cls : '');
   var i = document.createElement('span'); i.className = 'ic'; i.textContent = ic;
@@ -472,6 +478,10 @@ function pendBtn(cls, ic, big, small, onTap) {
 function renderPend() {
   var box = $('pends'); if (!box) return; box.textContent = '';
   var p = pendNow();
+  if (!p.shut && !p.sd) {   // v2.25: บอกให้ชัดว่าไม่มีอะไรค้าง (ขึ้นหลังโหลดประวัติเสร็จเท่านั้น จะได้ไม่บอกผิด)
+    if (histReady) { var d = document.createElement('div'); d.className = 'nopend'; d.id = 'noPend'; d.textContent = '✓ ไม่มีคำสั่งค้าง — คอมทำเฉพาะที่สั่ง'; box.appendChild(d); }
+    return;
+  }
   if (p.shut) {
     box.appendChild(pendBtn('red', '⏻', p.shut.left === null ? 'สั่งปิดคอมแล้ว รอคอมตอบรับ…' : p.shut.left > 0 ? 'คอมจะปิดในอีก ' + p.shut.left + ' วินาที' : 'คอมกำลังปิด…', 'แตะตรงนี้เพื่อยกเลิกการปิด', function () { cancelPending('ยกเลิกการปิดคอมแล้ว'); }));
     if (!shutTick) shutTick = setInterval(function () { if (!pendNow().shut) { clearInterval(shutTick); shutTick = null; } renderPend(); }, 1000);
@@ -490,11 +500,21 @@ function pendText(p) {   // บอกว่ามีอะไรค้างแ�
   if (p.sd) l.push('🌙 ตั้งไว้ให้คอมหลับเมื่อ Claude ทำงานเสร็จ → จะยกเลิกอันนี้');
   return l.length ? '\n\nตอนนี้มีที่ค้างอยู่:\n• ' + l.join('\n• ') : '';
 }
+/* ---------- v2.25: ปุ่มตามสถานะจริง (จาง = กดแล้วไม่มีผล) ---------- */
+function btnWhy(id) {   // คืนเหตุผลถ้าปุ่มนี้ไม่มีผลตอนนี้ / null = กดได้
+  if (stale() || state === 'unknown' || state === 'noboard' || state === 'wakefail') return null;   // ไม่แน่ใจ → กดได้หมด
+  var shut = pendNow().shut;
+  if (id === 'bWake') { if (shut) return null; if (state === 'on') return 'คอมเปิดอยู่แล้ว ไม่ต้องปลุก'; if (state === 'waking') return 'กำลังปลุกอยู่ รอสักครู่'; return null; }
+  if (id === 'bSleep') { if (state === 'off' || state === 'sleeping') return 'คอมหลับหรือปิดอยู่แล้ว'; if (state === 'waking') return 'คอมกำลังตื่น รอให้ตื่นก่อน'; if (state === 'shuttingdown' && !shut) return 'คอมกำลังปิด'; return null; }
+  if (id === 'bOff') { if (shut) return 'คอมกำลังจะปิดอยู่แล้ว — แตะแถบสีแดงถ้าจะยกเลิก'; if (state === 'off' || state === 'sleeping') return 'คอมหลับหรือปิดอยู่แล้ว'; if (state === 'waking') return 'คอมกำลังตื่น รอให้ตื่นก่อน'; return null; }
+  return null;
+}
+function renderBtns() { ['bWake', 'bSleep', 'bOff'].forEach(function (id) { $(id).classList.toggle('dim', !!btnWhy(id)); }); }
 function render() {
   var v = VIEW[state] || VIEW.unknown;
   $('status').setAttribute('data-s', v[0]);
   $('big').textContent = v[1];
-  var small = stateAt ? 'ข้อมูลเมื่อ ' + hhmm(stateAt) + (stale() ? ' (นานแล้ว อาจไม่ตรง — กดปลุกได้เลย)' : '') : ' ';
+  var small = stateAt ? 'ข้อมูลเมื่อ ' + hhmm(stateAt) + (stale() ? ' (นานแล้ว กำลังเช็คใหม่…)' : ' · แตะจอเพื่อเช็คใหม่') : ' ';
   if (state === 'wakefail') small = 'เช็คว่าคอมเสียบสายแลนและมีไฟเข้า แล้วลองอีกครั้ง';
   if (state === 'noboard') small = 'ตัวปลุกไม่ตอบกลับ แต่ยังรับคำสั่งได้ — กดปลุกคอมได้เลย';
   // Claude ทำงานบนคอม: ทับข้อความหลักชั่วคราว
@@ -502,6 +522,7 @@ function render() {
   if (cl) { $('big').textContent = cl.mode === 'work' ? 'Claude กำลังทำงาน' : cl.mode === 'done' ? 'Claude ทำงานเสร็จ ✓' : 'งานของ Claude ไม่สำเร็จ'; small = cl.title; }
   $('small').textContent = small;
   renderPend();
+  renderBtns();
   updateBot();
   var ul = $('log'); ul.textContent = '';
   var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && (m.c.cmd === 'status' || m.c.cmd === 'screen')) && m.c.kind !== 'other'; }).slice(-4).reverse();
@@ -559,6 +580,7 @@ function loadHistory() {
   }).catch(function () { return false; });
   return Promise.all([a, b]).then(function (r) {
     msgs.sort(function (x, y) { return x.t - y.t; });
+    if (r[0] || r[1]) histReady = true;   // v2.25: รู้ประวัติจริงแล้วเท่านั้นถึงบอกว่า "ไม่มีคำสั่งค้าง"
     setNet(r[0] || r[1]); render(); renderScr();
   });
 }
@@ -676,10 +698,12 @@ $('setupBtn').onclick = function () {
   store(KEY, t); topic = t; start();
 };
 $('bWake').onclick = function () {
+  var why = btnWhy('bWake'); if (why) { note(why, 'ok'); speak(why); return; }   // v2.25
   if (pendNow().shut) { ask('คอมกำลังจะปิดอยู่', 'จะยกเลิกการปิดคอมไหม? (คอมจะเปิดอยู่ต่อ)', 'ยกเลิกการปิด', false, function () { cancelPending('ยกเลิกการปิดคอมแล้ว'); }); return; }
   state = state === 'on' ? 'on' : 'waking'; render(); send('wake');
 };
 $('bSleep').onclick = function () {
+  var why = btnWhy('bSleep'); if (why) { note(why, 'ok'); speak(why); return; }   // v2.25
   var p = pendNow(), cl = claudeNow(), extra = pendText(p);
   var now = function () { send('sleep'); };
   if (cl && cl.mode === 'work') {
@@ -692,6 +716,7 @@ $('bSleep').onclick = function () {
   ask('คอมหลับเลยตอนนี้?', 'คอมจะหลับทันที งานที่เปิดค้างไว้ยังอยู่ ปลุกกลับได้ด้วยปุ่ม ⚡ ปลุกคอม' + extra, 'คอมหลับเลย', false, now);
 };
 $('bOff').onclick = function () {
+  var why = btnWhy('bOff'); if (why) { note(why, 'ok'); speak(why); return; }   // v2.25
   var p = pendNow(), cl = claudeNow();
   if (p.shut) { note('คอมกำลังปิดอยู่แล้ว — แตะแถบสีแดงถ้าจะยกเลิก', 'warn'); return; }
   var t = 'โปรแกรมที่เปิดอยู่จะถูกปิดทั้งหมด งานที่ไม่ได้เซฟจะหาย\n⚠️ เปิดเครื่องครั้งหน้าอาจค้างตอนบูต (เรื่อง RAM) — ถ้าแค่ไม่อยู่ร้าน ใช้ 😴 คอมหลับ ดีกว่า';
@@ -705,7 +730,7 @@ $('bri').onchange = function () {
   clearTimeout(briTimer); briTimer = setTimeout(function () { send('screen', false, 'bright ' + v); }, 600);
 };
 $('dimSw').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); want.dim = on; holdNow(); send('screen', false, 'dim ' + (on ? 'on' : 'off')); };
-$('bCheck').onclick = function () { lastStatusAsk = Date.now(); send('status'); };
+
 $('askNo').onclick = closeAsk;
 $('veil').onclick = function (e) { if (e.target === $('veil')) closeAsk(); };
 $('askYes').onclick = function () { var cb = askCb; closeAsk(); if (cb) cb(); };
@@ -797,9 +822,10 @@ function updateBot() {
 }
 function holdMood(m, ms) { moodHold = { mood: m, until: Date.now() + ms }; updateBot(); setTimeout(updateBot, ms + 50); }
 setInterval(function () { if (claude.mode) render(); }, 5000);
+setInterval(function () { if (topic && !document.hidden && stale()) askStatus(); }, 60000);   // v2.25: ไม่มีปุ่มเช็คสถานะแล้ว — ข้อมูลเก่าเกิน 15 นาทีแอปเช็คเอง
 $('bot').onclick = function (e) {
   var r = this.getBoundingClientRect(), y = (e.clientY - r.top) * 240 / r.height, x = (e.clientX - r.left) * 320 / r.width;
-  if (y >= BOARD_BTN.y) { $('bWake').onclick(); speak(SAY.wake); return; }       // ปุ่มปลุกในจอจำลอง
+  if (y >= BOARD_BTN.y) { var w0 = btnWhy('bWake'); $('bWake').onclick(); if (!w0 && !pendNow().shut) speak(SAY.wake); return; }       // ปุ่มปลุกในจอจำลอง
   if (y < 34 && x >= 114 && x < 174) { $('bSet').onclick(); return; }            // ปุ่มตั้งค่าในจอจำลอง
   if (bot) bot.poke(); lastStatusAsk = 0; askStatus();
 };
@@ -814,9 +840,9 @@ function setBri(v) { v = Math.max(10, Math.min(100, v)); want.bri = v; holdNow()
 var SAY = { wake: 'ปลุกคอมให้แล้ว', status: 'กำลังเช็คให้', stay: 'โอเค คอมจะยังไม่หลับ', bright: 'ปรับจอให้แล้ว', dim: 'ตั้งให้แล้ว' };
 function doCmd(cmd, value) {
   $('chips').hidden = true;
-  if (cmd === 'wake') { $('bWake').onclick(); speak(SAY.wake); }
-  else if (cmd === 'sleep') { speak('จะให้คอมหลับใช่ไหม'); $('bSleep').onclick(); }
-  else if (cmd === 'shutdown') { speak('จะปิดคอมใช่ไหม'); $('bOff').onclick(); }
+  if (cmd === 'wake') { var w1 = btnWhy('bWake') || pendNow().shut; $('bWake').onclick(); if (!w1) speak(SAY.wake); }
+  else if (cmd === 'sleep') { if (!btnWhy('bSleep')) speak('จะให้คอมหลับใช่ไหม'); $('bSleep').onclick(); }
+  else if (cmd === 'shutdown') { if (!btnWhy('bOff')) speak('จะปิดคอมใช่ไหม'); $('bOff').onclick(); }
   else if (cmd === 'status') { lastStatusAsk = Date.now(); send('status'); speak(SAY.status); }
   else if (cmd === 'stay' || cmd === 'cancel') {
     var pp = pendNow();

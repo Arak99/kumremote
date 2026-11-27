@@ -27,7 +27,7 @@ let pass = 0, fail = 0; const ok = (c, n, d) => { c ? (pass++, console.log('PASS
   const h = await p.evaluate(() => document.documentElement.scrollHeight);
   console.log('main page height css px:', h);
   await p.screenshot({ path: '/tmp/n_main.png', fullPage: true });
-  await p.click('#bSet'); await p.waitForTimeout(500);
+  await p.evaluate(() => document.getElementById('bSet').click()); await p.waitForTimeout(500);
   await p.screenshot({ path: '/tmp/n_set_char.png' });
   await p.click('#setVeil [data-tab=screen]'); await p.waitForTimeout(1200);
   ok((await p.textContent('#briVal')).includes('60'), 'brightness value shown in settings', await p.textContent('#briVal'));

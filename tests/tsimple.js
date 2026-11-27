@@ -25,11 +25,20 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
   const WORK = ['🤖 Claude กำลังทำงานบนคอม: จัดไฟล์ Drive', 30];
 
   await run('layout', [ON], async (p) => {
-    const L = await p.evaluate(() => ({ wake: document.getElementById('bWake').innerText.trim(), sleep: document.getElementById('bSleep').innerText.trim(), off: document.getElementById('bOff').innerText.trim(), check: document.getElementById('bCheck').innerText.trim(), stay: !!document.getElementById('bStay'), tabs: [...document.querySelectorAll('#setVeil [role=tab]')].map(x => x.innerText) }));
-    ok(L.wake === 'ปลุกคอม' && L.sleep === 'คอมหลับ' && L.off === 'ปิดคอม' && /เช็คสถานะ/.test(L.check), 'layout: 4 buttons with new names ' + JSON.stringify(L));
+    const L = await p.evaluate(() => ({ wake: document.getElementById('bWake').innerText.trim(), sleep: document.getElementById('bSleep').innerText.trim(), off: document.getElementById('bOff').innerText.trim(), stay: !!document.getElementById('bStay'), tabs: [...document.querySelectorAll('#setVeil [role=tab]')].map(x => x.innerText) }));
+    ok(L.wake === 'ปลุกคอม' && L.sleep === 'คอมหลับ' && L.off === 'ปิดคอม', 'layout: 3 buttons with new names ' + JSON.stringify(L));
     ok(!L.stay, 'layout: no "อยู่ต่อ" button');
+    ok(!(await p.evaluate(() => !!document.getElementById('bCheck') || !!document.querySelector('footer'))), 'layout: no เช็คสถานะ button, no bottom bar');
+    const box = await p.locator('#bot').boundingBox();
+    await p.mouse.click(box.x + box.width * 144 / 320, box.y + box.height * 17 / 240); await p.waitForTimeout(400);
+    ok(await p.evaluate(() => document.getElementById('setVeil').classList.contains('show')), 'layout: tapping ตั้งค่า on the screen opens settings');
+    await p.evaluate(() => document.getElementById('setX').click()); await p.waitForTimeout(300);
     ok(!L.tabs.includes('คอม'), 'layout: settings has no คอม tab ' + L.tabs.join(','));
     ok((await pends(p)).length === 0, 'layout: nothing pending → no bar');
+    const np = await p.evaluate(() => { const e = document.getElementById('noPend'); return e && e.offsetParent ? e.innerText : null; });
+    ok(np && /ไม่มีคำสั่งค้าง/.test(np), 'layout: shows "ไม่มีคำสั่งค้าง" line ' + np);
+    const hv = await p.evaluate(() => document.querySelector('header h1').innerText);
+    ok(/^สบายใจ\s*v2\.\d+/.test(hv), 'layout: version right after app name in header → ' + hv);
     await p.screenshot({ path: '/tmp/s_main.png', fullPage: true });
   });
   await run('sleep-plain', [ON], async (p, posts) => {
@@ -73,6 +82,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
   });
   await run('shutdown-tap-cancel', [ON, ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที) - แตะแถบในแอปเพื่อยกเลิก', 2]], async (p, posts) => {
     const n = posts.length; await p.click('#pends .pend'); await p.waitForTimeout(400); ok(sent(posts, n).includes('cancel'), 'tap red bar cancels immediately');
+    ok(!(await p.evaluate(() => !!document.getElementById('noPend'))), 'with pending: no "ไม่มีคำสั่งค้าง" line');
   });
   await run('cancelled-done', [ON, ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที)', 8], ['cancel', 6], ['↩️ RUBY_PC ยกเลิกแล้ว: ปิดเครื่อง — คอมเปิดอยู่ตามปกติ', 5]], async (p) => {
     ok((await pends(p)).length === 0, 'after PC confirms cancel → no bar');
@@ -89,5 +99,24 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     ok(/ค้างอยู่/.test(d.text) && /จะยกเลิกอันนี้/.test(d.text), 'sleep while sd pending: dialog says it will cancel it');
   });
   await run('old-stay-history', [ON, ['stay', 100], ['🖥️ RUBY_PC อยู่ต่อ - จะไม่ Sleep เองจนกว่าจะสั่ง', 99]], async (p) => { ok((await pends(p)).length === 0, 'old "อยู่ต่อ" in history → no bar, no error'); });
+  const dims = p => p.evaluate(() => ['bWake', 'bSleep', 'bOff'].filter(id => document.getElementById(id).classList.contains('dim')));
+  await run('btn-on', [['🟢 RUBY_PC เปิดอยู่', 60]], async (p, posts) => {
+    ok(JSON.stringify(await dims(p)) === '["bWake"]', 'PC on: only ปลุกคอม is dim ' + JSON.stringify(await dims(p)));
+    const n = posts.length; await p.click('#bWake'); await p.waitForTimeout(300);
+    ok(!sent(posts, n).includes('wake') && /เปิดอยู่แล้ว/.test(await p.textContent('#note')), 'PC on: tap dim ปลุกคอม → explains, sends nothing');
+    await typeCmd(p, 'ปลุกคอม'); ok(!sent(posts, n).includes('wake'), 'PC on: typed "ปลุกคอม" also sends nothing');
+    await p.screenshot({ path: '/tmp/s_on.png' });
+  });
+  await run('btn-off', [['⚫ RUBY_PC ปิด/หลับอยู่', 60]], async (p, posts) => {
+    ok(JSON.stringify(await dims(p)) === '["bSleep","bOff"]', 'PC off: คอมหลับ + ปิดคอม dim ' + JSON.stringify(await dims(p)));
+    await p.click('#bSleep'); await p.waitForTimeout(300); ok(!(await dlg(p)).open, 'PC off: tap dim คอมหลับ → no dialog');
+    await p.click('#bOff'); await p.waitForTimeout(300); ok(!(await dlg(p)).open, 'PC off: tap dim ปิดคอม → no dialog');
+    const n = posts.length; await p.click('#bWake'); await p.waitForTimeout(400); ok(sent(posts, n).includes('wake'), 'PC off: ปลุกคอม works');
+    await p.screenshot({ path: '/tmp/s_off.png' });
+  });
+  await run('btn-stale', [['🟢 RUBY_PC เปิดอยู่', 1200]], async (p) => { ok((await dims(p)).length === 0, 'status older than 15 min → all buttons usable'); });
+  await run('btn-shut', [ON, ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที)', 2]], async (p) => {
+    ok(JSON.stringify(await dims(p)) === '["bOff"]', 'shutdown counting: only ปิดคอม dim (ปลุก = ยกเลิกปิด, หลับ = หลับแทน) ' + JSON.stringify(await dims(p)));
+  });
   console.log('----\npassed=' + pass + ' failed=' + fail); await b.close();
 })();

@@ -8,7 +8,7 @@ let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,
   const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(String(e)));
   await p.addInitScript(() => { localStorage.setItem('kumremote_topic', 'shottest_abcdef'); window.WebSocket = undefined; });
   await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(700);
-  await p.click('#bSet'); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(400);
+  await p.evaluate(() => document.getElementById('bSet').click()); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(400);
   const dis = () => p.evaluate(()=>[document.getElementById('kdUndo').disabled, document.getElementById('kdRedo').disabled]);
   ok(JSON.stringify(await dis())==='[true,true]', `[${tag}] start: both disabled`);
   const stroke = async (y) => { const g = await p.evaluate(()=>{const c=document.querySelector('.kd canvas.g'); c.scrollIntoView({block:'center'}); const r=c.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width};}); await p.mouse.move(g.x+g.w*.3,g.y+g.w*y); await p.mouse.down(); await p.mouse.move(g.x+g.w*.7,g.y+g.w*y,{steps:8}); await p.mouse.up(); await p.waitForTimeout(150); };

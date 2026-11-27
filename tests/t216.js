@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
     const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(String(e)));
     await p.addInitScript(() => { localStorage.setItem('kumremote_topic', 'shottest_abcdef'); window.WebSocket = undefined; });
     await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(1000);
-    await p.click('#bSet'); await p.waitForTimeout(400);
+    await p.evaluate(() => document.getElementById('bSet').click()); await p.waitForTimeout(400);
     const pos = {};
     for (const t of ['char', 'screen', 'app', 'char']) {
       await p.click(`#setVeil [data-tab=${t}]`); await p.waitForTimeout(250);

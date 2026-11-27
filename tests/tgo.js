@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
   const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(String(e)));
   await p.addInitScript(() => { localStorage.setItem('kumremote_topic', 'shottest_abcdef'); window.WebSocket = undefined; });
   await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(700);
-  await p.click('#bSet'); await p.click('#setVeil [data-tab=screen]'); await p.waitForTimeout(400);
+  await p.evaluate(() => document.getElementById('bSet').click()); await p.click('#setVeil [data-tab=screen]'); await p.waitForTimeout(400);
   await p.evaluate(()=>document.querySelector('#setVeil .row2b').scrollIntoView({block:'center'})); await p.waitForTimeout(200);
   await p.screenshot({ path: '/tmp/go2.png' });
   await p.click('#setVeil .row2b button >> nth=1'); await p.waitForTimeout(300);

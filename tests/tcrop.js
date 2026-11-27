@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
   const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(String(e)));
   await p.addInitScript(() => { localStorage.setItem('kumremote_topic', 'shottest_abcdef'); window.WebSocket = undefined; });
   await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(1000);
-  await p.click('#bSet'); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(500);
+  await p.evaluate(() => document.getElementById('bSet').click()); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(500);
   await p.setInputFiles('#drawVeil input[type=file]', '/tmp/blob.png'); await p.waitForTimeout(1200);
   await p.screenshot({ path: '/tmp/crop1.png' });
   const btn = await p.$('.kdcrop .save'); if (btn) { await btn.click(); await p.waitForTimeout(1500); }

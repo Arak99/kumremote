@@ -7,7 +7,7 @@ const out = [];
     const ctx = await b.newContext({ viewport: { width: vp[0], height: vp[1] }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
     const posts = [];
     const now = Date.now();
-    const hist = [['🟢 RUBY_PC เปิดอยู่', 60], ['💡 จอตัวปลุก: ความสว่าง 60% · หรี่เอง: เปิด', 50], ['sleep', 40], ['😴 RUBY_PC กำลัง Sleep', 39], ['🤖✅ Claude ทำงานเสร็จ: งานทดสอบที่มีชื่อยาวมากๆ เพื่อดูว่าข้อความยาวล้นไหมในรายการ', 30], ['🎤? เปิดไฟหน่อย', 20], ['⚡ ส่งสัญญาณปลุก RUBY_PC แล้ว', 10]]
+    const hist = [['🟢 RUBY_PC เปิดอยู่', 60], ['💡 จอตัวปลุก: ความสว่าง 60% · หรี่เอง: เปิด', 50], ['sleep', 40], ['😴 RUBY_PC กำลัง Sleep', 39], ['🤖✅ Claude ทำงานเสร็จ: งานทดสอบที่มีชื่อยาวมากๆ เพื่อดูว่าข้อความยาวล้นไหมในรายการ', 30], ['🎤? เปิดไฟหน่อย', 20], ['⚡ ส่งสัญญาณปลุก RUBY_PC แล้ว', 10], ['🟢 RUBY_PC เปิดอยู่', 5]]
       .map((x, i) => ({ id: i + 1, ts: now - x[1] * 60000, body: x[0] }));
     await ctx.route(/sabaijai|ntfy\.sh/, r => { const q = r.request(); if (q.method() === 'POST') posts.push(q.postData());
       return q.url().includes('/sse') ? r.fulfill({ status: 200, headers: { 'content-type': 'text/event-stream' }, body: ': x\n\n' }) : r.fulfill({ status: 200, body: q.url().includes('/sub') ? JSON.stringify({ messages: hist, last: hist.length }) : '' }); });
@@ -58,7 +58,7 @@ const out = [];
     await p.click('#bHist'); await p.waitForTimeout(400); await check('07-history');
     await p.evaluate(() => { const b = [...document.querySelectorAll('.veil.show button')].find(x => /ปิด|เสร็จ|close/i.test(x.textContent)); if (b) b.click(); else document.querySelectorAll('.veil.show').forEach(v => v.classList.remove('show')); }); await p.waitForTimeout(300);
     // 6 ตั้งค่า 4 แท็บ
-    await p.click('#bSet'); await p.waitForTimeout(400);
+    await p.evaluate(() => document.getElementById('bSet').click()); await p.waitForTimeout(400);
     for (const t of ['char', 'screen', 'app']) { await p.click(`#setVeil [data-tab=${t}]`); await p.waitForTimeout(400); await check('08-set-' + t); await p.evaluate(() => document.querySelector('#setVeil .sheet').scrollTop = 99999); await p.waitForTimeout(200); await check('08-set-' + t + '-bottom'); }
     await p.click('#setVeil [data-tab=screen]'); await p.evaluate(() => document.querySelector('#setVeil .row2b').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200); await check('08-set-screen-buttons');
     // 7 หน้าวาด

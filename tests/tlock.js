@@ -15,7 +15,7 @@ let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,
     for (let i = 1; i <= 12; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y1 + (y2 - y1) * i / 12 }] });
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(500);
   };
-  await p.click('#bSet'); await p.click('#setVeil [data-tab=screen]'); await p.waitForTimeout(400);
+  await p.evaluate(() => document.getElementById('bSet').click()); await p.click('#setVeil [data-tab=screen]'); await p.waitForTimeout(400);
   const y0 = await p.evaluate(()=>scrollY);
   // ไถขึ้นในหน้าตั้งค่าหลายครั้ง (จนสุด แล้วไถต่อ)
   for (let i=0;i<5;i++) await swipe(vp[0]/2, vp[1]*0.85, vp[1]*0.35);

@@ -9,7 +9,7 @@ let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,
   const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(String(e)));
   await p.addInitScript(() => { localStorage.setItem('kumremote_topic', 'shottest_abcdef'); window.WebSocket = undefined; });
   await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(1000);
-  await p.click('#bSet'); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(600);
+  await p.evaluate(() => document.getElementById('bSet').click()); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(600);
   const tag = vp.join('x');
   await p.screenshot({ path: `/tmp/dr_${tag}_1.png` });
   // ระบายสี: ลากบนตาราง
