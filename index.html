@@ -33,6 +33,8 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.14 (27/11/2026) ใช้ตัวกลางของเราเอง "สบายใจ" (Cloudflare) แทน ntfy: ส่งคำสั่งผ่านสบายใจก่อน ส่งไม่ได้ค่อยใช้ ntfy,
+                     ฟังทั้งสบายใจ (WebSocket) และ ntfy พร้อมกัน, ดึงประวัติจากทั้งสองที่, ป้ายเน็ตบอกว่าต่อผ่านทางไหน (ต้อง KumCom v2.8 / KumWake v2.11)
     2.13 (27/11/2026) ตัวละครจากรูปเลือกความละเอียด "สูงมาก 32×32" ได้ (ค่าเริ่มต้น) · ตัดเศษสีเทาที่ติดขอบรูปออกให้ (ต้อง KumWake v2.10 สำหรับ 32×32)
 -->
 <html lang="th">
@@ -244,7 +246,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.13 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.14 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -274,14 +276,16 @@
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.13"></script>
-<script src="draw.js?v=2.13"></script>
-<script src="bot.js?v=2.13"></script>
-<script src="voice.js?v=2.13"></script>
-<script src="show.js?v=2.13"></script>
+<script src="characters.js?v=2.14"></script>
+<script src="draw.js?v=2.14"></script>
+<script src="bot.js?v=2.14"></script>
+<script src="voice.js?v=2.14"></script>
+<script src="show.js?v=2.14"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
+var SBJ = window.KUM_RELAY || 'https://sabaijai.arak-tattoo.workers.dev';   // ตัวกลาง "สบายใจ" (หลัก) — ntfy เป็นตัวสำรอง
+var sbWs = null, sbLast = -1, sbOk = false, ntOk = false, sbFails = 0, sbTimer = null, sbPing = null, sbAt = 0;
 var KEY = 'kumremote_topic';
 var topic = null, es = null, seen = {}, msgs = [], state = 'unknown', stateAt = 0, pending = null, lastStatusAsk = 0;
 var scr = null, scrAt = 0, sliding = false;
@@ -384,19 +388,71 @@ function handle(m, live) {
     }
   }
 }
+function sbMsg(o) { return { event: 'message', id: 's' + o.id, time: Math.floor(o.ts / 1000), message: o.body }; }
 function loadHistory() {
-  return fetch(NTFY + topic + '/json?poll=1&since=12h').then(function (r) { return r.text(); }).then(function (txt) {
+  var cut = Date.now() - 12 * 3600 * 1000;
+  var a = fetch(SBJ + '/t/' + topic + '/sub?since=0&limit=200').then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+    (j.messages || []).forEach(function (o) { if (o.ts >= cut) handle(sbMsg(o), false); });
+    if (j.last > sbLast) sbLast = j.last;
+    return true;
+  }).catch(function () { return false; });
+  var b = fetch(NTFY + topic + '/json?poll=1&since=12h').then(function (r) { return r.text(); }).then(function (txt) {
     txt.split('\n').forEach(function (ln) { if (ln.trim()) { try { handle(JSON.parse(ln), false); } catch (e) {} } });
-    setNet(true); render(); renderScr();
-  }).catch(function () { setNet(false); });
+    return true;
+  }).catch(function () { return false; });
+  return Promise.all([a, b]).then(function (r) {
+    msgs.sort(function (x, y) { return x.t - y.t; });
+    setNet(r[0] || r[1]); render(); renderScr();
+  });
 }
-function setNet(ok) { var n = $('net'); n.textContent = ok ? 'เชื่อมต่อแล้ว' : 'ไม่มีเน็ต'; n.className = 'net ' + (ok ? 'ok' : 'no'); }
+function setNet(ok) {
+  var n = $('net');
+  if (ok === false && (sbOk || ntOk)) ok = true;
+  n.textContent = !ok ? 'ไม่มีเน็ต' : sbOk ? 'เชื่อมต่อแล้ว' : ntOk ? 'เชื่อมต่อแล้ว (ทางสำรอง)' : 'เชื่อมต่อแล้ว';
+  n.className = 'net ' + (ok ? 'ok' : 'no');
+}
+function sbConnect() {
+  clearTimeout(sbTimer); clearInterval(sbPing);
+  if (sbWs) { try { sbWs.onclose = null; sbWs.close(); } catch (e) {} sbWs = null; }
+  if (!topic || !window.WebSocket) return;
+  var ws;
+  try { ws = new WebSocket(SBJ.replace(/^http/, 'ws') + '/t/' + topic + '/ws?since=' + sbLast); } catch (e) { return sbRetry(); }
+  sbWs = ws; sbAt = Date.now();
+  ws.onopen = function () { sbOk = true; sbFails = 0; setNet(true); };
+  ws.onmessage = function (ev) {
+    sbAt = Date.now();
+    if (ev.data === 'pong') return;
+    var o; try { o = JSON.parse(ev.data); } catch (e) { return; }
+    if (o.hello !== undefined) { if (o.last > sbLast) sbLast = o.last; return; }
+    if (o.id === undefined) return;
+    if (o.id > sbLast) sbLast = o.id;
+    handle(sbMsg(o), true); render(); renderScr();
+  };
+  ws.onclose = function () { if (sbWs !== ws) return; sbWs = null; sbOk = false; clearInterval(sbPing); setNet(ntOk); sbRetry(); };
+  ws.onerror = function () { try { ws.close(); } catch (e) {} };
+  sbPing = setInterval(function () {
+    if (sbWs !== ws) return clearInterval(sbPing);
+    if (Date.now() - sbAt > 75000) { try { ws.close(); } catch (e) {} return; }
+    try { ws.send('ping'); } catch (e) {}
+  }, 30000);
+}
+function sbRetry() { sbFails++; clearTimeout(sbTimer); sbTimer = setTimeout(sbConnect, Math.min(60000, 2000 * Math.pow(2, Math.min(sbFails, 5)))); }
 function connect() {
   if (es) { try { es.close(); } catch (e) {} }
   es = new EventSource(NTFY + topic + '/sse');
-  es.onopen = function () { setNet(true); };
-  es.onerror = function () { if (navigator.onLine === false) setNet(false); };
+  es.onopen = function () { ntOk = true; setNet(true); };
+  es.onerror = function () { ntOk = false; if (navigator.onLine === false) setNet(false); };
   es.onmessage = function (ev) { try { handle(JSON.parse(ev.data), true); render(); renderScr(); } catch (e) {} };
+  sbConnect();
+}
+/* ส่งข้อความ: สบายใจก่อน ส่งไม่ได้ค่อยใช้ ntfy · ได้ {ok:true, via} หรือ throw */
+function pub(body) {
+  function viaNtfy() { return fetch(NTFY + topic, { method: 'POST', body: body }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return { ok: true, via: 'ntfy' }; }); }
+  if (sbFails >= 3 && !sbOk) return viaNtfy();
+  var ctl = window.AbortController ? new AbortController() : null, t = ctl && setTimeout(function () { ctl.abort(); }, 8000);
+  return fetch(SBJ + '/t/' + topic + '/pub', { method: 'POST', body: body, signal: ctl ? ctl.signal : undefined })
+    .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('http ' + r.status); return { ok: true, via: 'sabaijai' }; })
+    .catch(function () { clearTimeout(t); return viaNtfy(); });
 }
 
 /* ---------- ส่งคำสั่ง ---------- */
@@ -411,7 +467,7 @@ var WAIT_MSG = {
 function send(cmd, quiet, body) {
   if (pending) { clearTimeout(pending.timer); pending = null; }
   if (!quiet) note(WAIT_MSG[cmd][0]);
-  return fetch(NTFY + topic, { method: 'POST', body: body || cmd }).then(function (r) {
+  return pub(body || cmd).then(function (r) {
     if (!r.ok) throw new Error('http ' + r.status);
     setNet(true);
     pending = { cmd: cmd, timer: setTimeout(function () {
@@ -594,7 +650,7 @@ function handleHeard(t, intent) {
   if (intent) { heard('ได้ยินว่า: <b>' + esc(t) + '</b> → ' + LABEL_TH[intent.cmd] + (intent.value !== undefined && intent.cmd === 'bright' ? ' ' + intent.value + '%' : '')); if (bot) bot.poke(); doCmd(intent.cmd, intent.value); return; }
   heard('ได้ยินว่า: <b>' + esc(t) + '</b> — ไม่แน่ใจว่าหมายถึงอันไหน เลือกให้หน่อย');
   $('chips').hidden = false; holdMood('bad', 3500); speak('ไม่แน่ใจ หมายถึงอันไหน');
-  if (topic) fetch(NTFY + topic, { method: 'POST', body: '🎤? ' + t }).catch(function () {});   // ให้ KumCom จดคำที่ฟังไม่ออก
+  if (topic) pub('🎤? ' + t).catch(function () {});   // ให้ KumCom จดคำที่ฟังไม่ออก
 }
 function micReset() { listening = false; clearTimeout(tapTimer); $('bMic').classList.remove('on'); $('micT').textContent = MIC_IDLE; updateBot(); }
 function micStart() {
@@ -666,13 +722,13 @@ function sendChar(id) {
   if (!topic) return Promise.resolve(false);
   var cu = (window.KUM_CHARACTERS || []).filter(function (c) { return c.id === id; })[0], body = 'char ' + id;
   if (cu && cu.custom) { body = window.KumDraw && KumDraw.payloadOf(id); if (!body) return Promise.resolve(false); }
-  return fetch(NTFY + topic, { method: 'POST', body: body }).then(function () { return true; }).catch(function () { return false; });
+  return pub(body).then(function () { return true; }).catch(function () { return false; });
 }
 function anySheetOpen() { return $('veil').classList.contains('show') || $('setVeil').classList.contains('show') || (window.KumDraw && KumDraw.isOpen()); }
 function openDraw(photo) {
   closeSet();
   KumDraw.open({
-    send: function (text) { if (!topic) return Promise.resolve(false); return fetch(NTFY + topic, { method: 'POST', body: text }).then(function () { return true; }).catch(function () { return false; }); },
+    send: function (text) { if (!topic) return Promise.resolve(false); return pub(text).then(function () { return true; }).catch(function () { return false; }); },
     onChange: function (id, sent) { if (sent) { store(CHAR_KEY, id); if (bot) { bot.setCharacter(id); bot.poke(); } } },
     onDeleted: function (id) { if (store(CHAR_KEY) === id) { var f = (window.KUM_CHARACTERS || [])[0]; store(CHAR_KEY, f ? f.id : null); if (bot && f) bot.setCharacter(f.id); } },
     onClose: function () { $('bSet').onclick(); }
@@ -688,8 +744,8 @@ if (window.KumShow) {
   KumShow.init({ getInfo: function () { return { state: state, since: stateAt, claude: claudeNow() || {}, char: curChar() }; } });
 }
 function postRaw(body, okMsg) {
-  return fetch(NTFY + topic, { method: 'POST', body: body }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); setNet(true); if (okMsg) note(okMsg, 'ok'); })
-    .catch(function () { setNet(false); note('ส่งไม่ได้ — เช็คเน็ตมือถือแล้วลองใหม่ (หรือ ntfy ส่งเกินโควตาของวัน)', 'bad'); });
+  return pub(body).then(function () { setNet(true); if (okMsg) note(okMsg, 'ok'); })
+    .catch(function () { setNet(false); note('ส่งไม่ได้ — เช็คเน็ตมือถือแล้วลองใหม่', 'bad'); });
 }
 if (window.KumShow && !KumShow._wrapped) {
   var _showSet = KumShow.set; KumShow._wrapped = true;
