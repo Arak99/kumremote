@@ -79,59 +79,116 @@
   function css() {
     if (document.getElementById('kdcss')) return;
     var s = document.createElement('style'); s.id = 'kdcss';
-    s.textContent = '.kd .sheet{max-height:94vh;overflow:auto}.kd h3{margin:0 0 4px}.kd .hint{color:var(--dim);font-size:14px;margin:0 0 10px}' +
-      '.kd .gridw{position:relative;width:100%;max-width:340px;margin:0 auto 10px;touch-action:none;user-select:none;-webkit-user-select:none}' +
-      '.kd canvas.g{width:100%;aspect-ratio:1;display:block;border-radius:12px;border:2px solid var(--line);background:#0e1626;touch-action:none}' +
-      '.kd .pal{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:0 0 10px}' +
-      '.kd .pal button{aspect-ratio:1;border-radius:10px;border:3px solid transparent;min-height:36px}' +
-      '.kd .pal button[aria-pressed=true]{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}' +
-      '.kd .tools,.kd .acts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}' +
-      '.kd .tools button,.kd .acts button{flex:1 1 auto;background:#24304a;border-radius:12px;padding:11px 10px;font-size:15px;font-weight:600;min-height:44px}' +
-      '.kd .tools button[aria-pressed=true]{background:var(--accent);color:#04121f}' +
-      '.kd .acts button[disabled]{opacity:.4}' +
-      '.kd .nm{width:100%;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0e1626;color:var(--text);margin:0 0 10px}' +
-      '.kd .pv{display:block;width:100%;max-width:340px;aspect-ratio:320/150;margin:0 auto 10px;border-radius:10px;border:2px solid #222;background:#0F172A;image-rendering:pixelated}' +
-      '.kd .bot2{display:flex;gap:8px;margin-top:6px}.kd .bot2 button{flex:1;border-radius:14px;padding:14px;font-size:16px;font-weight:650;min-height:48px}' +
-      '.kd .bar{position:sticky;bottom:calc(-1 * (env(safe-area-inset-bottom) + 20px));background:#172136;padding:8px 0 4px;margin-top:6px;border-top:1px solid var(--line)}.kd .bar .bot2{margin-top:6px}.kd .save{background:var(--accent);color:#04121f}.kd .send{background:#34d399;color:#04201a}.kd .cancel{background:#24304a}' +
-      '.kd .mine{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.kd .mine button{background:#0e1626;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14.5px;min-height:40px}' +
-      '.kd .mine button[aria-pressed=true]{border-color:var(--accent)}' +
-      '.kd .msg{min-height:22px;font-size:14.5px;color:var(--dim);text-align:center;margin:2px 0 4px}.kd .msg.ok{color:var(--on)}.kd .msg.bad{color:var(--bad)}' +
-      '.kd .gridw.zoom{overflow:auto;max-height:340px;touch-action:auto;border-radius:12px;border:2px solid var(--line)}.kd .gridw.zoom canvas.g{width:200%;max-width:none;border:0;border-radius:0}' +
-      '.kd .cropcv{width:100%;max-width:340px;aspect-ratio:1;display:block;margin:0 auto 6px;border-radius:12px;border:2px solid var(--line);touch-action:none}.kd .zr{width:100%;margin:4px 0 12px}' +
-      '.kd label.opt{display:flex;align-items:center;gap:8px;font-size:14.5px;color:var(--dim);margin:0 0 8px}';
+    // v2.17 จัดหน้าวาดใหม่: หัวติดบน (ชื่อ+ปิด), ตาราง, แถบเครื่องมือไอคอน, จานสี, ตัวเลือกเพิ่มเติมพับเก็บ, แถบบันทึกติดล่าง
+    // ทุกกฎขึ้นต้นด้วย .kd .sheet เพื่อชนะ ".sheet button" ของหน้าหลัก
+    s.textContent =
+      '.kd .sheet{max-height:96vh;max-height:96dvh;overflow:auto;padding-top:0;padding-bottom:0;display:flex;flex-direction:column}.kd .sheet>*{flex:none}' +
+      '.kd .sheet button{flex:none;padding:0;font-size:15px;font-weight:600;border-radius:12px;min-height:0;background:#24304a;color:var(--text,#e8eefc)}' +
+      '.kd .head{position:sticky;top:0;z-index:4;background:#172136;display:flex;align-items:center;gap:10px;padding:14px 0 10px;border-bottom:1px solid var(--line);margin:0 0 10px}' +
+      '.kd .head h3{margin:0;font-size:19px;flex:1}' +
+      '.kd .sheet .head .x{width:40px;height:40px;border-radius:50%;font-size:18px;background:#24304a}' +
+      '.kd .mine{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none}.kd .mine::-webkit-scrollbar{display:none}' +
+      '.kd .sheet .mine button{background:#0e1626;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;white-space:nowrap;min-height:38px}' +
+      '.kd .sheet .mine button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}' +
+      '.kd .sheet .mine .pic{background:#1c2a44;border-color:#2c4a7a}' +
+      '.kd .nm{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:#0e1626;color:var(--text);margin:0 0 10px}' +
+      '.kd .gridw{position:relative;width:100%;max-width:330px;margin:0 auto 10px;touch-action:none;user-select:none;-webkit-user-select:none}' +
+      '.kd canvas.g{width:100%;aspect-ratio:1;display:block;border-radius:12px;border:1px solid var(--line);background:#0e1626;touch-action:none}' +
+      '.kd .gridw.zoom{overflow:auto;max-height:330px;touch-action:auto;border-radius:12px;border:1px solid var(--line)}.kd .gridw.zoom canvas.g{width:200%;max-width:none;border:0;border-radius:0}' +
+      '.kd .tools{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:0 0 10px}' +
+      '.kd .sheet .tools button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px 2px;min-height:54px;font-size:11.5px;font-weight:600;color:#b9c5dc}' +
+      '.kd .sheet .tools button b{font-size:19px;line-height:1;font-weight:400}' +
+      '.kd .sheet .tools button[aria-pressed=true]{background:var(--accent);color:#04121f}' +
+      '.kd .sheet .tools button[disabled]{opacity:.35}' +
+      '.kd .pal{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:0 0 12px}' +
+      '.kd .sheet .pal button{aspect-ratio:1;border-radius:9px;border:2px solid rgba(255,255,255,.08);min-height:0}' +
+      '.kd .sheet .pal button[aria-pressed=true]{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}' +
+      '.kd .pvw{position:relative;margin:0 0 10px}.kd .pvw span{position:absolute;left:10px;top:8px;font-size:12px;color:#8b98b0}' +
+      '.kd .pv{display:block;width:100%;aspect-ratio:320/150;border-radius:12px;border:1px solid var(--line);background:#0F172A;image-rendering:pixelated}' +
+      '.kd details{border:1px solid var(--line);border-radius:14px;margin:0 0 10px;background:#121c2f}' +
+      '.kd summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:15px;font-weight:600;display:flex;justify-content:space-between}.kd summary::-webkit-details-marker{display:none}' +
+      '.kd summary::after{content:"▾";color:var(--dim)}.kd details[open] summary::after{content:"▴"}' +
+      '.kd .opts{padding:0 14px 12px}' +
+      '.kd .orow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}' +
+      '.kd .orow:first-child{border-top:0}' +
+      '.kd .olab{font-size:13px;color:var(--dim);margin:10px 0 6px}' +
+      '.kd .seg{display:flex;gap:6px}' +
+      '.kd .sheet .seg button{flex:1;padding:9px 4px;font-size:13.5px;min-height:40px}' +
+      '.kd .sheet .seg button[aria-pressed=true]{background:var(--accent);color:#04121f}' +
+      '.kd .sheet .sw{width:50px;height:30px;border-radius:30px;background:#33405c;position:relative;padding:0}' +
+      '.kd .sheet .sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}' +
+      '.kd .sheet .sw[aria-checked=true]{background:var(--on)}.kd .sheet .sw[aria-checked=true]::after{left:23px}' +
+      '.kd .sheet .orow .mini{padding:9px 14px;font-size:14px;min-height:40px}.kd .sheet .orow .danger{background:#3a1620;color:#fca5a5}' +
+      '.kd label.opt{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--dim);padding:8px 0;border-top:1px solid var(--line)}.kd label.opt input{margin-top:3px;width:18px;height:18px;flex:none}' +
+      '.kd .bar{position:sticky;bottom:0;z-index:4;background:#172136;padding:8px 0 calc(env(safe-area-inset-bottom) + 12px);margin-top:auto;border-top:1px solid var(--line)}' +
+      '.kd .msg{min-height:20px;font-size:14px;color:var(--dim);text-align:center;margin:0 0 6px}.kd .msg.ok{color:var(--on)}.kd .msg.bad{color:var(--bad)}' +
+      '.kd .bot2{display:flex;gap:8px}.kd .sheet .bot2 button{flex:1;border-radius:14px;padding:13px 8px;font-size:15.5px;font-weight:650;min-height:48px}' +
+      '.kd .sheet .save{background:#24304a}.kd .sheet .send{background:var(--on,#34d399);color:#04201a}.kd .sheet .cancel{background:#24304a}' +
+      '.kd .sheet .bot2 button[disabled]{opacity:.45}' +
+      '.kdcrop .sheet{padding-top:16px}.kdcrop .sheet button{flex:1;min-height:48px}' +
+      '.kd select{width:100%;box-sizing:border-box;font:inherit;font-size:14.5px;padding:11px 34px 11px 12px;margin:2px 0 10px;border-radius:12px;border:1px solid var(--line);background-color:#0e1626;color:var(--text,#e8eefc);text-overflow:ellipsis;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,#8b98b0 50%),linear-gradient(135deg,#8b98b0 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;background-size:6px 6px;background-repeat:no-repeat}' +
+      '.kd .kdcrop label.opt{border-top:0;padding:4px 0 8px}' +
+      '.kd .cropcv{width:100%;max-width:340px;aspect-ratio:1;display:block;margin:0 auto 6px;border-radius:12px;border:2px solid var(--line);touch-action:none}.kd .zr{width:100%;margin:4px 0 12px}';
     document.head.appendChild(s);
   }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; }
   var X = {};   // ชิ้นส่วนหน้าจอ
+  function eyeMode() { return !st.noEyes ? 'sys' : st.ec.length ? 'move' : 'still'; }
+  function setEyeMode(m) {
+    if (m === eyeMode()) return; pushUndo();
+    if (m === 'sys') { st.noEyes = false; st.ec = []; if (st.tool === 'ebox') st.tool = 'paint'; }
+    else if (m === 'still') { st.noEyes = true; st.ec = []; if (st.tool === 'eye' || st.tool === 'ebox') st.tool = 'paint'; }
+    else { st.noEyes = true; st.ec = defaultBoxes(); st.tool = 'ebox'; }
+    upd();
+  }
   function build() {
     css();
     root = el('div', 'veil kd'); root.id = 'drawVeil';
     var sh = el('div', 'sheet'); sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-labelledby', 'kdT');
-    var h = el('h3', '', 'วาดตัวละครของฉัน'); h.id = 'kdT'; sh.appendChild(h);
-    sh.appendChild(el('p', 'hint', 'ระบายช่องสี่เหลี่ยมทีละช่อง หรือเลือกรูปจากมือถือให้แปลงให้เอง · ตัวละครของแบรนด์/คนอื่น ไม่ควรใช้'));
+    // หัว: ชื่อหน้า + ปิด
+    var hd = el('div', 'head'), h = el('h3', '', 'วาดตัวละคร'); h.id = 'kdT'; hd.appendChild(h);
+    X.bClose = el('button', 'x', '✕'); X.bClose.setAttribute('aria-label', 'ปิด'); X.bClose.onclick = close; hd.appendChild(X.bClose); sh.appendChild(hd);
+    // ตัวที่เคยทำ + ตัวใหม่ + จากรูป
     X.mine = el('div', 'mine'); sh.appendChild(X.mine);
-    X.name = el('input', 'nm'); X.name.placeholder = 'ตั้งชื่อตัวละคร'; X.name.maxLength = 24; X.name.setAttribute('aria-label', 'ชื่อตัวละคร'); sh.appendChild(X.name);
+    X.file = el('input'); X.file.type = 'file'; X.file.accept = 'image/*'; X.file.hidden = true; X.file.onchange = function () { if (X.file.files && X.file.files[0]) openCrop(X.file.files[0]); X.file.value = ''; }; sh.appendChild(X.file);
+    X.name = el('input', 'nm'); X.name.placeholder = 'ชื่อตัวละคร'; X.name.maxLength = 24; X.name.setAttribute('aria-label', 'ชื่อตัวละคร'); sh.appendChild(X.name);
+    // ตาราง
     var gw = el('div', 'gridw'); X.cv = el('canvas', 'g'); X.cv.width = 480; X.cv.height = 480; X.cv.setAttribute('aria-label', 'ตารางวาดตัวละคร'); gw.appendChild(X.cv); sh.appendChild(gw); X.gw = gw;
-    X.pal = el('div', 'pal'); PAL.forEach(function (c, i) { var b = el('button'); b.style.background = c; b.setAttribute('aria-label', 'สีที่ ' + (i + 1)); b.onclick = function () { st.color = i; st.tool = 'paint'; upd(); }; X.pal.appendChild(b); }); sh.appendChild(X.pal);
+    // แถบเครื่องมือ (ไอคอน + คำสั้น)
     X.tools = el('div', 'tools');
-    [['paint', '🖌️ ระบายสี'], ['erase', '🧽 ยางลบ'], ['eye', '👀 วางตา'], ['ebox', '🔲 กรอบตา'], ['pan', '✋ เลื่อนดู']].forEach(function (t) { var b = el('button', '', t[1]); b.dataset.t = t[0]; b.onclick = function () { st.tool = t[0]; upd(); }; X.tools.appendChild(b); });
+    function tb(icon, label) { var b = el('button'); var i = el('b', '', icon); b.appendChild(i); b.appendChild(document.createTextNode(label)); return b; }
+    [['paint', '🖌️', 'ระบาย'], ['erase', '🧽', 'ยางลบ'], ['eye', '👀', 'วางตา'], ['ebox', '🔲', 'กรอบตา'], ['pan', '✋', 'เลื่อน']].forEach(function (t) { var b = tb(t[1], t[2]); b.dataset.t = t[0]; b.onclick = function () { st.tool = t[0]; upd(); }; X.tools.appendChild(b); });
+    X.zoom = tb('🔍', 'ซูม'); X.zoom.onclick = function () { zoomed = !zoomed; if (!zoomed && st.tool === 'pan') st.tool = 'paint'; upd(); }; X.tools.appendChild(X.zoom);
+    X.undo = tb('↩️', 'ย้อน'); X.undo.onclick = function () { if (!undo.length) return; var p = JSON.parse(undo.pop()); st.grid = p[0]; st.eyes = p[1]; if (p[2]) { st.pal = p[2]; PAL = st.pal; } st.ec = p[3] || []; upd(); }; X.tools.appendChild(X.undo);
     sh.appendChild(X.tools);
-    var o2 = el('div', 'tools'); X.legs = el('button'); X.legs.onclick = function () { st.hasLegs = !st.hasLegs; upd(); }; o2.appendChild(X.legs);
-    X.es = el('button'); X.es.onclick = function () { var SZ = sizes(), k = 0; SZ.forEach(function (s, i) { if (Math.abs(s[1] - st.es) < .01) k = i; }); st.es = SZ[(k + 1) % SZ.length][1]; upd(); }; o2.appendChild(X.es); X.eyeMode = el('button'); X.eyeMode.onclick = function () { pushUndo(); if (!st.noEyes) { st.noEyes = true; st.ec = defaultBoxes(); st.tool = 'ebox'; } else if (st.ec.length) { st.ec = []; st.tool = 'paint'; } else { st.noEyes = false; } upd(); }; o2.appendChild(X.eyeMode); X.zoom = el('button'); X.zoom.onclick = function () { zoomed = !zoomed; upd(); }; o2.appendChild(X.zoom); sh.appendChild(o2);
-    var a = el('div', 'acts');
-    X.undo = el('button', '', '↩️ ย้อนกลับ'); X.undo.onclick = function () { if (!undo.length) return; var p = JSON.parse(undo.pop()); st.grid = p[0]; st.eyes = p[1]; if (p[2]) { st.pal = p[2]; PAL = st.pal; } st.ec = p[3] || []; upd(); }; a.appendChild(X.undo);
-    X.clear = el('button', '', '🗑️ ล้างทั้งหมด'); X.clear.onclick = function () { if (isEmpty()) return; pushUndo(); st.grid = grid0(); upd(); }; a.appendChild(X.clear);
-    X.pic = el('button', '', '🖼️ เลือกรูปจากมือถือ'); X.file = el('input'); X.file.type = 'file'; X.file.accept = 'image/*'; X.file.hidden = true; X.pic.onclick = function () { X.file.click(); }; X.file.onchange = function () { if (X.file.files && X.file.files[0]) openCrop(X.file.files[0]); X.file.value = ''; };
-    a.appendChild(X.pic); a.appendChild(X.file); sh.appendChild(a);
-    var lb = el('label', 'opt'); X.nobg = el('input'); X.nobg.type = 'checkbox'; X.nobg.checked = true; lb.appendChild(X.nobg); lb.appendChild(document.createTextNode('ลบพื้นหลังของรูปให้ (ใช้ได้ดีกับรูปที่พื้นหลังสีเรียบ)')); sh.appendChild(lb);
-    var lb2 = el('label', 'opt'); X.autosend = el('input'); X.autosend.type = 'checkbox'; X.autosend.checked = true; lb2.appendChild(X.autosend); lb2.appendChild(document.createTextNode('แปลงรูปเสร็จแล้ว บันทึก + ส่งขึ้นบอร์ดให้เลย (ไม่ต้องกดอะไรอีก)')); sh.appendChild(lb2);
-    X.pv = el('canvas', 'pv'); X.pv.width = 320; X.pv.height = 150; X.pv.setAttribute('aria-label', 'ตัวอย่างตัวละครเดินเล่น'); sh.appendChild(X.pv);
-    X.msg = el('div', 'msg'); X.msg.setAttribute('aria-live', 'polite'); 
+    // จานสี
+    X.pal = el('div', 'pal'); PAL.forEach(function (c, i) { var b = el('button'); b.style.background = c; b.setAttribute('aria-label', 'สีที่ ' + (i + 1)); b.onclick = function () { st.color = i; st.tool = 'paint'; upd(); }; X.pal.appendChild(b); }); sh.appendChild(X.pal);
+    // ตัวอย่างเดินเล่น
+    var pw = el('div', 'pvw'); X.pv = el('canvas', 'pv'); X.pv.width = 320; X.pv.height = 150; X.pv.setAttribute('aria-label', 'ตัวอย่างตัวละครเดินเล่น'); pw.appendChild(X.pv); pw.appendChild(el('span', '', 'ตัวอย่าง')); sh.appendChild(pw);
+    // ตัวเลือกเพิ่มเติม (พับเก็บ)
+    var det = el('details'), sum = el('summary', '', 'ตัวเลือกเพิ่มเติม (ตา ขา รูป)'), op = el('div', 'opts'); det.appendChild(sum); det.appendChild(op); X.det = det;
+    op.appendChild(el('div', 'olab', 'ตา'));
+    X.eyeSeg = el('div', 'seg');
+    [['sys', 'ระบบวาดตา'], ['still', 'ตาในรูป (นิ่ง)'], ['move', 'ตาในรูป (ขยับ)']].forEach(function (m) { var b = el('button', '', m[1]); b.dataset.m = m[0]; b.onclick = function () { setEyeMode(m[0]); }; X.eyeSeg.appendChild(b); });
+    op.appendChild(X.eyeSeg);
+    X.esLab = el('div', 'olab', 'ขนาดตา'); op.appendChild(X.esLab);
+    X.esSeg = el('div', 'seg'); op.appendChild(X.esSeg);
+    var r1 = el('div', 'orow'); r1.style.marginTop = '8px'; r1.appendChild(el('span', '', 'มีขา (เดินขยับขา)'));
+    X.legs = el('button', 'sw'); X.legs.setAttribute('role', 'switch'); X.legs.setAttribute('aria-label', 'มีขา'); X.legs.onclick = function () { st.hasLegs = !st.hasLegs; upd(); }; r1.appendChild(X.legs); op.appendChild(r1);
+    var r2 = el('div', 'orow'); r2.appendChild(el('span', '', 'ล้างตารางทั้งหมด'));
+    X.clear = el('button', 'mini', '🗑️ ล้าง'); X.clear.onclick = function () { if (isEmpty()) return; pushUndo(); st.grid = grid0(); upd(); }; r2.appendChild(X.clear); op.appendChild(r2);
+    var lb = el('label', 'opt'); X.nobg = el('input'); X.nobg.type = 'checkbox'; X.nobg.checked = true; lb.appendChild(X.nobg); lb.appendChild(document.createTextNode('ทำจากรูป: ลบพื้นหลังให้ (ใช้ได้ดีกับรูปพื้นหลังสีเรียบ)')); op.appendChild(lb);
+    var lb2 = el('label', 'opt'); X.autosend = el('input'); X.autosend.type = 'checkbox'; X.autosend.checked = true; lb2.appendChild(X.autosend); lb2.appendChild(document.createTextNode('ทำจากรูป: แปลงเสร็จแล้วบันทึก + ส่งขึ้นบอร์ดให้เลย')); op.appendChild(lb2);
+    X.delRow = el('div', 'orow'); X.delRow.appendChild(el('span', '', 'ลบตัวนี้ออกจากมือถือ'));
+    X.bDel = el('button', 'mini danger', 'ลบตัวนี้'); X.bDel.onclick = doDelete; X.delRow.appendChild(X.bDel); op.appendChild(X.delRow);
+    sh.appendChild(det);
+    // แถบบันทึกติดล่าง
+    X.msg = el('div', 'msg'); X.msg.setAttribute('aria-live', 'polite');
     var bar = el('div', 'bar'), b2 = el('div', 'bot2'); bar.appendChild(X.msg);
-    X.bSave = el('button', 'save', 'บันทึก (ใช้ในแอป)'); X.bSave.onclick = function () { doSave(false); };
+    X.bSave = el('button', 'save', 'บันทึก'); X.bSave.onclick = function () { doSave(false); };
     X.bSend = el('button', 'send', 'บันทึก + ส่งให้บอร์ด'); X.bSend.onclick = function () { doSave(true); };
-    b2.appendChild(X.bSave); b2.appendChild(X.bSend); bar.appendChild(b2);
-    var b3 = el('div', 'bot2'); X.bDel = el('button', 'cancel', '🗑️ ลบตัวนี้'); X.bDel.onclick = doDelete; X.bClose = el('button', 'cancel', 'ปิด'); X.bClose.onclick = close; b3.appendChild(X.bDel); b3.appendChild(X.bClose); bar.appendChild(b3); sh.appendChild(bar);
+    b2.appendChild(X.bSave); b2.appendChild(X.bSend); bar.appendChild(b2); sh.appendChild(bar);
+    X.pic = { click: function () { X.file.click(); } };
     root.appendChild(sh); document.body.appendChild(root);
     root.addEventListener('click', function (e) { if (e.target === root) close(); });
     X.name.oninput = function () { st.name = X.name.value; };
@@ -171,22 +228,23 @@
     Array.prototype.forEach.call(X.pal.children, function (b, i) { b.setAttribute('aria-pressed', st.tool === 'paint' && i === st.color ? 'true' : 'false'); });
     Array.prototype.forEach.call(X.tools.children, function (b) { b.setAttribute('aria-pressed', b.dataset.t === st.tool ? 'true' : 'false'); if (b.dataset.t === 'eye') b.hidden = !!st.noEyes; if (b.dataset.t === 'ebox') b.hidden = !st.noEyes; });
     if (st.noEyes && st.tool === 'eye') st.tool = 'paint'; if (!st.noEyes && st.tool === 'ebox') st.tool = 'paint';
-    X.legs.textContent = st.hasLegs ? '🦵 มีขา: เปิด (แตะเพื่อปิด)' : '🦵 มีขา: ปิด (แตะเพื่อเปิด)';
-    var sz = '';
-    sizes().forEach(function (s) { if (Math.abs(s[1] - st.es) < .01) sz = s[0]; });
-    X.es.textContent = '👁️ ขนาดตา: ' + sz + ' (แตะเพื่อเปลี่ยน)'; X.es.hidden = !!st.noEyes;
-    X.eyeMode.textContent = st.noEyes ? (st.ec.length ? '👀 ตา: ใช้ตาในรูป + ขยับได้ — แตะเพื่อให้ตาอยู่นิ่ง' : '👀 ตา: ใช้ตาในรูป (ไม่ขยับ) — แตะเพื่อใช้ตาของระบบ') : '👀 ตา: ระบบวาดให้ (กะพริบ/เหลือบมอง) — แตะเพื่อใช้ตาในรูป ขยับได้';
+    X.legs.setAttribute('aria-checked', st.hasLegs ? 'true' : 'false');
+    var em = eyeMode(); Array.prototype.forEach.call(X.eyeSeg.children, function (b) { b.setAttribute('aria-pressed', b.dataset.m === em ? 'true' : 'false'); });
+    X.esLab.hidden = X.esSeg.hidden = !!st.noEyes; X.esSeg.textContent = '';
+    sizes().forEach(function (z) { var b = el('button', '', z[0]); b.setAttribute('aria-pressed', Math.abs(z[1] - st.es) < .01 ? 'true' : 'false'); b.onclick = function () { st.es = z[1]; upd(); }; X.esSeg.appendChild(b); });
     X.gw.classList.toggle('zoom', zoomed); X.cv.style.touchAction = st.tool === 'pan' ? 'auto' : 'none';
-    X.zoom.textContent = zoomed ? '🔍 ซูม: เปิด (แตะเพื่อปิด)' : '🔍 ซูมเข้า (ช่องใหญ่ขึ้น)';
+    X.zoom.setAttribute('aria-pressed', zoomed ? 'true' : 'false'); Array.prototype.forEach.call(X.tools.children, function (b) { if (b.dataset.t === 'pan') b.disabled = !zoomed; });
     Array.prototype.forEach.call(X.pal.children, function (b, i) { b.style.background = st.pal[i]; });
     X.undo.disabled = !undo.length; X.clear.disabled = isEmpty();
-    var hasMine = !!st.id && loadAll().some(function (d) { return d.id === st.id; }); X.bDel.hidden = !hasMine;
-    X.bSend.disabled = !(opts && opts.send); X.bSave.textContent = hasMine ? 'บันทึกทับตัวเดิม' : 'บันทึก (ใช้ในแอป)';
+    var hasMine = !!st.id && loadAll().some(function (d) { return d.id === st.id; }); X.delRow.hidden = !hasMine;
+    X.bSend.disabled = !(opts && opts.send); X.bSave.textContent = hasMine ? 'บันทึกทับ' : 'บันทึก';
+    var hT = document.getElementById('kdT'); if (hT) hT.textContent = hasMine ? 'แก้ตัวละคร' : 'วาดตัวละครใหม่';
     buildMine(); refreshPreview();
   }
   function buildMine() {
     X.mine.textContent = ''; var all = loadAll();
     var nb = el('button', '', '＋ ตัวใหม่'); nb.onclick = function () { st = blank(); undo = []; X.name.value = ''; msg(''); upd(); }; nb.setAttribute('aria-pressed', st.id ? 'false' : 'true'); X.mine.appendChild(nb);
+    var pb = el('button', 'pic', '🖼️ ทำจากรูป'); pb.onclick = function () { X.file.click(); }; X.mine.appendChild(pb);
     all.forEach(function (d) { var b = el('button', '', d.name); b.setAttribute('aria-pressed', st.id === d.id ? 'true' : 'false'); b.onclick = function () { st = fromData(d); undo = []; X.name.value = d.name; msg(''); upd(); }; X.mine.appendChild(b); });
   }
   function refreshPreview() {
@@ -356,7 +414,7 @@
       var text = payload(d);
       if (text.length > 4000) { msg('บันทึกในแอปแล้ว แต่ตัวนี้ใหญ่เกินจะส่งให้บอร์ด', 'bad'); upd(); return; }
       msg('บันทึกแล้ว กำลังส่งให้บอร์ด…'); X.bSend.disabled = true;
-      Promise.resolve(opts.send(text)).then(function (ok) { msg(ok === false ? 'บันทึกในแอปแล้ว แต่ส่งให้บอร์ดไม่ได้ (เช็คเน็ตแล้วกดส่งอีกครั้ง)' : 'ส่งให้บอร์ดแล้ว ✓ — ถ้าบอร์ดยังเป็นรุ่นเก่า จะยังไม่เปลี่ยนตัว', ok === false ? 'bad' : 'ok'); X.bSend.disabled = false; });
+      Promise.resolve(opts.send(text)).then(function (ok) { msg(ok === false ? 'บันทึกในแอปแล้ว แต่ส่งให้บอร์ดไม่ได้ (เช็คเน็ตแล้วกดส่งอีกครั้ง)' : 'ส่งให้บอร์ดแล้ว ✓', ok === false ? 'bad' : 'ok'); X.bSend.disabled = false; });
       if (opts.onChange) opts.onChange(d.id, true);
     } else msg('บันทึกแล้ว ✓ — เลือกใช้ได้ในรายการตัวละคร', 'ok');
     upd();
