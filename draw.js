@@ -82,7 +82,7 @@
     // v2.17 จัดหน้าวาดใหม่: หัวติดบน (ชื่อ+ปิด), ตาราง, แถบเครื่องมือไอคอน, จานสี, ตัวเลือกเพิ่มเติมพับเก็บ, แถบบันทึกติดล่าง
     // ทุกกฎขึ้นต้นด้วย .kd .sheet เพื่อชนะ ".sheet button" ของหน้าหลัก
     s.textContent =
-      '.kd .sheet{max-height:96vh;max-height:96dvh;overflow:auto;padding-top:0;padding-bottom:0;display:flex;flex-direction:column}.kd .sheet>*{flex:none}' +
+      '.kd.veil{background:#172136}.kd .sheet{height:100vh;height:100dvh;max-height:100dvh;border-radius:0;border:0;overflow:auto;padding-top:0;padding-bottom:0;display:flex;flex-direction:column}.kd .head{padding-top:calc(env(safe-area-inset-top) + 14px)}.kd .sheet>*{flex:none}' +
       '.kd .sheet button{flex:none;padding:0;font-size:15px;font-weight:600;border-radius:12px;min-height:0;background:#24304a;color:var(--text,#e8eefc)}' +
       '.kd .head{position:sticky;top:0;z-index:4;background:#172136;display:flex;align-items:center;gap:10px;padding:14px 0 10px;border-bottom:1px solid var(--line);margin:0 0 10px}' +
       '.kd .head h3{margin:0;font-size:19px;flex:1}' +
@@ -109,7 +109,7 @@
       '.kd summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:15px;font-weight:600;display:flex;justify-content:space-between}.kd summary::-webkit-details-marker{display:none}' +
       '.kd summary::after{content:"▾";color:var(--dim)}.kd details[open] summary::after{content:"▴"}' +
       '.kd .opts{padding:0 14px 12px}' +
-      '.kd .orow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}' +
+      '.kd .orow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;min-height:44px;border-top:1px solid var(--line);font-size:14.5px}' +
       '.kd .orow:first-child{border-top:0}' +
       '.kd .olab{font-size:13px;color:var(--dim);margin:10px 0 6px}' +
       '.kd .seg{display:flex;gap:6px}' +
@@ -174,7 +174,7 @@
     X.esLab = el('div', 'olab', 'ขนาดตา'); op.appendChild(X.esLab);
     X.esSeg = el('div', 'seg'); op.appendChild(X.esSeg);
     var r1 = el('div', 'orow'); r1.style.marginTop = '8px'; r1.appendChild(el('span', '', 'มีขา (เดินขยับขา)'));
-    X.legs = el('button', 'sw'); X.legs.setAttribute('role', 'switch'); X.legs.setAttribute('aria-label', 'มีขา'); X.legs.onclick = function () { st.hasLegs = !st.hasLegs; upd(); }; r1.appendChild(X.legs); op.appendChild(r1);
+    X.legs = el('button', 'sw'); X.legs.setAttribute('role', 'switch'); X.legs.setAttribute('aria-label', 'มีขา'); X.legs.onclick = function (e) { if (e) e.stopPropagation(); st.hasLegs = !st.hasLegs; upd(); }; r1.appendChild(X.legs); r1.style.cursor = 'pointer'; r1.onclick = function () { X.legs.onclick(); }; op.appendChild(r1);
     var r2 = el('div', 'orow'); r2.appendChild(el('span', '', 'ล้างตารางทั้งหมด'));
     X.clear = el('button', 'mini', '🗑️ ล้าง'); X.clear.onclick = function () { if (isEmpty()) return; pushUndo(); st.grid = grid0(); upd(); }; r2.appendChild(X.clear); op.appendChild(r2);
     var lb = el('label', 'opt'); X.nobg = el('input'); X.nobg.type = 'checkbox'; X.nobg.checked = true; lb.appendChild(X.nobg); lb.appendChild(document.createTextNode('ทำจากรูป: ลบพื้นหลังให้ (ใช้ได้ดีกับรูปพื้นหลังสีเรียบ)')); op.appendChild(lb);

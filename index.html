@@ -33,6 +33,11 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.18 (27/11/2026) ตรวจทุกหน้า (จอ 360×640 และ 412×915): ปุ่ม "ตั้งค่า" ท้ายหน้าและ "ดูทั้งหมด" กดง่ายขึ้น (เดิมเล็กเกินนิ้ว),
+                     ซ่อนปุ่มตั้งค่าตอนยังไม่ได้ใส่ลิงก์ครั้งแรก, หน้าวาด: แตะทั้งแถว "มีขา" เพื่อสลับได้
+                     · แก้: เปิดตั้งค่าแล้วเลื่อน หน้าหลังเลื่อนตาม (ล็อกหน้าหลังตอนมีหน้าต่างซ้อน)
+                     · แก้: "ดูเต็มจอในมือถือ" แล้วแตะออก เด้งไปหน้าแรก → กลับมาที่ตั้งค่าแท็บเดิม ตำแหน่งเดิม
+                     · ตั้งค่าและหน้าวาดตัวละครเต็มจอ (ไม่เหลือช่องเห็นหน้าหลัง) มีปุ่ม ✕ มุมขวาบน
     2.17 (27/11/2026) หน้าวาดตัวละครจัดใหม่ทั้งหน้า: หัวติดบน (ชื่อหน้า + ✕ ปิด), แถวตัวที่เคยทำ/＋ใหม่/🖼️ทำจากรูป, แถบเครื่องมือไอคอน 7 ปุ่ม,
                      จานสีครบ 16 สี, ตัวอย่างเดินเล่น, ตัวเลือกเพิ่มเติมพับเก็บ (ตา 3 แบบ/ขนาดตา/ขา/ล้าง/ลบ), ปุ่มบันทึกติดล่าง
     2.16 (27/11/2026) แก้: กดเปลี่ยนแท็บในตั้งค่าแล้วเมนูเด้งขึ้นลง — กล่องตั้งค่าสูงเท่ากันทุกแท็บ แถบแท็บอยู่ที่เดิม ปุ่ม "เสร็จ" อยู่ล่างสุดเสมอ
@@ -95,7 +100,11 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .set .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line);font-size:16px;width:100%;background:none;text-align:left}
   .set .item:first-of-type{border-top:0}
-  .sheet.set{padding-top:0;padding-bottom:0;height:88vh;height:88dvh;display:flex;flex-direction:column}
+  .sheet.set{padding-top:0;padding-bottom:0;height:100vh;height:100dvh;max-height:100dvh;border-radius:0;border:0;display:flex;flex-direction:column}
+  #setVeil{background:#172136}
+  .sethead .tt{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px;padding-top:env(safe-area-inset-top)}
+  .sethead .tt h3{margin:0}
+  .sheet .sethead .x{flex:none;width:40px;height:40px;padding:0;border-radius:50%;font-size:18px;background:#24304a}
   .sheet.set > *{flex:none}
   .sethead{position:sticky;top:0;z-index:3;background:#172136;padding:16px 0 10px;margin:0 0 6px;border-bottom:1px solid var(--line)}
   .sethead h3{margin:0 0 10px}
@@ -190,7 +199,7 @@
   .log li:first-child{border-top:0}
   .log time{color:var(--dim);flex:none;font-variant-numeric:tabular-nums;width:44px}
   .log .me{color:var(--accent)}
-  .log .more{background:none;color:var(--accent);font-size:14px;font-weight:600;padding:6px 0;letter-spacing:0}
+  .log .more{background:none;color:var(--accent);font-size:14px;font-weight:600;padding:12px 4px 12px 16px;min-height:44px;letter-spacing:0;margin:-8px -4px -8px 0}
   .hlist{max-height:62vh;overflow:auto;margin:6px 0 4px}
   .hlist h4{margin:12px 0 4px;font-size:13px;color:var(--dim);font-weight:600}
   .hlist div{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14.5px}
@@ -221,6 +230,10 @@
   .setup button{background:var(--accent);color:#04121f;border-radius:16px;padding:16px;font-size:18px;font-weight:650}
   .app{display:contents}
   body.needsetup .app{display:none} body.needsetup .setup{display:flex}
+  footer button{min-height:44px;padding:0 10px}
+  html.locked,html.locked body{overflow:hidden}
+  .veil,.sheet,.hlist{overscroll-behavior:contain}
+  body.needsetup footer button{display:none}
   .install{display:none;background:#10263a;border:1px solid #1d4a6b;border-radius:16px;padding:13px 15px;font-size:14.5px;color:#b9dcf5}
   .install.show{display:block}
   .install button{background:var(--accent);color:#04121f;border-radius:12px;padding:10px 14px;font-weight:650;margin-top:9px;width:100%}
@@ -281,7 +294,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.17 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.18 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -299,7 +312,7 @@
 
 <div class="veil" id="setVeil"><div class="sheet set" role="dialog" aria-modal="true" aria-labelledby="setT">
   <div class="sethead">
-    <h3 id="setT">ตั้งค่า</h3>
+    <div class="tt"><h3 id="setT">ตั้งค่า</h3><button class="x" id="setX" aria-label="ปิดตั้งค่า">✕</button></div>
     <div class="tabs" role="tablist">
       <button role="tab" data-tab="char" aria-selected="true">ตัวละคร</button><button role="tab" data-tab="screen" aria-selected="false">จอบอร์ด</button><button role="tab" data-tab="pc" aria-selected="false">คอม</button><button role="tab" data-tab="app" aria-selected="false">แอป</button>
     </div>
@@ -331,11 +344,11 @@
   <div class="setfoot"><button class="close" id="setClose">เสร็จ</button></div>
 </div></div>
 
-<script src="characters.js?v=2.17"></script>
-<script src="draw.js?v=2.17"></script>
-<script src="bot.js?v=2.17"></script>
-<script src="voice.js?v=2.17"></script>
-<script src="show.js?v=2.17"></script>
+<script src="characters.js?v=2.18"></script>
+<script src="draw.js?v=2.18"></script>
+<script src="bot.js?v=2.18"></script>
+<script src="voice.js?v=2.18"></script>
+<script src="show.js?v=2.18"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -818,6 +831,7 @@ function pvLoop() {
   if (!window.KumShow || !$('setVeil').classList.contains('show') || store(TAB_KEY) !== 'screen' || !$('pv')) return;
   var tick = function (now) {
     var cv = $('pv'); if (!cv || !$('setVeil').classList.contains('show')) { pv.raf = 0; return; }
+    if (KumShow.isRunning()) { pv.raf = requestAnimationFrame(tick); return; }   // โชว์เต็มจออยู่ ไม่ต้องวาดตัวอย่างซ้อน
     var list = pvPages(); if (!list.length) list = [KumShow.PAGES[0]];
     if (!pv.since) pv.since = now;
     if (pv.page) { var k = list.map(function (p) { return p[0]; }).indexOf(pv.page); if (k >= 0) pv.idx = k; pv.page = null; pv.since = now; }
@@ -829,7 +843,7 @@ function pvLoop() {
   };
   pv.raf = requestAnimationFrame(tick);
 }
-$('setClose').onclick = closeSet;
+$('setClose').onclick = closeSet; $('setX').onclick = closeSet;
 $('setVeil').onclick = function (e) { if (e.target === $('setVeil')) closeSet(); };
 $('swKeep').onclick = function () { var on = store(KEEP_KEY) !== '1'; store(KEEP_KEY, on ? '1' : '0'); sw('swKeep', on); keepOn(on); };
 $('swSpeak').onclick = function () { var on = store(SPEAK_KEY) === '0'; store(SPEAK_KEY, on ? '1' : '0'); sw('swSpeak', on); if (on) speak('บอทพูดตอบแล้ว'); };
@@ -920,7 +934,7 @@ function buildShowSet() {
   pb.appendChild(cv); box.appendChild(pb);
   var cap = document.createElement('div'); cap.className = 'pvcap'; cap.id = 'pvCap'; box.appendChild(cap);
   var acts = document.createElement('div'); acts.className = 'row2b';
-  var bPhone = document.createElement('button'); bPhone.textContent = '📱 ดูเต็มจอในมือถือ'; bPhone.onclick = function () { closeSet(); KumShow.start(); };
+  var bPhone = document.createElement('button'); bPhone.textContent = '📱 ดูเต็มจอในมือถือ'; bPhone.onclick = function () { KumShow.start(); };   // v2.18: ไม่ปิดตั้งค่า แตะออกจากโชว์แล้วกลับมาที่เดิม
   var bBoard = document.createElement('button'); bBoard.className = 'go'; bBoard.textContent = '📺 โชว์บนบอร์ดเดี๋ยวนี้'; bBoard.onclick = function () { postRaw('show now', 'สั่งบอร์ดให้โชว์แล้ว'); };
   acts.appendChild(bPhone); acts.appendChild(bBoard); box.appendChild(acts);
   var h = document.createElement('h4'); h.textContent = 'หน้าที่จะให้โชว์ (แตะเพื่อเลือก/ไม่เลือก)'; box.appendChild(h);
@@ -953,6 +967,16 @@ if (!standalone) setTimeout(function () {
   if (!deferred && topic) { $('installText').textContent = 'เพิ่มเป็นไอคอน: กดปุ่มเมนู ⋮ (หรือ ☰) ของเบราว์เซอร์ → "เพิ่มลงในหน้าจอหลัก" / "ติดตั้งแอป"'; $('installBtn').style.display = 'none'; $('install').classList.add('show'); }
 }, 4000);
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
+// v2.18: เปิดหน้าต่างซ้อนอยู่ (ตั้งค่า/ประวัติ/วาด/ยืนยัน) = ล็อกหน้าหลังไม่ให้เลื่อนตาม
+(function () {
+  var sy = 0;
+  function sync() {
+    var open = !!document.querySelector('.veil.show'), h = document.documentElement;
+    if (open && !h.classList.contains('locked')) { sy = window.scrollY; h.classList.add('locked'); }
+    else if (!open && h.classList.contains('locked')) { h.classList.remove('locked'); window.scrollTo(0, sy); }
+  }
+  new MutationObserver(sync).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], childList: true });
+})();
 init();
 </script>
 </body>
