@@ -33,6 +33,8 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.27 (28/11/2026) เลือกนาทีแล้วยังไม่ส่ง: แตะนาทีเพื่อเลือก (เปลี่ยนใจแตะค่าอื่นได้) แล้วกด "ตกลง" ถึงจะส่ง
+                     ปุ่มปิดคอมมี 2 ทางเลือกเหมือนคอมหลับ: ⏻ ปิดคอมเลยตอนนี้ · 🌙 ปิดคอมเมื่อทำงานเสร็จ (คู่กับตัวบนคอม v2.13)
     2.26 (28/11/2026) "คอมหลับเมื่อทำงานเสร็จ" อยู่ในหน้าต่างคอมหลับเสมอ และใช้ได้ทุกโปรเจกต์ (คู่กับตัวบนคอม v2.12):
                      รอจนคอมว่างต่อเนื่อง 5 นาที (ไม่มีงานในกล่องงาน / Claude ไม่ได้ใช้คอม / Claude Code ไม่ทำงาน / CPU-การ์ดจอไม่หนัก)
                      เปิดหน้าต่างคอมหลับ/ปิดคอม → ถามคอมว่าทำอะไรอยู่ แล้วบอกในหน้าต่าง (🔎) · ทางเลือกที่เหมาะขึ้นก่อน
@@ -218,6 +220,8 @@
   .pend.warn{border-color:rgba(251,146,60,.7);background:rgba(251,146,60,.16)}
   .pend.red{border-color:rgba(248,113,113,.75);background:rgba(248,113,113,.16)}
   .sheet .col{display:flex;flex-direction:column;gap:10px;margin:0 0 10px} .sheet .col button{flex:none;width:100%;white-space:pre-line;line-height:1.35} .sheet .col .alt{background:#24304a;color:var(--text,#f1f5f9)}
+  .sheet .chips{display:flex;gap:8px;margin:0 0 4px} .sheet .chips button{flex:1;padding:14px 4px;background:#24304a;color:var(--text,#f1f5f9);border:2px solid transparent}
+  .sheet .chips button.on{background:var(--accent);color:#04121f;border-color:#fff}
   .note{min-height:24px;text-align:center;font-size:15px;color:var(--dim);padding:0 6px}
   .note.ok{color:var(--on)} .note.warn{color:var(--warn)} .note.bad{color:var(--bad)}
 
@@ -277,7 +281,7 @@
 </head>
 <body>
 <main>
-  <header><h1>สบายใจ <span class="ver">v2.26</span></h1><span class="net" id="net">กำลังเชื่อมต่อ…</span></header>
+  <header><h1>สบายใจ <span class="ver">v2.27</span></h1><span class="net" id="net">กำลังเชื่อมต่อ…</span></header>
 
   <section class="setup" id="setup">
     <h2>ตั้งค่าครั้งแรก</h2>
@@ -430,7 +434,7 @@ function cmdLabel(c, text) {
   var a = (text || '').trim().split(/\s+/), sub = (a[1] || '').toLowerCase();
   if (sub === 'off') return 'สั่งยกเลิกคอมหลับเมื่อเสร็จ';
   if (sub === 'jobs') return 'สั่งคอมหลับเมื่อ Claude ทำงานเสร็จ';
-  if (sub === 'busy') return 'สั่งคอมหลับเมื่อทำงานเสร็จ';
+  if (sub === 'busy') return /\soff\s*$/i.test(text || '') ? 'สั่งปิดคอมเมื่อทำงานเสร็จ' : 'สั่งคอมหลับเมื่อทำงานเสร็จ';
   if (sub === 'proc') return 'ตั้ง Sleep เมื่อโปรแกรม ' + a.slice(2).join(' ') + ' ปิด';
   return 'ถามว่าตั้ง Sleep เมื่องานเสร็จไว้ไหม';
 }
@@ -460,13 +464,13 @@ function pendNow() {
     if (gotSd) continue;
     if (c.kind === 'cmd' && c.cmd === 'sleepdone') {   // ส่งแล้ว คอมยังไม่ตอบ
       if (now - a[i].t > 180) continue;
-      gotSd = true; if (/^sleepdone (jobs|proc|busy)/i.test(t)) out.sd = { pend: true, text: /busy/i.test(t) ? 'คอมทำงานเสร็จ' : ' Claude ทำงานเสร็จ' }; continue;
+      gotSd = true; if (/^sleepdone (jobs|proc|busy)/i.test(t)) out.sd = { pend: true, off: /\soff\s*$/i.test(t), text: /busy/i.test(t) ? 'คอมทำงานเสร็จ' : ' Claude ทำงานเสร็จ' }; continue;
     }
     if (t.indexOf('🌙') === 0 && t.indexOf('กลับมาทำงาน') >= 0) { resumed = true; continue; }   // v2.12: เตือนแล้วคอมกลับมาทำงาน → ยังรออยู่
-    if (t.indexOf('⏳') === 0) { if (resumed) continue; gotSd = true; if (!slept) out.sd = { warn: true, text: firstLine(t).replace(/^⏳\s*/, '').replace(/\s*-\s*(ส่ง|แตะ).*$/, '') }; continue; }
+    if (t.indexOf('⏳') === 0) { if (resumed) continue; gotSd = true; if (!slept) out.sd = { warn: true, off: t.indexOf('ปิดเครื่อง') >= 0, text: firstLine(t).replace(/^⏳\s*/, '').replace(/\s*-\s*(ส่ง|แตะ).*$/, '') }; continue; }
     if (t.indexOf('🧪') === 0) { gotSd = true; continue; }
     if (t.indexOf('🌙') === 0) {
-      if ((m = /จะ Sleep เมื่อ(.+?)(\s*\(|$)/.exec(t))) { gotSd = true; out.sd = { text: m[1] }; continue; }
+      if ((m = /จะ (Sleep|ปิดเครื่อง) เมื่อ(.+?)(\s*\(|$)/.exec(t))) { gotSd = true; out.sd = { off: m[1] === 'ปิดเครื่อง', text: m[2] }; continue; }
       if ((m = /^🌙 หลับเมื่อเสร็จ:\s*(.+)$/.exec(firstLine(t)))) { gotSd = true; if (m[1] !== 'ปิดอยู่') out.sd = { text: m[1] }; continue; }
       if (t.indexOf('ยกเลิก') >= 0) { gotSd = true; continue; }
     }
@@ -494,9 +498,10 @@ function renderPend() {
     if (!shutTick) shutTick = setInterval(function () { if (!pendNow().shut) { clearInterval(shutTick); shutTick = null; } renderPend(); }, 1000);
   }
   if (p.sd) {
-    if (p.sd.warn) box.appendChild(pendBtn('warn', '⏳', 'คอมจะหลับในอีกไม่ถึง 1 นาที', 'คอมทำงานเสร็จแล้ว — แตะตรงนี้เพื่อยกเลิก (คอมจะไม่หลับ)', function () { cancelPending('ยกเลิกแล้ว คอมจะไม่หลับ'); }));
-    else box.appendChild(pendBtn('', '🌙', 'ตั้งไว้: คอมจะหลับเมื่อ' + p.sd.text, p.sd.pend ? 'ส่งแล้ว รอคอมตอบรับ…' : 'แตะเพื่อยกเลิก', function () {
-      ask('ยกเลิก "คอมหลับเมื่อ' + p.sd.text + '"?', 'คอมจะเปิดอยู่ต่อตามปกติ ไม่หลับเอง', 'ยกเลิกการหลับ', false, function () { cancelPending('ยกเลิกแล้ว คอมจะไม่หลับเอง'); });
+    var vb = p.sd.off ? 'ปิด' : 'หลับ';   // v2.27: หลับ หรือ ปิดคอม
+    if (p.sd.warn) box.appendChild(pendBtn('warn', '⏳', 'คอมจะ' + vb + 'ในอีกไม่ถึง 1 นาที', 'คอมทำงานเสร็จแล้ว — แตะตรงนี้เพื่อยกเลิก (คอมจะไม่' + vb + ')', function () { cancelPending('ยกเลิกแล้ว คอมจะไม่' + vb); }));
+    else box.appendChild(pendBtn('', '🌙', 'ตั้งไว้: คอมจะ' + vb + 'เมื่อ' + p.sd.text, p.sd.pend ? 'ส่งแล้ว รอคอมตอบรับ…' : 'แตะเพื่อยกเลิก', function () {
+      ask('ยกเลิก "คอม' + vb + 'เมื่อ' + p.sd.text + '"?', 'คอมจะเปิดอยู่ต่อตามปกติ ไม่' + vb + 'เอง', 'ยกเลิกการ' + vb, false, function () { cancelPending('ยกเลิกแล้ว คอมจะไม่' + vb + 'เอง'); });
     }));
   }
 }
@@ -504,7 +509,7 @@ function cancelPending(okMsg) { send('cancel', true, 'cancel'); note(okMsg + ' (
 function pendText(p) {   // บอกว่ามีอะไรค้างและจะถูกยกเลิก
   var l = [];
   if (p.shut) l.push('⏻ คอมกำลังจะปิด → จะยกเลิกการปิด');
-  if (p.sd) l.push('🌙 ตั้งไว้ให้คอมหลับเมื่อ' + (p.sd.warn ? 'ทำงานเสร็จ' : p.sd.text) + ' → จะยกเลิกอันนี้');
+  if (p.sd) l.push('🌙 ตั้งไว้ให้คอม' + (p.sd.off ? 'ปิด' : 'หลับ') + 'เมื่อ' + (p.sd.warn ? 'ทำงานเสร็จ' : p.sd.text) + ' → จะยกเลิกอันนี้');
   return l.length ? '\n\nตอนนี้มีที่ค้างอยู่:\n• ' + l.join('\n• ') : '';
 }
 /* ---------- v2.25: ปุ่มตามสถานะจริง (จาง = กดแล้วไม่มีผล) ---------- */
@@ -718,7 +723,7 @@ $('bSleep').onclick = function () {
 function sleepDialog() {   // v2.26: มีทั้ง 2 ทางเลือกเสมอ — ข้อความบอกว่าคอมทำอะไรอยู่ (ถามคอมตอนเปิดหน้าต่าง)
   var p = pendNow(), b = busyNow(), extra = pendText(p);
   var now = { label: '😴 คอมหลับเลยตอนนี้' + (b.busy ? '\n(งานที่คอมทำอยู่จะหยุด)' : ''), cls: b.busy ? 'alt' : 'yes', cb: function () { send('sleep'); } };
-  var later = { label: '🌙 คอมหลับเมื่อทำงานเสร็จ\nรอจนคอมว่างต่อเนื่อง แล้วค่อยหลับ (ทุกโปรเจกต์)', cls: b.busy ? 'yes' : 'alt', cb: pickIdle };
+  var later = { label: '🌙 คอมหลับเมื่อทำงานเสร็จ\nรอจนคอมว่างต่อเนื่อง แล้วค่อยหลับ (ทุกโปรเจกต์)', cls: b.busy ? 'yes' : 'alt', cb: function () { pickIdle('sleep'); } };
   choose('คอมหลับ', b.line + extra, b.busy ? [later, now] : [now, later]);
   dlgKind = 'sleep';
 }
@@ -726,10 +731,12 @@ $('bOff').onclick = function () {
   var why = btnWhy('bOff'); if (why) { note(why, 'ok'); speak(why); return; }   // v2.25
   askBusy(); offDialog();
 };
-function offDialog() {
+function offDialog() {   // v2.27: 2 ทางเลือกเหมือนคอมหลับ
   var p = pendNow(), b = busyNow();
-  var t = b.line + '\n\nโปรแกรมที่เปิดอยู่จะถูกปิดทั้งหมด งานที่ไม่ได้เซฟจะหาย\n⚠️ เปิดเครื่องครั้งหน้าอาจค้างตอนบูต (เรื่อง RAM) — ถ้าแค่ไม่อยู่ร้าน ใช้ 😴 คอมหลับ ดีกว่า';
-  ask('ปิดคอมเลยตอนนี้?', t + pendText(p) + '\n\nสั่งแล้วมีเวลา 15 วินาทีให้กดยกเลิก', 'ปิดคอม', true, function () { send('shutdown'); render(); });
+  var t = b.line + pendText(p) + '\n\nปิดคอม = โปรแกรมที่เปิดอยู่ถูกปิดหมด งานที่ไม่ได้เซฟจะหาย\n⚠️ เปิดเครื่องครั้งหน้าอาจค้างตอนบูต (เรื่อง RAM) — ถ้าแค่ไม่อยู่ร้าน ใช้ 😴 คอมหลับ ดีกว่า';
+  var now = { label: '⏻ ปิดคอมเลยตอนนี้' + (b.busy ? '\n(งานที่คอมทำอยู่จะหยุด)' : '') + '\nมีเวลา 15 วินาทีให้กดยกเลิก', cls: b.busy ? 'alt' : 'yes danger', cb: function () { send('shutdown'); render(); } };
+  var later = { label: '🌙 ปิดคอมเมื่อทำงานเสร็จ\nรอจนคอมว่างต่อเนื่อง แล้วค่อยปิด (ทุกโปรเจกต์)', cls: b.busy ? 'yes' : 'alt', cb: function () { pickIdle('off'); } };
+  choose('ปิดคอม', t, b.busy ? [later, now] : [now, later]);
   dlgKind = 'off';
 }
 /* ---------- v2.26: ถามคอมว่าทำอะไรอยู่ (ทุกโปรเจกต์) ---------- */
@@ -744,12 +751,20 @@ function busyNow() {
   return { busy: false, line: '🔎 เช็คไม่ได้ว่าคอมทำงานอยู่ไหม (คอมไม่ตอบ)' };
 }
 var IDLE_KEY = 'kumremote_idlemin';
-function pickIdle() {   // v2.26: เลือกว่าให้คอมว่างนานแค่ไหนก่อนหลับ (จำค่าล่าสุด)
-  var last = +store(IDLE_KEY) || 5;
-  choose('ให้คอมว่างนานแค่ไหนก่อนหลับ?', 'นับเมื่อคอมไม่มีงานทำแล้ว (ทุกโปรเจกต์) — ถ้ากลับมามีงาน จะเริ่มนับใหม่', [1, 5, 10, 30].map(function (m) {
-    return { label: m + ' นาที' + (m === last ? '  ✓ ใช้ล่าสุด' : ''), cls: m === last ? 'yes' : 'alt', cb: function () { store(IDLE_KEY, String(m)); postRaw('sleepdone busy ' + m, 'ตั้งแล้ว: คอมจะหลับเมื่อทำงานเสร็จ แล้วว่าง ' + m + ' นาที'); } };
-  }));
-  dlgKind = null;
+function pickIdle(act) {   // v2.27: แตะนาทีเพื่อเลือก (เปลี่ยนได้) แล้วกด "ตกลง" ถึงจะส่ง · act = 'sleep' หรือ 'off'
+  var vb = act === 'off' ? 'ปิด' : 'หลับ', sel = +store(IDLE_KEY) || 5;
+  $('askT').textContent = 'ให้คอมว่างนานแค่ไหนก่อน' + vb + '?';
+  $('askP').textContent = 'นับเมื่อคอมไม่มีงานทำแล้ว (ทุกโปรเจกต์) — ถ้ากลับมามีงาน จะเริ่มนับใหม่\nแตะเลือกนาที แล้วกด "ตกลง"';
+  var col = $('askCol'); col.textContent = ''; col.hidden = false; $('askRow').hidden = true;
+  var chips = document.createElement('div'); chips.className = 'chips'; chips.id = 'idleChips';
+  var ok = document.createElement('button'), no = document.createElement('button');
+  function paint() { Array.prototype.forEach.call(chips.children, function (c) { c.classList.toggle('on', +c.dataset.m === sel); }); ok.textContent = 'ตกลง — คอม' + vb + 'เมื่อว่าง ' + sel + ' นาที'; }
+  [1, 5, 10, 30].forEach(function (m) { var c = document.createElement('button'); c.dataset.m = m; c.textContent = m + ' นาที'; c.onclick = function () { sel = m; paint(); }; chips.appendChild(c); });
+  ok.className = 'yes' + (act === 'off' ? ' danger' : ''); ok.id = 'idleOk';
+  ok.onclick = function () { closeAsk(); store(IDLE_KEY, String(sel)); postRaw('sleepdone busy ' + sel + (act === 'off' ? ' off' : ''), 'ตั้งแล้ว: คอมจะ' + vb + 'เมื่อทำงานเสร็จ แล้วว่าง ' + sel + ' นาที'); };
+  no.className = 'no'; no.textContent = 'ยกเลิก'; no.onclick = closeAsk;
+  col.appendChild(chips); col.appendChild(ok); col.appendChild(no); paint();
+  askCb = null; dlgKind = null; $('veil').classList.add('show');
 }
 function refreshDlg() { if (dlgKind === 'sleep') sleepDialog(); else if (dlgKind === 'off') offDialog(); }
 $('bri').oninput = function () { sliding = true; $('briVal').textContent = this.value + '%'; };

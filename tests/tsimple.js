@@ -53,20 +53,28 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     ok(d.open && /Claude กำลังทำงาน/.test(d.text) && /คอมหลับเมื่อทำงานเสร็จ/.test(d.btns[0]) && d.btns.some(x => /คอมหลับเลยตอนนี้[\s\S]*จะหยุด/.test(x)), 'claude working: when-done offered first, now warns work stops ' + d.btns.join(' | '));
     await p.screenshot({ path: '/tmp/s_choose.png' });
     await p.click('#askCol button.yes'); await p.waitForTimeout(300); const d2 = await dlg(p);
-    ok(d2.open && /ว่างนานแค่ไหน/.test(d2.title) && ['1 นาที', '5 นาที', '10 นาที', '30 นาที'].every(m => d2.btns.some(x => x.startsWith(m))), 'when-done asks how long idle: 1/5/10/30 ' + d2.btns.join(' | '));
-    ok(/5 นาที[\s\S]*ใช้ล่าสุด/.test(d2.btns.find(x => x.startsWith('5 นาที')) || ''), 'default 5 min marked');
+    const chip = p => p.evaluate(() => { const c = document.querySelector('#idleChips button.on'); return c ? c.innerText : null; });
+    ok(d2.open && /ว่างนานแค่ไหน/.test(d2.title) && ['1 นาที', '5 นาที', '10 นาที', '30 นาที'].every(m => d2.btns.includes(m)), 'when-done asks how long idle: 1/5/10/30 ' + d2.btns.join(' | '));
+    ok(await chip(p) === '5 นาที' && /ตกลง.*5 นาที/.test(await p.textContent('#idleOk')), 'default 5 min selected, ตกลง shows 5');
+    const n = posts.length; await p.click('#idleChips button:has-text("10 นาที")'); await p.waitForTimeout(300);
+    ok(!sent(posts, n).length && (await dlg(p)).open, 'tapping 10 min only selects — sends nothing, dialog stays open');
+    ok(await chip(p) === '10 นาที' && /ตกลง.*10 นาที/.test(await p.textContent('#idleOk')), '10 now selected, ตกลง shows 10');
+    await p.click('#idleChips button:has-text("30 นาที")'); await p.waitForTimeout(200); await p.click('#idleChips button:has-text("10 นาที")'); await p.waitForTimeout(200);
+    ok(!sent(posts, n).length && await chip(p) === '10 นาที', 'change mind 30 → 10: still nothing sent');
     await p.screenshot({ path: '/tmp/s_idle.png' });
-    const n = posts.length; await p.click('#askCol button:has-text("10 นาที")'); await p.waitForTimeout(400);
-    ok(sent(posts, n).includes('sleepdone busy 10'), 'picking 10 min sends sleepdone busy 10');
+    await p.click('#idleOk'); await p.waitForTimeout(400);
+    ok(JSON.stringify(sent(posts, n)) === '["sleepdone busy 10"]' && !(await dlg(p)).open, 'ตกลง sends sleepdone busy 10 once and closes ' + JSON.stringify(sent(posts, n)));
     await p.click('#bSleep'); await p.waitForTimeout(300); await p.click('#askCol button.yes'); await p.waitForTimeout(300);
-    const d3 = await dlg(p); ok(/10 นาที[\s\S]*ใช้ล่าสุด/.test(d3.btns.find(x => x.startsWith('10 นาที')) || ''), 'app remembers last choice (10 min)');
+    ok(await chip(p) === '10 นาที', 'app remembers last choice (10 min)');
+    const n2 = posts.length; await p.click('#askCol button.no'); await p.waitForTimeout(300);
+    ok(!sent(posts, n2).length && !(await dlg(p)).open, 'ยกเลิก in picker sends nothing');
   });
   await run('pending-sd', [ON, WORK, ['sleepdone jobs 5', 20], ["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 5 นาที (เตือนก่อน 60 วินาที แตะแถบในแอปเพื่อยกเลิก)", 19]], async (p, posts) => {
     const pb = await pends(p); ok(pb.length === 1 && /คอมจะหลับเมื่อ Claude ทำงานเสร็จ/.test(pb[0].text), 'sd pending: bar shown ' + JSON.stringify(pb));
     // กดปิดคอม → บอกว่าจะยกเลิก 🌙
     await p.click('#bOff'); await p.waitForTimeout(300); let d = await dlg(p);
     ok(/ค้างอยู่/.test(d.text) && /จะยกเลิกอันนี้/.test(d.text) && /Claude กำลังทำงาน/.test(d.text) && /บูต/.test(d.text), 'shutdown dialog warns about pending + Claude + boot');
-    await p.click('#askNo'); await p.waitForTimeout(200);
+    await p.click('#askCol button.no'); await p.waitForTimeout(200);
     // แตะแถบ → ถามยกเลิก → ส่ง cancel
     await p.click('#pends .pend'); await p.waitForTimeout(300); d = await dlg(p); ok(/ยกเลิก/.test(d.title), 'tap bar asks to cancel');
     const n = posts.length; await p.click('#askYes'); await p.waitForTimeout(400); ok(sent(posts, n).includes('cancel'), 'tap bar → sends cancel');
@@ -117,6 +125,30 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
   await run('idle-reply', [ON, ['🔎 RUBY_PC ว่างอยู่ ไม่มีงานค้าง', 3]], async (p) => {
     await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
     ok(/คอมว่างอยู่/.test(d.text) && /คอมหลับเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /คอมหลับเมื่อทำงานเสร็จ/.test(x)), 'PC idle → หลับเลย first, when-done still there');
+  });
+  await run('off-dialog', [ON], async (p, posts) => {
+    await p.click('#bOff'); await p.waitForTimeout(300); const d = await dlg(p);
+    ok(d.open && d.title === 'ปิดคอม' && /ปิดคอมเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /ปิดคอมเมื่อทำงานเสร็จ/.test(x)) && /บูต/.test(d.text), 'off: dialog has both choices + boot warning ' + d.btns.join(' | '));
+    await p.screenshot({ path: '/tmp/s_off.png' });
+    const n = posts.length; await p.click('#askCol button:has-text("ปิดคอมเลยตอนนี้")'); await p.waitForTimeout(400); ok(sent(posts, n).includes('shutdown'), 'off: ปิดเลย sends shutdown');
+  });
+  await run('off-when-done', [ON, WORK], async (p, posts) => {
+    await p.click('#bOff'); await p.waitForTimeout(300); const d = await dlg(p);
+    ok(/ปิดคอมเมื่อทำงานเสร็จ/.test(d.btns[0]) && d.btns.some(x => /ปิดคอมเลยตอนนี้[\s\S]*จะหยุด/.test(x)), 'off while busy: when-done first ' + d.btns.join(' | '));
+    await p.click('#askCol button.yes'); await p.waitForTimeout(300); const d2 = await dlg(p);
+    ok(/ว่างนานแค่ไหนก่อนปิด/.test(d2.title), 'off picker title says ปิด ' + d2.title);
+    const n = posts.length; await p.click('#idleChips button:has-text("30 นาที")'); await p.waitForTimeout(200); ok(!sent(posts, n).length, 'off picker: select only');
+    await p.click('#idleOk'); await p.waitForTimeout(400); ok(JSON.stringify(sent(posts, n)) === '["sleepdone busy 30 off"]', 'off ตกลง sends sleepdone busy 30 off ' + JSON.stringify(sent(posts, n)));
+  });
+  await run('off-mode-pending', [ON, ['sleepdone busy 10 off', 31], ["🌙 ตั้งแล้ว: จะ ปิดเครื่อง เมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 10 นาที (เตือนก่อน 60 วินาที แตะแถบในแอปเพื่อยกเลิก)", 30]], async (p, posts) => {
+    const pb = await pends(p); ok(pb.length === 1 && /ตั้งไว้: คอมจะปิดเมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 10 นาที/.test(pb[0].text), 'off mode pending bar says ปิด ' + JSON.stringify(pb));
+    ok(/สั่งปิดคอมเมื่อทำงานเสร็จ/.test(await p.textContent('#log')), 'off mode label in list');
+    await p.click('#bSleep'); await p.waitForTimeout(300); ok(/ตั้งไว้ให้คอมปิดเมื่อ/.test((await dlg(p)).text), 'sleep dialog warns the pending ปิด will be cancelled');
+    await p.click('#askCol button.no'); await p.waitForTimeout(200);
+    await p.click('#pends .pend'); await p.waitForTimeout(300); ok(/ยกเลิก "คอมปิดเมื่อ/.test((await dlg(p)).title), 'tap bar → cancel ปิด');
+  });
+  await run('off-warn', [ON, ["⏳ RUBY_PC จะ ปิดเครื่อง ใน 60 วินาที เพราะคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 1 นาที - แตะแถบในแอปเพื่อยกเลิก", 5]], async (p) => {
+    const pb = await pends(p); ok(pb.length === 1 && /warn/.test(pb[0].cls) && /คอมจะปิดในอีกไม่ถึง 1 นาที/.test(pb[0].text), 'off warn: orange bar says ปิด ' + JSON.stringify(pb));
   });
   await run('busy-mode-pending', [ON, ['sleepdone busy 5', 31], ["🌙 ตั้งแล้ว: จะ Sleep เมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 5 นาที (เตือนก่อน 60 วินาที แตะแถบในแอปเพื่อยกเลิก)", 30]], async (p) => {
     const pb = await pends(p); ok(pb.length === 1 && /ตั้งไว้: คอมจะหลับเมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 5 นาที/.test(pb[0].text), 'busy mode pending bar ' + JSON.stringify(pb));
