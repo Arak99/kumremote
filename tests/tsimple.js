@@ -1,0 +1,93 @@
+// v2.24: แบบง่าย — 4 ปุ่ม, ถามก่อนเมื่อชน, แถบของค้างแตะยกเลิก, ทุกทางสั่ง (ปุ่ม/พิมพ์/เสียงจำลอง) ได้ผลเดียวกัน
+const { chromium } = require('playwright');
+let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); c ? pass++ : fail++; };
+(async () => {
+  const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
+  // bodies: [ข้อความ, กี่วินาทีที่แล้ว]
+  const run = async (name, bodies, fn) => {
+    const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const now = Date.now(), posts = [];
+    const hist = bodies.map((x, i) => ({ id: i + 1, ts: now - x[1] * 1000, body: x[0] }));
+    await ctx.route(/sabaijai|ntfy\.sh/, r => { const q = r.request(); if (q.method() === 'POST') posts.push(q.postData());
+      return q.url().includes('/sse') ? r.fulfill({ status: 200, headers: { 'content-type': 'text/event-stream' }, body: ': x\n\n' }) : r.fulfill({ status: 200, body: q.url().includes('/sub') ? JSON.stringify({ messages: hist, last: hist.length }) : '' }); });
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(String(e)));
+    await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(400);
+    await p.fill('#setupIn', 'https://ntfy.sh/simpletest_abc'); await p.click('#setupBtn'); await p.waitForTimeout(1800);
+    await fn(p, posts);
+    ok(!errs.length, name + ': no page errors ' + errs.join(' | '));
+    await ctx.close();
+  };
+  const pends = p => p.evaluate(() => [...document.querySelectorAll('#pends .pend')].map(x => ({ cls: x.className, text: x.innerText.replace(/\n/g, ' / ') })));
+  const dlg = p => p.evaluate(() => ({ open: document.getElementById('veil').classList.contains('show'), title: document.getElementById('askT').innerText, text: document.getElementById('askP').innerText, btns: [...document.querySelectorAll('#veil button')].filter(x => x.offsetParent).map(x => x.innerText) }));
+  const typeCmd = async (p, t) => { await p.fill('#txtIn', t); await p.press('#txtIn', 'Enter'); await p.waitForTimeout(400); };
+  const sent = (posts, n) => posts.slice(n);
+  const ON = ['🟢 RUBY_PC เปิดอยู่', 300];
+  const WORK = ['🤖 Claude กำลังทำงานบนคอม: จัดไฟล์ Drive', 30];
+
+  await run('layout', [ON], async (p) => {
+    const L = await p.evaluate(() => ({ wake: document.getElementById('bWake').innerText.trim(), sleep: document.getElementById('bSleep').innerText.trim(), off: document.getElementById('bOff').innerText.trim(), check: document.getElementById('bCheck').innerText.trim(), stay: !!document.getElementById('bStay'), tabs: [...document.querySelectorAll('#setVeil [role=tab]')].map(x => x.innerText) }));
+    ok(L.wake === 'ปลุกคอม' && L.sleep === 'คอมหลับ' && L.off === 'ปิดคอม' && /เช็คสถานะ/.test(L.check), 'layout: 4 buttons with new names ' + JSON.stringify(L));
+    ok(!L.stay, 'layout: no "อยู่ต่อ" button');
+    ok(!L.tabs.includes('คอม'), 'layout: settings has no คอม tab ' + L.tabs.join(','));
+    ok((await pends(p)).length === 0, 'layout: nothing pending → no bar');
+    await p.screenshot({ path: '/tmp/s_main.png', fullPage: true });
+  });
+  await run('sleep-plain', [ON], async (p, posts) => {
+    await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
+    ok(d.open && /คอมหลับเลยตอนนี้/.test(d.title) && !/ค้างอยู่/.test(d.text), 'sleep: simple confirm, nothing pending mentioned');
+    const n = posts.length; await p.click('#askYes'); await p.waitForTimeout(400); ok(sent(posts, n).includes('sleep'), 'sleep: sends sleep');
+  });
+  await run('sleep-while-claude', [ON, WORK], async (p, posts) => {
+    await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
+    ok(d.open && /Claude กำลังทำงาน/.test(d.title) && d.btns.some(x => /คอมหลับเมื่อ Claude ทำงานเสร็จ/.test(x)) && d.btns.some(x => /คอมหลับเลยตอนนี้/.test(x)), 'claude working: offers when-done / now ' + d.btns.join(' | '));
+    await p.screenshot({ path: '/tmp/s_choose.png' });
+    const n = posts.length; await p.click('#askCol button.yes'); await p.waitForTimeout(400);
+    ok(sent(posts, n).includes('sleepdone jobs 5'), 'claude working: when-done sends sleepdone jobs 5');
+  });
+  await run('pending-sd', [ON, WORK, ['sleepdone jobs 5', 20], ["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 5 นาที (เตือนก่อน 60 วินาที แตะแถบในแอปเพื่อยกเลิก)", 19]], async (p, posts) => {
+    const pb = await pends(p); ok(pb.length === 1 && /คอมจะหลับเมื่อ Claude ทำงานเสร็จ/.test(pb[0].text), 'sd pending: bar shown ' + JSON.stringify(pb));
+    // กดปิดคอม → บอกว่าจะยกเลิก 🌙
+    await p.click('#bOff'); await p.waitForTimeout(300); let d = await dlg(p);
+    ok(/ค้างอยู่/.test(d.text) && /จะยกเลิกอันนี้/.test(d.text) && /Claude กำลังทำงานอยู่/.test(d.text) && /บูต/.test(d.text), 'shutdown dialog warns about pending + Claude + boot');
+    await p.click('#askNo'); await p.waitForTimeout(200);
+    // แตะแถบ → ถามยกเลิก → ส่ง cancel
+    await p.click('#pends .pend'); await p.waitForTimeout(300); d = await dlg(p); ok(/ยกเลิก/.test(d.title), 'tap bar asks to cancel');
+    const n = posts.length; await p.click('#askYes'); await p.waitForTimeout(400); ok(sent(posts, n).includes('cancel'), 'tap bar → sends cancel');
+  });
+  await run('typed-cancel', [ON, ["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 5 นาที (x)", 30]], async (p, posts) => {
+    const n = posts.length; await typeCmd(p, 'อย่าเพิ่งหลับ'); ok(sent(posts, n).includes('cancel'), 'typed "อย่าเพิ่งหลับ" with pending → cancel ' + JSON.stringify(sent(posts, n)));
+  });
+  await run('typed-nothing', [ON], async (p, posts) => {
+    const n = posts.length; await typeCmd(p, 'ห้ามหลับ'); const note = await p.textContent('#note');
+    ok(!sent(posts, n).length && /ไม่มีอะไรค้าง/.test(note), 'typed "ห้ามหลับ" with nothing pending → explains, sends nothing');
+    await typeCmd(p, 'ยังไม่ต้องปิดเครื่อง'); const d = await dlg(p); ok(!d.open && !sent(posts, n).includes('shutdown'), '"ยังไม่ต้องปิดเครื่อง" does NOT open shutdown');
+    await typeCmd(p, 'ฝันดี ไปนอนแล้ว'); const d2 = await dlg(p); ok(!d2.open, '"ฝันดี ไปนอนแล้ว" is chat, no sleep dialog');
+    await typeCmd(p, 'ให้คอมหลับ'); const d3 = await dlg(p); ok(d3.open && /คอมหลับ/.test(d3.title), 'typed "ให้คอมหลับ" opens the same sleep dialog as the button');
+  });
+  await run('shutdown-countdown', [ON, ['shutdown', 4], ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที) - แตะแถบในแอปเพื่อยกเลิก', 3]], async (p, posts) => {
+    const pb = await pends(p); ok(pb.length === 1 && /red/.test(pb[0].cls) && /คอมจะปิดในอีก ([89]|1[0-2]) วินาที/.test(pb[0].text), 'shutdown: red countdown bar ' + JSON.stringify(pb));
+    await p.screenshot({ path: '/tmp/s_shut.png' });
+    await p.waitForTimeout(2100); const pb2 = await pends(p); ok(/อีก ([5-9]|10) วินาที/.test(pb2[0].text), 'shutdown: counts down live ' + pb2[0].text);
+    await p.click('#bWake'); await p.waitForTimeout(300); const d = await dlg(p); ok(/กำลังจะปิด/.test(d.title), 'wake during shutdown asks to cancel shutdown');
+    const n = posts.length; await p.click('#askYes'); await p.waitForTimeout(400); ok(sent(posts, n).includes('cancel') && !sent(posts, n).includes('wake'), 'wake-during-shutdown sends cancel (not wake)');
+  });
+  await run('shutdown-tap-cancel', [ON, ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที) - แตะแถบในแอปเพื่อยกเลิก', 2]], async (p, posts) => {
+    const n = posts.length; await p.click('#pends .pend'); await p.waitForTimeout(400); ok(sent(posts, n).includes('cancel'), 'tap red bar cancels immediately');
+  });
+  await run('cancelled-done', [ON, ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที)', 8], ['cancel', 6], ['↩️ RUBY_PC ยกเลิกแล้ว: ปิดเครื่อง — คอมเปิดอยู่ตามปกติ', 5]], async (p) => {
+    ok((await pends(p)).length === 0, 'after PC confirms cancel → no bar');
+    ok(/ยกเลิกแล้ว: ปิดเครื่อง/.test(await p.textContent('#log')) && /สั่งยกเลิกที่ค้างอยู่/.test(await p.textContent('#log')), 'cancel + PC reply in recent list');
+  });
+  await run('shutdown-expired', [ON, ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที)', 120]], async (p) => { ok((await pends(p)).length === 0, 'old shutdown (2 min ago) → no bar'); });
+  await run('warn', [ON, ["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 1 นาที (x)", 120], ["⏳ RUBY_PC จะ Sleep ใน 60 วินาที เพราะClaude ทำงานเสร็จ แล้วรอ 1 นาที - แตะแถบในแอปเพื่อยกเลิก", 5]], async (p, posts) => {
+    const pb = await pends(p); ok(pb.length === 1 && /warn/.test(pb[0].cls) && /คอมจะหลับในอีกไม่ถึง 1 นาที/.test(pb[0].text), 'warn: orange bar ' + JSON.stringify(pb));
+    const n = posts.length; await p.click('#pends .pend'); await p.waitForTimeout(400); ok(sent(posts, n).includes('cancel'), 'warn: tap → cancel');
+  });
+  await run('slept', [["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 1 นาที (x)", 200], ['⏳ RUBY_PC จะ Sleep ใน 60 วินาที', 130], ['😴 RUBY_PC กำลัง Sleep', 70]], async (p) => { ok((await pends(p)).length === 0, 'slept → bar gone'); });
+  await run('sleep-clears-sd', [ON, ["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 5 นาที (x)", 60]], async (p, posts) => {
+    await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
+    ok(/ค้างอยู่/.test(d.text) && /จะยกเลิกอันนี้/.test(d.text), 'sleep while sd pending: dialog says it will cancel it');
+  });
+  await run('old-stay-history', [ON, ['stay', 100], ['🖥️ RUBY_PC อยู่ต่อ - จะไม่ Sleep เองจนกว่าจะสั่ง', 99]], async (p) => { ok((await pends(p)).length === 0, 'old "อยู่ต่อ" in history → no bar, no error'); });
+  console.log('----\npassed=' + pass + ' failed=' + fail); await b.close();
+})();

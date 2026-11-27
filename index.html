@@ -33,6 +33,11 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.24 (28/11/2026) ทำแบบง่าย ตรงไปตรงมา (คู่กับตัวบนคอม v2.11): หน้าหลักเหลือ ⚡ ปลุกคอม · 😴 คอมหลับ · ⏻ ปิดคอม · 🔄 เช็คสถานะ
+                     ตัดปุ่ม "อยู่ต่อ" และเมนู "Sleep เมื่องานเสร็จ" ในตั้งค่า (แท็บคอม) ออก — คอมไม่หลับเองแล้ว หลับเฉพาะตอนสั่ง
+                     กด คอมหลับ ตอน Claude ทำงานอยู่ → เลือก "คอมหลับเลยตอนนี้" หรือ "คอมหลับเมื่อ Claude ทำงานเสร็จ"
+                     สั่งใหม่ชนของค้าง → บอกก่อนว่าจะยกเลิกอะไร · ปิดคอมมีแถบนับถอยหลัง แตะเพื่อยกเลิก · ปลุกคอมตอนกำลังปิด → ถามยกเลิกการปิด
+                     ทุกอย่างที่ค้างขึ้นเป็นแถบบนหน้าหลัก แตะเพื่อยกเลิก · พูด/พิมพ์ "ยกเลิก" "อย่าเพิ่งหลับ" "ไม่ต้องปิด" = ยกเลิกที่ค้าง
     2.23 (28/11/2026) "Sleep เมื่องานเสร็จ" เห็นชัด: แถบ 🌙 บนหน้าหลักบอกว่าตั้งอะไรค้างไว้ (แตะ = ไปเปลี่ยน/ยกเลิก), ตอนจะหลับขึ้น ⏳ สีส้ม,
                      คำสั่งที่ตั้งและคำตอบจากคอม (🌙 ⏳) ขึ้นในรายการ "ล่าสุด" และประวัติแล้ว (เดิมซ่อนไว้ ขึ้นแค่แวบเดียว)
     2.22 (27/11/2026) เปลี่ยนชื่อแอปเป็น "สบายใจ" (ชื่อบนหัวแอป, ชื่อไอคอน, ท้ายหน้า, ข้อความเตือนบอร์ด) — ที่อยู่เว็บและค่าที่ตั้งไว้ใช้ของเดิม
@@ -197,9 +202,11 @@
   .scr .sw[aria-checked=true] .knob{background:var(--on)}
   .scr .sw[aria-checked=true] .knob::after{left:25px}
   .scr.unknown input,.scr.unknown .sw{opacity:.5}
-  .sdchip{display:flex;align-items:center;gap:10px;width:100%;margin:10px 0 0;padding:10px 14px;min-height:52px;border-radius:14px;border:1px solid rgba(129,140,248,.45);background:rgba(129,140,248,.14);color:var(--text,#f1f5f9);font:inherit;font-size:15px;text-align:left;cursor:pointer}
-  .sdchip b{font-weight:700} .sdchip small{display:block;color:var(--dim);font-size:13px;margin-top:2px} .sdchip .ic{font-size:22px;line-height:1}
-  .sdchip.warn{border-color:rgba(251,146,60,.7);background:rgba(251,146,60,.16)}
+  .pend{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 10px;padding:10px 14px;min-height:52px;border-radius:14px;border:1px solid rgba(129,140,248,.45);background:rgba(129,140,248,.14);color:var(--text,#f1f5f9);font:inherit;font-size:15px;text-align:left;cursor:pointer}
+  .pend b{font-weight:700} .pend small{display:block;color:var(--dim);font-size:13px;margin-top:2px} .pend .ic{font-size:22px;line-height:1}
+  .pend.warn{border-color:rgba(251,146,60,.7);background:rgba(251,146,60,.16)}
+  .pend.red{border-color:rgba(248,113,113,.75);background:rgba(248,113,113,.16)}
+  .sheet .col{display:flex;flex-direction:column;gap:10px;margin:0 0 10px} .sheet .col button{flex:none;width:100%} .sheet .col .alt{background:#24304a;color:var(--text,#f1f5f9)}
   .note{min-height:24px;text-align:center;font-size:15px;color:var(--dim);padding:0 6px}
   .note.ok{color:var(--on)} .note.warn{color:var(--warn)} .note.bad{color:var(--bad)}
 
@@ -280,10 +287,11 @@
       <div class="txt"><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="small" id="small">&nbsp;</div></div>
       <div class="heard" id="heard" hidden></div>
     </section>
+    <div id="pends"></div>
     <button class="mic" id="bMic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a.9.9 0 0 0-1.8 0 4.2 4.2 0 0 1-8.4 0 .9.9 0 0 0-1.8 0 6 6 0 0 0 5.1 5.9V20H8.5a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8h-2.6v-2.6a6 6 0 0 0 5.1-5.9z"/></svg><span id="micT">กดค้างแล้วพูด · ปล่อยเมื่อพูดจบ</span></button>
     <form class="txt2" id="txtF" autocomplete="off"><input id="txtIn" placeholder="หรือพิมพ์ / กดไมค์บนคีย์บอร์ด" enterkeyhint="send" aria-label="พิมพ์คำสั่ง"><button type="submit">ส่ง</button></form>
     <div class="chips" id="chips" hidden>
-      <button data-c="wake">ปลุกคอม</button><button data-c="sleep">Sleep</button><button data-c="status">เช็คสถานะ</button><button data-c="stay">อยู่ต่อ</button><button data-c="cancel">ไม่ใช่ทั้งหมด</button>
+      <button data-c="wake">ปลุกคอม</button><button data-c="sleep">Sleep</button><button data-c="status">เช็คสถานะ</button><button data-c="cancel">ไม่ใช่ทั้งหมด</button>
     </div>
 
     <section class="grid">
@@ -291,14 +299,13 @@
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>ปลุกคอม
       </button>
       <button class="act sleep" id="bSleep">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></svg>Sleep
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></svg>คอมหลับ
       </button>
       <button class="act off" id="bOff">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>ปิดเครื่อง
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>ปิดคอม
       </button>
     </section>
-    <div class="row2"><button class="check" id="bCheck">เช็คสถานะ</button><button class="check" id="bStay">อยู่ต่อ (ไม่หลับเอง)</button></div>
-    <button class="sdchip" id="sdChip" hidden></button>
+    <button class="check" id="bCheck">🔄 เช็คสถานะ</button>
     <div class="note" id="note"></div>
     <section class="log">
       <h2 style="display:flex;justify-content:space-between;align-items:center">ล่าสุด <button class="more" id="bHist">ดูทั้งหมด ›</button></h2>
@@ -306,12 +313,13 @@
     </section>
   </div>
 
-  <footer>สบายใจ v2.23 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>สบายใจ v2.24 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
-  <h3 id="askT"></h3><p id="askP"></p>
-  <div class="row"><button class="no" id="askNo">ยกเลิก</button><button class="yes" id="askYes">ยืนยัน</button></div>
+  <h3 id="askT"></h3><p id="askP" style="white-space:pre-line"></p>
+  <div class="col" id="askCol" hidden></div>
+  <div class="row" id="askRow"><button class="no" id="askNo">ยกเลิก</button><button class="yes" id="askYes">ยืนยัน</button></div>
 </div></div>
 
 <div class="veil" id="histVeil"><div class="sheet set" role="dialog" aria-modal="true" aria-labelledby="histT">
@@ -326,7 +334,7 @@
   <div class="sethead">
     <div class="tt"><h3 id="setT">ตั้งค่า</h3><button class="x" id="setX" aria-label="ปิดตั้งค่า">✕</button></div>
     <div class="tabs" role="tablist">
-      <button role="tab" data-tab="char" aria-selected="true">ตัวละคร</button><button role="tab" data-tab="screen" aria-selected="false">จอบอร์ด</button><button role="tab" data-tab="pc" aria-selected="false">คอม</button><button role="tab" data-tab="app" aria-selected="false">แอป</button>
+      <button role="tab" data-tab="char" aria-selected="true">ตัวละคร</button><button role="tab" data-tab="screen" aria-selected="false">จอบอร์ด</button><button role="tab" data-tab="app" aria-selected="false">แอป</button>
     </div>
   </div>
   <div class="tab on" data-tab="char">
@@ -345,9 +353,6 @@
     </section>
     <div class="showset" id="showSet"></div>
   </div>
-  <div class="tab" data-tab="pc">
-    <div class="showset" id="sdSet" style="border-top:0"></div>
-  </div>
   <div class="tab" data-tab="app">
     <button class="item" id="swKeep" role="switch" aria-checked="false"><span>เปิดจอค้างไว้<br><small style="color:var(--dim)">จอมือถือไม่ดับเองตอนเปิดหน้านี้ (ควรเสียบชาร์จ)</small></span><span class="knob"></span></button>
     <button class="item" id="swSpeak" role="switch" aria-checked="true"><span>บอทพูดตอบ</span><span class="knob"></span></button>
@@ -356,11 +361,11 @@
   <div class="setfoot"><button class="close" id="setClose">เสร็จ</button></div>
 </div></div>
 
-<script src="characters.js?v=2.23"></script>
-<script src="draw.js?v=2.23"></script>
-<script src="bot.js?v=2.23"></script>
-<script src="voice.js?v=2.23"></script>
-<script src="show.js?v=2.23"></script>
+<script src="characters.js?v=2.24"></script>
+<script src="draw.js?v=2.24"></script>
+<script src="bot.js?v=2.24"></script>
+<script src="voice.js?v=2.24"></script>
+<script src="show.js?v=2.24"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -382,8 +387,8 @@ function pickTopic(s) {
 function hhmm(t) { var d = new Date(t * 1000); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
 
 /* ---------- แปลข้อความจากบอร์ด / คอม ---------- */
-var CMDS = { wake: ['wake', 'ปลุก', 'ปลุกคอม', '/wake'], sleep: ['sleep', 'สลีป', 'หลับ'], shutdown: ['shutdown', 'ปิดเครื่อง', 'ปิดคอม'], status: ['status', 'สถานะ', '/status'], stay: ['stay', 'อยู่ต่อ', 'ไม่ต้องหลับ'] };
-var CMD_LABEL = { wake: 'สั่งปลุกคอม', sleep: 'สั่ง Sleep', shutdown: 'สั่งปิดเครื่อง', status: 'ขอสถานะ', screen: 'ตั้งค่าจอ', stay: 'สั่งอยู่ต่อ' };
+var CMDS = { wake: ['wake', 'ปลุก', 'ปลุกคอม', '/wake'], sleep: ['sleep', 'สลีป', 'หลับ'], shutdown: ['shutdown', 'ปิดเครื่อง', 'ปิดคอม'], status: ['status', 'สถานะ', '/status'], stay: ['stay', 'อยู่ต่อ'], cancel: ['cancel', 'ยกเลิก', 'ยกเลิกปิด', 'ยกเลิกหลับ', 'ไม่ต้องหลับ', 'อย่าเพิ่งหลับ', 'ไม่ต้องปิด', 'อย่าปิด'] };
+var CMD_LABEL = { wake: 'สั่งปลุกคอม', sleep: 'สั่งคอมหลับ', shutdown: 'สั่งปิดคอม', status: 'ขอสถานะ', screen: 'ตั้งค่าจอ', stay: 'สั่งอยู่ต่อ', cancel: 'สั่งยกเลิกที่ค้างอยู่' };
 function classify(text) {
   var t = (text || '').trim(), low = t.toLowerCase(), k;
   for (k in CMDS) if (CMDS[k].indexOf(low) >= 0) return { kind: 'cmd', cmd: k };
@@ -391,6 +396,7 @@ function classify(text) {
   if (t.indexOf('💡') === 0) return { kind: 'ack', cmd: 'screen' };
   if (/^sleepdone( |$)/.test(low)) return { kind: 'cmd', cmd: 'sleepdone' };   // v2.23: คำสั่ง Sleep เมื่องานเสร็จ ขึ้นในรายการ
   if (t.indexOf('🌙') === 0 || t.indexOf('⏳') === 0 || t.indexOf('🧪') === 0) return { kind: 'sd' };
+  if (t.indexOf('↩️') === 0) return { kind: 'ack', cmd: 'cancel', state: 'on' };   // v2.24: คอมตอบว่ายกเลิกที่ค้างแล้ว
   if (/^show /.test(low)) return { kind: 'other' };
   if (t.indexOf('🎤') === 0 || t.indexOf('🎨') === 0 || /^char /.test(low)) return { kind: 'other' };
   if (t.indexOf('🤖✅') === 0) return { kind: 'claude', claude: 'done' };
@@ -411,8 +417,8 @@ function classify(text) {
 function cmdLabel(c, text) {
   if (c.cmd !== 'sleepdone') return CMD_LABEL[c.cmd] || 'ส่งคำสั่ง';
   var a = (text || '').trim().split(/\s+/), sub = (a[1] || '').toLowerCase();
-  if (sub === 'off') return 'ยกเลิก Sleep เมื่องานเสร็จ';
-  if (sub === 'jobs') return 'ตั้ง Sleep เมื่องาน Claude เสร็จ + ' + (a[2] || 5) + ' นาที';
+  if (sub === 'off') return 'สั่งยกเลิกคอมหลับเมื่อเสร็จ';
+  if (sub === 'jobs') return 'สั่งคอมหลับเมื่อ Claude ทำงานเสร็จ';
   if (sub === 'proc') return 'ตั้ง Sleep เมื่อโปรแกรม ' + a.slice(2).join(' ') + ' ปิด';
   return 'ถามว่าตั้ง Sleep เมื่องานเสร็จไว้ไหม';
 }
@@ -424,55 +430,65 @@ var VIEW = {
   sleeping: ['busy', 'กำลัง Sleep…'], shuttingdown: ['busy', 'กำลังปิดเครื่อง…'],
   wakefail: ['bad', 'ปลุกไม่ขึ้น'], unknown: ['unknown', 'กำลังเช็คสถานะ…'], noboard: ['bad', 'ตัวปลุกไม่ตอบ']
 };
-/* ---------- v2.23: สถานะ "Sleep เมื่องานเสร็จ" จากข้อความล่าสุด ---------- */
-function sdNow() {
-  var a = msgs.slice().sort(function (x, y) { return x.t - y.t; }), slept = false, i, t, m;
-  for (i = a.length - 1; i >= 0; i--) {
-    t = (a[i].text || '').trim();
-    if (a[i].c.kind === 'ack' && a[i].c.cmd === 'sleep') { slept = true; continue; }
-    if (a[i].c.kind === 'cmd' && a[i].c.cmd === 'sleepdone') {   // ส่งจากมือถือแล้ว คอมยังไม่ตอบ (ไม่เกิน 3 นาที)
-      if (Date.now() / 1000 - a[i].t > 180) continue;
-      var p = t.split(/\s+/), sub = (p[1] || '').toLowerCase();
-      if (sub === 'off') return { on: false };
-      if (sub === 'jobs') return { on: true, text: 'งาน Claude เสร็จ แล้วรอ ' + (p[2] || 5) + ' นาที', pend: true };
-      if (sub === 'proc') return { on: true, text: 'โปรแกรม ' + p.slice(2).join(' ') + ' ปิดตัวลง', pend: true };
+/* ---------- v2.24: ของที่ค้างอยู่ (คอมตอบล่าสุดเป็นตัวตัดสิน) ---------- */
+function pendNow() {
+  var a = msgs.slice().sort(function (x, y) { return x.t - y.t; }), now = Date.now() / 1000, slept = false, out = { shut: null, sd: null }, gotShut = false, gotSd = false, i, t, m, c;
+  for (i = a.length - 1; i >= 0 && !(gotShut && gotSd); i--) {
+    t = (a[i].text || '').trim(); c = a[i].c;
+    if (t.indexOf('↩️') === 0 || (t.indexOf('🖥') === 0 && t.indexOf('พร้อมรับคำสั่ง') >= 0)) break;   // ยกเลิกแล้ว / คอมเพิ่งเปิดใหม่ → ไม่มีอะไรค้างก่อนหน้านี้
+    if (c.kind === 'ack' && c.cmd === 'sleep') { slept = true; gotShut = true; continue; }
+    if (!gotShut && t.indexOf('⏻') === 0) {
+      gotShut = true; gotSd = true;   // ปิดเครื่องล้าง "หลับเมื่อเสร็จ" ไปแล้ว
+      var d = (m = /อีก (\d+) วินาที/.exec(t)) ? +m[1] : 15, left = Math.round(a[i].t + d - now);
+      if (left > -20) out.shut = { left: Math.max(0, left) };
       continue;
     }
-    if (t.indexOf('⏳') === 0) return slept ? { on: false } : { on: true, warn: true, text: firstLine(t).replace(/^⏳\s*/, '') };
-    if (t.indexOf('🧪') === 0) return { on: false };
+    if (c.kind === 'cmd' && (c.cmd === 'cancel' || c.cmd === 'stay')) { if (now - a[i].t < 60) break; continue; }
+    if (!gotShut && c.kind === 'cmd' && c.cmd === 'shutdown') { if (now - a[i].t < 25) { gotShut = true; gotSd = true; out.shut = { left: null }; } continue; }
+    if (gotSd) continue;
+    if (c.kind === 'cmd' && c.cmd === 'sleepdone') {   // ส่งแล้ว คอมยังไม่ตอบ
+      if (now - a[i].t > 180) continue;
+      gotSd = true; if (/^sleepdone (jobs|proc)/i.test(t)) out.sd = { pend: true, text: ' Claude ทำงานเสร็จ' }; continue;
+    }
+    if (t.indexOf('⏳') === 0) { gotSd = true; if (!slept) out.sd = { warn: true, text: firstLine(t).replace(/^⏳\s*/, '').replace(/\s*-\s*(ส่ง|แตะ).*$/, '') }; continue; }
+    if (t.indexOf('🧪') === 0) { gotSd = true; continue; }
     if (t.indexOf('🌙') === 0) {
-      if ((m = /จะ Sleep เมื่อ(.+?)(\s*\(|$)/.exec(t))) return { on: true, text: m[1] };
-      if ((m = /^🌙 หลับเมื่อเสร็จ:\s*(.+)$/.exec(firstLine(t)))) return m[1] === 'ปิดอยู่' ? { on: false } : { on: true, text: m[1] };
-      if (t.indexOf('ยกเลิก') >= 0) return { on: false };
+      if ((m = /จะ Sleep เมื่อ(.+?)(\s*\(|$)/.exec(t))) { gotSd = true; out.sd = { text: m[1] }; continue; }
+      if ((m = /^🌙 หลับเมื่อเสร็จ:\s*(.+)$/.exec(firstLine(t)))) { gotSd = true; if (m[1] !== 'ปิดอยู่') out.sd = { text: m[1] }; continue; }
+      if (t.indexOf('ยกเลิก') >= 0) { gotSd = true; continue; }
     }
   }
-  var st = sdState();   // ไม่เจอในข้อความล่าสุด → ใช้ที่มือถือนี้ส่งไปล่าสุด
-  if (st.mode === 'jobs') return { on: true, text: 'งาน Claude เสร็จ แล้วรอ ' + st.min + ' นาที', guess: true };
-  if (st.mode === 'proc' && st.sent) return { on: true, text: 'โปรแกรม ' + st.proc + ' ปิดตัวลง', guess: true };
-  return { on: false };
+  if (out.sd && !out.sd.warn) out.sd.text = ' ' + out.sd.text.replace('งานในกล่องงานเสร็จ', 'Claude ทำงานเสร็จ').trim();
+  return out;
 }
-function renderSd() {
-  var b = $('sdChip'); if (!b) return;
-  var s = sdNow();
-  if (!s.on) {
-    b.hidden = true;
-    var st = sdState(); if (st.mode !== 'off' && !s.guess && msgs.some(function (x) { return /^(🌙|⏳|🧪)/.test((x.text || '').trim()); })) { try { localStorage.setItem(SD_KEY, JSON.stringify({ mode: 'off' })); } catch (e) {} }
-    return;
-  }
-  if (!s.guess) {   // ให้หน้าตั้งค่าตรงกับที่คอมตั้งอยู่จริง (เช่น ตั้งจากมือถืออีกเครื่อง)
-    var mj = /รอ (\d+) นาที/.exec(s.text), mp = /โปรแกรม (.+?) ปิด/.exec(s.text), cur = sdState(), nw = null;
-    if (mj && !(cur.mode === 'jobs' && +cur.min === +mj[1])) nw = { mode: 'jobs', min: +mj[1] };
-    else if (mp && !(cur.mode === 'proc' && cur.proc === mp[1])) nw = { mode: 'proc', proc: mp[1], sent: true };
-    if (nw) { try { localStorage.setItem(SD_KEY, JSON.stringify(nw)); } catch (e) {} }
-  }
-  s.text = s.text.replace('งานในกล่องงานเสร็จ', 'งานของ Claude บนคอมเสร็จ');
-  b.hidden = false; b.className = 'sdchip' + (s.warn ? ' warn' : '');
-  b.innerHTML = '';
-  var ic = document.createElement('span'); ic.className = 'ic'; ic.textContent = s.warn ? '⏳' : '🌙';
+var shutTick = null;
+function pendBtn(cls, ic, big, small, onTap) {
+  var b = document.createElement('button'); b.className = 'pend' + (cls ? ' ' + cls : '');
+  var i = document.createElement('span'); i.className = 'ic'; i.textContent = ic;
   var tx = document.createElement('span'), bb = document.createElement('b'), sm = document.createElement('small');
-  bb.textContent = s.warn ? s.text : 'ตั้งไว้: คอมจะ Sleep เองเมื่อ' + s.text;
-  sm.textContent = s.warn ? 'แตะตรงนี้ = อยู่ต่อ (ยกเลิก)' : s.pend ? 'ส่งแล้ว รอคอมตอบรับ…' : 'ยังรออยู่ — แตะเพื่อเปลี่ยนหรือยกเลิก';
-  tx.appendChild(bb); tx.appendChild(sm); b.appendChild(ic); b.appendChild(tx);
+  bb.textContent = big; sm.textContent = small; tx.appendChild(bb); tx.appendChild(sm); b.appendChild(i); b.appendChild(tx);
+  b.onclick = onTap; return b;
+}
+function renderPend() {
+  var box = $('pends'); if (!box) return; box.textContent = '';
+  var p = pendNow();
+  if (p.shut) {
+    box.appendChild(pendBtn('red', '⏻', p.shut.left === null ? 'สั่งปิดคอมแล้ว รอคอมตอบรับ…' : p.shut.left > 0 ? 'คอมจะปิดในอีก ' + p.shut.left + ' วินาที' : 'คอมกำลังปิด…', 'แตะตรงนี้เพื่อยกเลิกการปิด', function () { cancelPending('ยกเลิกการปิดคอมแล้ว'); }));
+    if (!shutTick) shutTick = setInterval(function () { if (!pendNow().shut) { clearInterval(shutTick); shutTick = null; } renderPend(); }, 1000);
+  }
+  if (p.sd) {
+    if (p.sd.warn) box.appendChild(pendBtn('warn', '⏳', 'คอมจะหลับในอีกไม่ถึง 1 นาที', 'Claude ทำงานเสร็จแล้ว — แตะตรงนี้เพื่อยกเลิก (คอมจะไม่หลับ)', function () { cancelPending('ยกเลิกแล้ว คอมจะไม่หลับ'); }));
+    else box.appendChild(pendBtn('', '🌙', 'ตั้งไว้: คอมจะหลับเมื่อ' + p.sd.text, p.sd.pend ? 'ส่งแล้ว รอคอมตอบรับ…' : 'แตะเพื่อยกเลิก', function () {
+      ask('ยกเลิก "คอมหลับเมื่อ Claude ทำงานเสร็จ"?', 'คอมจะเปิดอยู่ต่อตามปกติ ไม่หลับเอง', 'ยกเลิกการหลับ', false, function () { cancelPending('ยกเลิกแล้ว คอมจะไม่หลับเอง'); });
+    }));
+  }
+}
+function cancelPending(okMsg) { send('cancel', true, 'cancel'); note(okMsg + ' (รอคอมยืนยัน)', 'ok'); speak('ยกเลิกแล้ว'); }
+function pendText(p) {   // บอกว่ามีอะไรค้างและจะถูกยกเลิก
+  var l = [];
+  if (p.shut) l.push('⏻ คอมกำลังจะปิด → จะยกเลิกการปิด');
+  if (p.sd) l.push('🌙 ตั้งไว้ให้คอมหลับเมื่อ Claude ทำงานเสร็จ → จะยกเลิกอันนี้');
+  return l.length ? '\n\nตอนนี้มีที่ค้างอยู่:\n• ' + l.join('\n• ') : '';
 }
 function render() {
   var v = VIEW[state] || VIEW.unknown;
@@ -485,7 +501,7 @@ function render() {
   var cl = claudeNow();
   if (cl) { $('big').textContent = cl.mode === 'work' ? 'Claude กำลังทำงาน' : cl.mode === 'done' ? 'Claude ทำงานเสร็จ ✓' : 'งานของ Claude ไม่สำเร็จ'; small = cl.title; }
   $('small').textContent = small;
-  renderSd();
+  renderPend();
   updateBot();
   var ul = $('log'); ul.textContent = '';
   var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && (m.c.cmd === 'status' || m.c.cmd === 'screen')) && m.c.kind !== 'other'; }).slice(-4).reverse();
@@ -599,10 +615,11 @@ function pub(body) {
 /* ---------- ส่งคำสั่ง ---------- */
 var WAIT_MSG = {
   wake: ['ส่งคำสั่งปลุกแล้ว รอสักครู่…', 'ส่งคำสั่งปลุกไปแล้ว แต่ตัวปลุกยังไม่ตอบกลับ — คอมอาจกำลังตื่นอยู่ รอสัก 1 นาทีแล้วกดเช็คสถานะ'],
-  sleep: ['ส่งคำสั่ง Sleep แล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
-  shutdown: ['ส่งคำสั่งปิดเครื่องแล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
+  sleep: ['สั่งคอมหลับแล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
+  shutdown: ['สั่งปิดคอมแล้ว — แตะแถบสีแดงถ้าจะยกเลิก', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
   status: ['กำลังเช็คสถานะ…', 'ตัวปลุกไม่ตอบกลับ — แต่สั่งปลุกได้ตามปกติ กดปุ่ม "ปลุกคอม" ได้เลย'],
   stay: ['บอกคอมว่าอยู่ต่อ…', 'คอมไม่ตอบ — คอมอาจหลับอยู่ (ปลุกก่อน)'],
+  cancel: ['กำลังยกเลิก…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดไปแล้ว'],
   screen: ['กำลังตั้งค่าจอ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่ (ต้องเป็นบอร์ด v1.8 ขึ้นไป)']
 };
 function send(cmd, quiet, body) {
@@ -627,9 +644,17 @@ function askStatus() {
 }
 var askCb = null;
 function ask(title, text, yesLabel, danger, cb) {
+  $('askCol').hidden = true; $('askCol').textContent = ''; $('askRow').hidden = false;
   $('askT').textContent = title; $('askP').textContent = text;
   var y = $('askYes'); y.textContent = yesLabel; y.className = 'yes' + (danger ? ' danger' : '');
   askCb = cb; $('veil').classList.add('show');
+}
+function choose(title, text, opts) {   // v2.24: หลายทางเลือก (ปุ่มเรียงลง + ยกเลิก)
+  $('askT').textContent = title; $('askP').textContent = text;
+  var col = $('askCol'); col.textContent = ''; col.hidden = false; $('askRow').hidden = true;
+  opts.forEach(function (o) { var b = document.createElement('button'); b.className = o.cls || 'alt'; b.textContent = o.label; b.onclick = function () { closeAsk(); o.cb(); }; col.appendChild(b); });
+  var n = document.createElement('button'); n.className = 'no'; n.textContent = 'ยกเลิก'; n.onclick = closeAsk; col.appendChild(n);
+  askCb = null; $('veil').classList.add('show');
 }
 function closeAsk() { $('veil').classList.remove('show'); askCb = null; }
 
@@ -650,9 +675,29 @@ $('setupBtn').onclick = function () {
   if (!t) { $('setupNote').textContent = 'ลิงก์ไม่ถูก — ต้องเป็นลิงก์ที่มี ntfy.sh/… '; $('setupNote').className = 'note bad'; return; }
   store(KEY, t); topic = t; start();
 };
-$('bWake').onclick = function () { state = state === 'on' ? 'on' : 'waking'; render(); send('wake'); };
-$('bSleep').onclick = function () { ask('สั่งคอม Sleep?', 'คอมจะหลับทันที งานที่เปิดค้างไว้ยังอยู่ ปลุกกลับได้ด้วยปุ่มปลุกคอม', 'Sleep เลย', false, function () { send('sleep'); }); };
-$('bOff').onclick = function () { ask('สั่งปิดเครื่อง?', 'โปรแกรมที่เปิดอยู่จะถูกปิดทั้งหมด งานที่ยังไม่ได้เซฟจะหาย', 'ปิดเครื่อง', true, function () { send('shutdown'); }); };
+$('bWake').onclick = function () {
+  if (pendNow().shut) { ask('คอมกำลังจะปิดอยู่', 'จะยกเลิกการปิดคอมไหม? (คอมจะเปิดอยู่ต่อ)', 'ยกเลิกการปิด', false, function () { cancelPending('ยกเลิกการปิดคอมแล้ว'); }); return; }
+  state = state === 'on' ? 'on' : 'waking'; render(); send('wake');
+};
+$('bSleep').onclick = function () {
+  var p = pendNow(), cl = claudeNow(), extra = pendText(p);
+  var now = function () { send('sleep'); };
+  if (cl && cl.mode === 'work') {
+    choose('Claude กำลังทำงานบนคอมอยู่', 'งานตอนนี้: ' + (cl.title || '-') + extra, [
+      { label: '🤖 คอมหลับเมื่อ Claude ทำงานเสร็จ', cls: 'yes', cb: function () { postRaw('sleepdone jobs 5', 'ตั้งแล้ว: คอมจะหลับเมื่อ Claude ทำงานเสร็จ'); } },
+      { label: '😴 คอมหลับเลยตอนนี้ (งานของ Claude จะหยุด)', cls: 'alt', cb: now }
+    ]);
+    return;
+  }
+  ask('คอมหลับเลยตอนนี้?', 'คอมจะหลับทันที งานที่เปิดค้างไว้ยังอยู่ ปลุกกลับได้ด้วยปุ่ม ⚡ ปลุกคอม' + extra, 'คอมหลับเลย', false, now);
+};
+$('bOff').onclick = function () {
+  var p = pendNow(), cl = claudeNow();
+  if (p.shut) { note('คอมกำลังปิดอยู่แล้ว — แตะแถบสีแดงถ้าจะยกเลิก', 'warn'); return; }
+  var t = 'โปรแกรมที่เปิดอยู่จะถูกปิดทั้งหมด งานที่ไม่ได้เซฟจะหาย\n⚠️ เปิดเครื่องครั้งหน้าอาจค้างตอนบูต (เรื่อง RAM) — ถ้าแค่ไม่อยู่ร้าน ใช้ 😴 คอมหลับ ดีกว่า';
+  if (cl && cl.mode === 'work') t = '🤖 Claude กำลังทำงานอยู่ งานจะหยุดกลางคัน\n' + t;
+  ask('ปิดคอมเลยตอนนี้?', t + pendText(p) + '\n\nสั่งแล้วมีเวลา 15 วินาทีให้กดยกเลิก', 'ปิดคอม', true, function () { send('shutdown'); render(); });
+};
 $('bri').oninput = function () { sliding = true; $('briVal').textContent = this.value + '%'; };
 function holdNow() { want.t = Date.now(); clearTimeout(holdTimer); holdTimer = setTimeout(renderScr, HOLD + 300); }
 $('bri').onchange = function () {
@@ -661,7 +706,6 @@ $('bri').onchange = function () {
 };
 $('dimSw').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); want.dim = on; holdNow(); send('screen', false, 'dim ' + (on ? 'on' : 'off')); };
 $('bCheck').onclick = function () { lastStatusAsk = Date.now(); send('status'); };
-$('bStay').onclick = function () { send('stay'); };
 $('askNo').onclick = closeAsk;
 $('veil').onclick = function (e) { if (e.target === $('veil')) closeAsk(); };
 $('askYes').onclick = function () { var cb = askCb; closeAsk(); if (cb) cb(); };
@@ -721,12 +765,14 @@ function boardChrome(c, t) {
   c.textAlign = 'right'; c.font = '700 15px ' + F; c.fillText(('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2), 278, 18);
   var ok = $('net').className.indexOf('ok') >= 0;
   for (var i = 0; i < 4; i++) { c.fillStyle = ok ? '#F1F5F9' : '#475569'; c.fillRect(288 + i * 6, 24 - (4 + i * 4), 4, 4 + i * 4); }
-  var st = state === 'on' ? 'เปิดอยู่' : (state === 'off' || state === 'sleeping' || state === 'shuttingdown') ? 'ปิด / หลับอยู่' : state === 'waking' ? 'กำลังปลุก...' : 'กำลังเช็ค...';
+  var shutP = pendNow().shut;   // v2.24: กำลังนับถอยหลังปิด = คอมยังเปิดอยู่
+  var st = shutP ? 'กำลังจะปิด…' : state === 'on' ? 'เปิดอยู่' : (state === 'off' || state === 'sleeping' || state === 'shuttingdown') ? 'ปิด / หลับอยู่' : state === 'waking' ? 'กำลังปลุก...' : 'กำลังเช็ค...';
   c.textAlign = 'left'; c.fillStyle = '#F1F5F9'; c.font = '700 26px ' + F; c.fillText(st, 8, 60);
   if ((state === 'on' || state === 'off') && stateAt) { var w = c.measureText(st).width; c.fillStyle = '#94A3B8'; c.font = '15px ' + F; c.fillText('ตั้งแต่ ' + hhmm(stateAt), 8 + w + 10, 62); }
   c.fillStyle = ok ? '#16A34A' : '#D97706'; c.beginPath(); c.arc(306, 46, 5, 0, 7); c.fill();
   var bc = '#16A34A', bt = 'ปลุกคอม', bs = 24;
-  if (state === 'waking') { bc = '#D97706'; bt = 'ส่งสัญญาณปลุกแล้ว รอสักครู่'; bs = 17; }
+  if (shutP) { bc = '#DC2626'; bt = 'กำลังจะปิด — แตะเพื่อยกเลิก'; bs = 17; }
+  else if (state === 'waking') { bc = '#D97706'; bt = 'ส่งสัญญาณปลุกแล้ว รอสักครู่'; bs = 17; }
   else if (state === 'wakefail') { bc = '#DC2626'; bt = 'ปลุกไม่ขึ้น แตะเพื่อลองใหม่'; bs = 17; }
   else if (state === 'on' && !stale()) { bc = '#475569'; bt = 'คอมเปิดอยู่แล้ว'; bs = 20; }
   c.fillStyle = bc; c.beginPath(); c.roundRect(BOARD_BTN.x, BOARD_BTN.y, BOARD_BTN.w, BOARD_BTN.h, 14); c.fill();
@@ -769,21 +815,25 @@ var SAY = { wake: 'ปลุกคอมให้แล้ว', status: 'กำ�
 function doCmd(cmd, value) {
   $('chips').hidden = true;
   if (cmd === 'wake') { $('bWake').onclick(); speak(SAY.wake); }
-  else if (cmd === 'sleep') { speak('จะให้คอม Sleep ใช่ไหม'); $('bSleep').onclick(); }
-  else if (cmd === 'shutdown') { speak('จะปิดเครื่องใช่ไหม'); $('bOff').onclick(); }
+  else if (cmd === 'sleep') { speak('จะให้คอมหลับใช่ไหม'); $('bSleep').onclick(); }
+  else if (cmd === 'shutdown') { speak('จะปิดคอมใช่ไหม'); $('bOff').onclick(); }
   else if (cmd === 'status') { lastStatusAsk = Date.now(); send('status'); speak(SAY.status); }
-  else if (cmd === 'stay') { send('stay'); speak(SAY.stay); }
+  else if (cmd === 'stay' || cmd === 'cancel') {
+    var pp = pendNow();
+    if (pp.shut || pp.sd) cancelPending('ยกเลิกแล้ว');
+    else { note('ไม่มีอะไรค้างอยู่ — คอมไม่หลับหรือปิดเองถ้าไม่สั่ง', 'ok'); speak('ไม่มีอะไรค้างอยู่ครับ คอมจะไม่หลับเองถ้าไม่สั่ง'); }
+  }
   else if (cmd === 'bright') { setBri(value); speak('ความสว่าง ' + value + ' เปอร์เซ็นต์'); }
   else if (cmd === 'brighter') { setBri(curBri() + 20); speak('สว่างขึ้นแล้ว'); }
   else if (cmd === 'dimmer') { setBri(curBri() - 20); speak('หรี่ลงแล้ว'); }
   else if (cmd === 'dim') { $('dimSw').setAttribute('aria-checked', value ? 'false' : 'true'); $('dimSw').onclick(); speak(value ? 'เปิดหรี่เองแล้ว' : 'ปิดหรี่เองแล้ว'); }
   else if (cmd === 'chat') { heard('🗨️ <b>' + esc(value.reply) + '</b>'); speak(value.reply); holdMood(value.mood || 'on', 4000); if (bot) bot.poke(); }
   else if (cmd === 'help') {
-    heard('ลองพูดว่า: <b>ปลุกคอม</b> · <b>ให้คอมหลับ</b> · <b>คอมเปิดอยู่ไหม</b> · <b>อยู่ต่อ</b> · <b>ความสว่างห้าสิบ</b> · <b>หรี่จอ</b> · <b>ปิดเครื่อง</b>');
+    heard('ลองพูดว่า: <b>ปลุกคอม</b> · <b>ให้คอมหลับ</b> · <b>คอมเปิดอยู่ไหม</b> · <b>ยกเลิก</b> · <b>ความสว่างห้าสิบ</b> · <b>หรี่จอ</b> · <b>ปิดเครื่อง</b>');
     speak('ลองพูดว่า ปลุกคอม ให้คอมหลับ หรือ คอมเปิดอยู่ไหม');
   }
 }
-var LABEL_TH = { chat: 'คุยเล่น', wake: 'ปลุกคอม', sleep: 'Sleep', shutdown: 'ปิดเครื่อง', status: 'เช็คสถานะ', stay: 'อยู่ต่อ', bright: 'ปรับความสว่าง', brighter: 'จอสว่างขึ้น', dimmer: 'หรี่จอ', dim: 'หรี่เอง', help: 'ดูคำสั่ง' };
+var LABEL_TH = { chat: 'คุยเล่น', wake: 'ปลุกคอม', sleep: 'คอมหลับ', shutdown: 'ปิดคอม', status: 'เช็คสถานะ', stay: 'ยกเลิกที่ค้างอยู่', cancel: 'ยกเลิกที่ค้างอยู่', bright: 'ปรับความสว่าง', brighter: 'จอสว่างขึ้น', dimmer: 'หรี่จอ', dim: 'หรี่เอง', help: 'ดูคำสั่ง' };
 var MIC_IDLE = 'กดค้างแล้วพูด · ปล่อยเมื่อพูดจบ', micDown = 0, tapMode = false, tapTimer = null;
 function handleHeard(t, intent) {
   if (!t) { heard('ไม่ได้ยินเสียง — กดค้างแล้วพูด ปล่อยนิ้วเมื่อพูดจบ'); return; }
@@ -887,14 +937,14 @@ function buildChars() {
 var minis = [];
 var TAB_KEY = 'kumremote_settab';
 function setTab(t) {
+  if (!document.querySelector('#setVeil [role=tab][data-tab="' + t + '"]')) t = 'char';   // v2.24: แท็บคอมถูกตัดออก
   var tabs = document.querySelectorAll('#setVeil [role=tab]'), panes = document.querySelectorAll('#setVeil .tab'), i;
   for (i = 0; i < tabs.length; i++) tabs[i].setAttribute('aria-selected', tabs[i].getAttribute('data-tab') === t ? 'true' : 'false');
   for (i = 0; i < panes.length; i++) panes[i].classList.toggle('on', panes[i].getAttribute('data-tab') === t);
   store(TAB_KEY, t); document.querySelector('#setVeil .sheet').scrollTop = 0; pvLoop();
 }
 (function () { var tabs = document.querySelectorAll('#setVeil [role=tab]'); for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { setTab(this.getAttribute('data-tab')); }; })();
-$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); delMode = false; buildChars(); setDelMode(false); buildShowSet(); buildSdSet(); $('setVeil').classList.add('show'); setTab(store(TAB_KEY) || 'char'); renderScr(); };
-$('sdChip').onclick = function () { if (this.classList.contains('warn')) { $('bStay').click(); return; } $('bSet').onclick(); setTab('pc'); };
+$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); delMode = false; buildChars(); setDelMode(false); buildShowSet(); $('setVeil').classList.add('show'); setTab(store(TAB_KEY) || 'char'); renderScr(); };
 function closeSet() { $('setVeil').classList.remove('show'); minis.forEach(function (m) { m.destroy(); }); minis = []; pvStop(); }
 /* ---------- จอตัวอย่างโหมดโชว์ (v2.15) ---------- */
 var pv = { raf: 0, idx: 0, since: 0, page: null };
@@ -963,36 +1013,6 @@ if (window.KumShow && !KumShow._wrapped) {
     if (o.every !== undefined) postRaw('show every ' + o.every, 'ส่งให้บอร์ดแล้ว');
     if (o.pages) { var cp = KumShow.settings().pages, mask = 0; KumShow.PAGES.forEach(function (p, i) { if (cp[p[0]]) mask |= (1 << i); }); postRaw('show pages ' + (mask || 15), 'ส่งให้บอร์ดแล้ว'); }
   };
-}
-var SD_KEY = 'kumremote_sleepdone';
-function sdState() { try { return JSON.parse(localStorage.getItem(SD_KEY) || 'null') || { mode: 'off' }; } catch (e) { return { mode: 'off' }; } }
-function sdSend(st) {
-  if (st.mode === 'proc') st.sent = true;
-  try { localStorage.setItem(SD_KEY, JSON.stringify(st)); } catch (e) {}
-  var cmd = st.mode === 'off' ? 'sleepdone off' : st.mode === 'jobs' ? 'sleepdone jobs ' + st.min : 'sleepdone proc ' + st.proc;
-  postRaw(cmd, 'ส่งคำสั่งให้คอมแล้ว (คอมจะตอบกลับสักครู่)'); buildSdSet();
-}
-function buildSdSet() {
-  var box = $('sdSet'); if (!box) return; var st = sdState(); box.textContent = '';
-  var h = document.createElement('h4'); h.textContent = '🌙 ให้คอม Sleep เองเมื่องานเสร็จ (ทุกโปรเจกต์)'; box.appendChild(h);
-  var sub = document.createElement('div'); sub.style.cssText = 'font-size:13px;color:var(--dim);margin:0 0 8px'; sub.textContent = 'คอมจะเตือน 60 วินาทีก่อนหลับ กด "อยู่ต่อ" ที่หน้าหลักเพื่อยกเลิก · ตั้งครั้งเดียว หลับแล้วต้องตั้งใหม่'; box.appendChild(sub);
-  if (st.mode === 'jobs') { var how = document.createElement('div'); how.style.cssText = 'font-size:13px;line-height:1.5;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:rgba(129,140,248,.12)'; how.textContent = 'ทำงานยังไง: กดเลือกแล้วคอมรับคำสั่งทันที แต่ยังไม่นับเวลา — จะเริ่มนับเมื่อ Claude ทำงานบนคอมเสร็จ (ผ่านกล่องงาน) ถ้าไม่มีงานของ Claude คอมจะไม่หลับเอง'; box.appendChild(how); }
-  
-  box.appendChild(segRow('เลือกเงื่อนไข', ['off', 'jobs', 'proc'], ['ปิด', 'งาน Claude เสร็จ', 'โปรแกรมปิด'], st.mode, function (v) {
-    if (v === 'off') sdSend({ mode: 'off' });
-    else if (v === 'jobs') sdSend({ mode: 'jobs', min: st.min || 5 });
-    else { st = { mode: 'proc', proc: st.proc || '' }; try { localStorage.setItem(SD_KEY, JSON.stringify(st)); } catch (e) {} buildSdSet(); }
-  }));
-  if (st.mode === 'jobs') box.appendChild(segRow('รอหลังงานเสร็จ', [1, 5, 10, 30], ['1 นาที', '5 นาที', '10 นาที', '30 นาที'], st.min || 5, function (v) { sdSend({ mode: 'jobs', min: v }); }));
-  if (st.mode === 'proc') {
-    var h2 = document.createElement('h4'); h2.textContent = 'ชื่อโปรแกรมที่รอให้ปิด (ตามชื่อใน Task Manager ไม่ต้องใส่ .exe)'; box.appendChild(h2);
-    var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:6px;margin:0 0 8px';
-    var inp = document.createElement('input'); inp.type = 'text'; inp.value = st.proc || ''; inp.placeholder = 'เช่น blender หรือ HandBrake'; inp.style.cssText = 'flex:1;min-height:44px;border-radius:12px;border:1px solid var(--line);background:#101a2c;color:inherit;padding:0 12px;font-size:16px';
-    var go = document.createElement('button'); go.textContent = 'ตั้งเลย'; go.className = 'close'; go.style.cssText = 'min-height:44px;padding:0 14px';
-    go.onclick = function () { var v = inp.value.trim().replace(/\.exe$/i, ''); if (!/^[\w\- .]{1,60}$/.test(v)) { note('ใส่ชื่อโปรแกรมเป็นตัวอักษร/ตัวเลข เช่น blender', 'warn'); return; } sdSend({ mode: 'proc', proc: v }); };
-    row.appendChild(inp); row.appendChild(go); box.appendChild(row);
-  }
-  var cur = document.createElement('div'); cur.style.cssText = 'font-size:13px;color:var(--dim)'; cur.textContent = 'ที่ส่งไปล่าสุด: ' + (st.mode === 'jobs' ? 'Sleep เมื่องาน Claude เสร็จ (รอ ' + (st.min || 5) + ' นาที)' : st.mode === 'proc' && st.proc ? 'Sleep เมื่อโปรแกรม ' + st.proc + ' ปิด' : 'ปิดอยู่'); box.appendChild(cur);
 }
 function segRow(title, vals, labels, cur, onPick) {
   var h = document.createElement('h4'); h.textContent = title; var d = document.createElement('div'); d.className = 'seg';

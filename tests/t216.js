@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
     await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(1000);
     await p.click('#bSet'); await p.waitForTimeout(400);
     const pos = {};
-    for (const t of ['char', 'screen', 'pc', 'app', 'char']) {
+    for (const t of ['char', 'screen', 'app', 'char']) {
       await p.click(`#setVeil [data-tab=${t}]`); await p.waitForTimeout(250);
       pos[t] = await p.evaluate(() => { const a = document.querySelector('#setVeil .tabs').getBoundingClientRect().top, f = document.getElementById('setClose').getBoundingClientRect(); return [Math.round(a), Math.round(f.bottom), innerHeight]; });
       if (vp[0] === 390) await p.screenshot({ path: `/tmp/v216_${t}.png` });

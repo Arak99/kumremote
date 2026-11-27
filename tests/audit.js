@@ -59,7 +59,7 @@ const out = [];
     await p.evaluate(() => { const b = [...document.querySelectorAll('.veil.show button')].find(x => /ปิด|เสร็จ|close/i.test(x.textContent)); if (b) b.click(); else document.querySelectorAll('.veil.show').forEach(v => v.classList.remove('show')); }); await p.waitForTimeout(300);
     // 6 ตั้งค่า 4 แท็บ
     await p.click('#bSet'); await p.waitForTimeout(400);
-    for (const t of ['char', 'screen', 'pc', 'app']) { await p.click(`#setVeil [data-tab=${t}]`); await p.waitForTimeout(400); await check('08-set-' + t); await p.evaluate(() => document.querySelector('#setVeil .sheet').scrollTop = 99999); await p.waitForTimeout(200); await check('08-set-' + t + '-bottom'); }
+    for (const t of ['char', 'screen', 'app']) { await p.click(`#setVeil [data-tab=${t}]`); await p.waitForTimeout(400); await check('08-set-' + t); await p.evaluate(() => document.querySelector('#setVeil .sheet').scrollTop = 99999); await p.waitForTimeout(200); await check('08-set-' + t + '-bottom'); }
     await p.click('#setVeil [data-tab=screen]'); await p.evaluate(() => document.querySelector('#setVeil .row2b').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200); await check('08-set-screen-buttons');
     // 7 หน้าวาด
     await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(600); await check('09-draw');

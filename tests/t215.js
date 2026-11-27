@@ -38,7 +38,6 @@ let pass = 0, fail = 0; const ok = (c, n, d) => { c ? (pass++, console.log('PASS
   await p.screenshot({ path: '/tmp/n_set_scr2.png' });
   await p.click('#setVeil .row2b .go'); await p.waitForTimeout(500);
   ok(posts.includes('show now'), 'board show-now button sends command', posts);
-  await p.click('#setVeil [data-tab=pc]'); await p.waitForTimeout(300); await p.screenshot({ path: '/tmp/n_set_pc.png' });
   await p.click('#setVeil [data-tab=app]'); await p.waitForTimeout(300); await p.screenshot({ path: '/tmp/n_set_app.png' });
   const footVisible = await p.evaluate(() => { const r = document.getElementById('setClose').getBoundingClientRect(); return r.bottom <= innerHeight + 1 && r.top > 0; });
   ok(footVisible, '"เสร็จ" button visible');
