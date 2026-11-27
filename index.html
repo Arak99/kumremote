@@ -24,6 +24,10 @@
     2.5 (27/11/2026) แก้: อยู่นอกร้านแล้วกดปลุกไม่ได้/ไม่กล้ากด เพราะแอปโชว์สถานะเก่า — ปุ่ม "ปลุกคอม" ใหญ่กลับมาให้กดได้เสมอ,
                      สถานะเก่าเกิน 15 นาทีบอกว่าอาจไม่ตรง, ตัวปลุกไม่ตอบกลับ ≠ ปลุกไม่ขึ้น (ไม่โชว์ปุ่มแดงผิดๆ)
     2.6 (27/11/2026) "ดูทั้งหมด": ประวัติทุกคำสั่ง/ทุกคำตอบ เก็บในมือถือ 7 วัน แยกตามวัน (เลือกรวมการเช็คสถานะ/ปรับจอได้), ดึงย้อนหลังจาก ntfy 12 ชม. (เดิม 6)
+    2.7 (27/11/2026) แก้: หน้าตั้งค่ายาวเกินจอมือถือแล้วเลื่อนไม่ได้ (ปุ่มด้านบนกดไม่ถึง) → เลื่อนได้แล้ว · รวมของแชทอื่นเข้าด้วยกัน (ไม่ทับกัน): โหมดโชว์ (show.js: ไม่มีคนแตะ → สลับหน้าจอหรูเป็นรอบ แตะจอ = กลับ) +
+                     หน้า "วาดตัวละครของฉัน" (draw.js: ระบายพิกเซล/เลือกรูปให้แปลง ส่งบอร์ดด้วย charset) +
+                     เมนู "ให้คอม Sleep เมื่องานเสร็จ" (ตั้งค่า → 🌙: เมื่องานเสร็จ รอ 1/5/10/30 นาที หรือเมื่อโปรแกรมที่ระบุปิด เตือน 60 วิ กด "อยู่ต่อ" ยกเลิก) +
+                     ตั้งโหมดโชว์ในแอปแล้วส่งไปบอร์ดจริง + ปุ่ม "โชว์บนบอร์ดเดี๋ยวนี้" (ต้อง KumWake v2.3+, KumCom v2.7) · ปุ่มปลุกใหญ่ + ประวัติ (2.5/2.6) ยังอยู่ครบ
 -->
 <html lang="th">
 <head>
@@ -149,7 +153,7 @@
   .veil{position:fixed;inset:0;background:rgba(3,7,18,.66);display:none;align-items:flex-end;justify-content:center;z-index:5}
   .veil.show{display:flex}
   .sheet{background:#172136;border:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;max-width:460px;
-         padding:22px 20px calc(env(safe-area-inset-bottom) + 20px)}
+         padding:22px 20px calc(env(safe-area-inset-bottom) + 20px);max-height:92vh;max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .sheet h3{margin:0 0 6px;font-size:21px}
   .sheet p{margin:0 0 18px;color:var(--dim);font-size:15.5px}
   .sheet .row{display:flex;gap:12px}
@@ -169,6 +173,12 @@
   .install{display:none;background:#10263a;border:1px solid #1d4a6b;border-radius:16px;padding:13px 15px;font-size:14.5px;color:#b9dcf5}
   .install.show{display:block}
   .install button{background:var(--accent);color:#04121f;border-radius:12px;padding:10px 14px;font-weight:650;margin-top:9px;width:100%}
+  .showset{border-top:1px solid var(--line);padding:6px 0 4px}
+  .showset h4{margin:10px 0 6px;font-size:14px;color:var(--dim);font-weight:600}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+  .seg button{flex:1 1 auto;background:#24304a;border-radius:12px;padding:10px 8px;font-size:15px;font-weight:600;min-height:44px}
+  .seg button[aria-pressed=true]{background:var(--accent);color:#04121f}
+  .showset .item{padding:10px 0;font-size:15.5px}
   @media (prefers-reduced-motion:reduce){.lamp,.mic.on{animation:none!important}}
 </style>
 </head>
@@ -228,7 +238,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.6 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.7 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -248,15 +258,20 @@
   <h3 id="setT">ตั้งค่า</h3>
   <p style="margin:0 0 6px">ตัวละคร (แตะเพื่อเลือก)</p>
   <div class="chars" id="chars"></div>
+  <button class="item" id="bDrawChar"><span>✏️ วาดตัวละครของฉัน<br><small style="color:var(--dim)">ระบายเอง หรือเลือกรูปจากมือถือ แล้วส่งให้บอร์ดได้</small></span><span style="color:var(--dim)">›</span></button>
+  <div class="showset" id="showSet"></div>
+  <div class="showset" id="sdSet"></div>
   <button class="item" id="swKeep" role="switch" aria-checked="false"><span>เปิดจอค้างไว้<br><small style="color:var(--dim)">จอมือถือไม่ดับเองตอนเปิดหน้านี้ (ควรเสียบชาร์จ)</small></span><span class="knob"></span></button>
   <button class="item" id="swSpeak" role="switch" aria-checked="true"><span>บอทพูดตอบ</span><span class="knob"></span></button>
   <button class="item" id="reset"><span>ตั้งค่าลิงก์ใหม่</span><span style="color:var(--dim)">›</span></button>
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.6"></script>
-<script src="bot.js?v=2.6"></script>
-<script src="voice.js?v=2.6"></script>
+<script src="characters.js?v=2.7"></script>
+<script src="draw.js?v=2.7"></script>
+<script src="bot.js?v=2.7"></script>
+<script src="voice.js?v=2.7"></script>
+<script src="show.js?v=2.7"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -283,6 +298,7 @@ function classify(text) {
   for (k in CMDS) if (CMDS[k].indexOf(low) >= 0) return { kind: 'cmd', cmd: k };
   if (/^(bright|dim) /.test(low)) return { kind: 'cmd', cmd: 'screen' };
   if (t.indexOf('💡') === 0) return { kind: 'ack', cmd: 'screen' };
+  if (t.indexOf('🌙') === 0 || t.indexOf('⏳') === 0 || t.indexOf('🧪') === 0 || /^(sleepdone|show) /.test(low)) return { kind: 'other' };
   if (t.indexOf('🎤') === 0 || t.indexOf('🎨') === 0 || /^char /.test(low)) return { kind: 'other' };
   if (t.indexOf('🤖✅') === 0) return { kind: 'claude', claude: 'done' };
   if (t.indexOf('🤖⚠') === 0) return { kind: 'claude', claude: 'bad' };
@@ -348,6 +364,7 @@ function handle(m, live) {
   msgs.push({ t: m.time, text: m.message, c: c });
   archAdd(m);
   if (msgs.length > 60) msgs.shift();
+  if (live && /^(🌙|⏳|🧪)/.test((m.message || '').trim())) note(firstLine(m.message), 'ok');
   if (c.state && m.time >= stateAt) { state = c.state; stateAt = m.time; }
   if (c.kind === 'claude' && m.time >= claude.at) { claude = { mode: c.claude, at: m.time, title: firstLine((m.message || '').replace(/^🤖(✅|⚠️?)?\s*/, '').replace(/^(Claude\s*(กำลังทำงานบนคอม|ทำงานเสร็จ)|งานไม่สำเร็จ|งานใช้เวลานานเกิน หยุดไว้ก่อน)\s*:\s*/, '')) }; if (live && c.claude !== 'work') speak(c.claude === 'done' ? 'เสร็จแล้ว' : 'งานไม่สำเร็จ'); }
   var sm = /💡[^\n]*?(\d+)%[^\n]*?หรี่เอง:\s*(เปิด|ปิด)/.exec(m.message || '');
@@ -624,11 +641,11 @@ function buildChars() {
     b.setAttribute('aria-pressed', ch.id === cur ? 'true' : 'false'); n.textContent = ch.name;
     b.appendChild(cv); b.appendChild(n); box.appendChild(b);
     var mini = KumBot.create(cv, { character: ch.id, width: 150, height: 110 }); minis.push(mini);
-    b.onclick = function () { store(CHAR_KEY, ch.id); if (bot) { bot.setCharacter(ch.id); bot.poke(); } if (topic) fetch(NTFY + topic, { method: 'POST', body: 'char ' + ch.id }).catch(function () {}); for (var i = 0; i < box.children.length; i++) box.children[i].setAttribute('aria-pressed', box.children[i] === b ? 'true' : 'false'); };
+    b.onclick = function () { store(CHAR_KEY, ch.id); if (bot) { bot.setCharacter(ch.id); bot.poke(); } sendChar(ch.id); for (var i = 0; i < box.children.length; i++) box.children[i].setAttribute('aria-pressed', box.children[i] === b ? 'true' : 'false'); };
   });
 }
 var minis = [];
-$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); buildChars(); $('setVeil').classList.add('show'); };
+$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); buildChars(); buildShowSet(); buildSdSet(); $('setVeil').classList.add('show'); };
 function closeSet() { $('setVeil').classList.remove('show'); minis.forEach(function (m) { m.destroy(); }); minis = []; }
 $('setClose').onclick = closeSet;
 $('setVeil').onclick = function (e) { if (e.target === $('setVeil')) closeSet(); };
@@ -636,6 +653,94 @@ $('swKeep').onclick = function () { var on = store(KEEP_KEY) !== '1'; store(KEEP
 $('swSpeak').onclick = function () { var on = store(SPEAK_KEY) === '0'; store(SPEAK_KEY, on ? '1' : '0'); sw('swSpeak', on); if (on) speak('บอทพูดตอบแล้ว'); };
 document.addEventListener('visibilitychange', function () { if (!document.hidden && store(KEEP_KEY) === '1') keepOn(true); });
 if (store(KEEP_KEY) === '1') keepOn(true);
+
+
+function sendChar(id) {
+  if (!topic) return Promise.resolve(false);
+  var cu = (window.KUM_CHARACTERS || []).filter(function (c) { return c.id === id; })[0], body = 'char ' + id;
+  if (cu && cu.custom) { body = window.KumDraw && KumDraw.payloadOf(id); if (!body) return Promise.resolve(false); }
+  return fetch(NTFY + topic, { method: 'POST', body: body }).then(function () { return true; }).catch(function () { return false; });
+}
+function anySheetOpen() { return $('veil').classList.contains('show') || $('setVeil').classList.contains('show') || (window.KumDraw && KumDraw.isOpen()); }
+$('bDrawChar').onclick = function () {
+  closeSet();
+  KumDraw.open({
+    send: function (text) { if (!topic) return Promise.resolve(false); return fetch(NTFY + topic, { method: 'POST', body: text }).then(function () { return true; }).catch(function () { return false; }); },
+    onChange: function (id, sent) { if (sent) { store(CHAR_KEY, id); if (bot) { bot.setCharacter(id); bot.poke(); } } },
+    onDeleted: function (id) { if (store(CHAR_KEY) === id) { var f = (window.KUM_CHARACTERS || [])[0]; store(CHAR_KEY, f ? f.id : null); if (bot && f) bot.setCharacter(f.id); } },
+    onClose: function () { $('bSet').onclick(); }
+  });
+};
+
+/* ---------- โหมดโชว์ ---------- */
+function curChar() { var id = store(CHAR_KEY), l = window.KUM_CHARACTERS || []; for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return l[0]; }
+if (window.KumShow) {
+  KumShow.busy = function () { return anySheetOpen() || listening || document.activeElement === $('txtIn') || document.activeElement === $('setupIn') || document.body.classList.contains('needsetup'); };
+  KumShow.init({ getInfo: function () { return { state: state, since: stateAt, claude: claudeNow() || {}, char: curChar() }; } });
+}
+function postRaw(body, okMsg) {
+  return fetch(NTFY + topic, { method: 'POST', body: body }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); setNet(true); if (okMsg) note(okMsg, 'ok'); })
+    .catch(function () { setNet(false); note('ส่งไม่ได้ — เช็คเน็ตมือถือแล้วลองใหม่ (หรือ ntfy ส่งเกินโควตาของวัน)', 'bad'); });
+}
+if (window.KumShow && !KumShow._wrapped) {
+  var _showSet = KumShow.set; KumShow._wrapped = true;
+  KumShow.set = function (o) {
+    _showSet.call(KumShow, o);
+    if (o.on !== undefined) postRaw('show ' + (o.on ? 'on' : 'off'), 'ส่งให้บอร์ดแล้ว');
+    if (o.idle !== undefined) postRaw('show idle ' + o.idle, 'ส่งให้บอร์ดแล้ว');
+    if (o.every !== undefined) postRaw('show every ' + o.every, 'ส่งให้บอร์ดแล้ว');
+    if (o.pages) { var cp = KumShow.settings().pages, mask = 0; KumShow.PAGES.forEach(function (p, i) { if (cp[p[0]]) mask |= (1 << i); }); postRaw('show pages ' + (mask || 15), 'ส่งให้บอร์ดแล้ว'); }
+  };
+}
+var SD_KEY = 'kumremote_sleepdone';
+function sdState() { try { return JSON.parse(localStorage.getItem(SD_KEY) || 'null') || { mode: 'off' }; } catch (e) { return { mode: 'off' }; } }
+function sdSend(st) {
+  try { localStorage.setItem(SD_KEY, JSON.stringify(st)); } catch (e) {}
+  var cmd = st.mode === 'off' ? 'sleepdone off' : st.mode === 'jobs' ? 'sleepdone jobs ' + st.min : 'sleepdone proc ' + st.proc;
+  postRaw(cmd, 'ส่งคำสั่งให้คอมแล้ว (คอมจะตอบกลับสักครู่)'); buildSdSet();
+}
+function buildSdSet() {
+  var box = $('sdSet'); if (!box) return; var st = sdState(); box.textContent = '';
+  var h = document.createElement('h4'); h.textContent = '🌙 ให้คอม Sleep เองเมื่องานเสร็จ (ทุกโปรเจกต์)'; box.appendChild(h);
+  var sub = document.createElement('div'); sub.style.cssText = 'font-size:13px;color:var(--dim);margin:0 0 8px'; sub.textContent = 'คอมจะเตือน 60 วินาทีก่อนหลับ กด "อยู่ต่อ" ที่หน้าหลักเพื่อยกเลิก · ตั้งครั้งเดียว หลับแล้วต้องตั้งใหม่'; box.appendChild(sub);
+  box.appendChild(segRow('เลือกเงื่อนไข', ['off', 'jobs', 'proc'], ['ปิด', 'งาน Claude เสร็จ', 'โปรแกรมปิด'], st.mode, function (v) {
+    if (v === 'off') sdSend({ mode: 'off' });
+    else if (v === 'jobs') sdSend({ mode: 'jobs', min: st.min || 5 });
+    else { st = { mode: 'proc', proc: st.proc || '' }; try { localStorage.setItem(SD_KEY, JSON.stringify(st)); } catch (e) {} buildSdSet(); }
+  }));
+  if (st.mode === 'jobs') box.appendChild(segRow('รอหลังงานเสร็จ', [1, 5, 10, 30], ['1 นาที', '5 นาที', '10 นาที', '30 นาที'], st.min || 5, function (v) { sdSend({ mode: 'jobs', min: v }); }));
+  if (st.mode === 'proc') {
+    var h2 = document.createElement('h4'); h2.textContent = 'ชื่อโปรแกรมที่รอให้ปิด (ตามชื่อใน Task Manager ไม่ต้องใส่ .exe)'; box.appendChild(h2);
+    var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:6px;margin:0 0 8px';
+    var inp = document.createElement('input'); inp.type = 'text'; inp.value = st.proc || ''; inp.placeholder = 'เช่น blender หรือ HandBrake'; inp.style.cssText = 'flex:1;min-height:44px;border-radius:12px;border:1px solid var(--line);background:#101a2c;color:inherit;padding:0 12px;font-size:16px';
+    var go = document.createElement('button'); go.textContent = 'ตั้งเลย'; go.className = 'close'; go.style.cssText = 'min-height:44px;padding:0 14px';
+    go.onclick = function () { var v = inp.value.trim().replace(/\.exe$/i, ''); if (!/^[\w\- .]{1,60}$/.test(v)) { note('ใส่ชื่อโปรแกรมเป็นตัวอักษร/ตัวเลข เช่น blender', 'warn'); return; } sdSend({ mode: 'proc', proc: v }); };
+    row.appendChild(inp); row.appendChild(go); box.appendChild(row);
+  }
+  var cur = document.createElement('div'); cur.style.cssText = 'font-size:13px;color:var(--dim)'; cur.textContent = 'ที่ส่งไปล่าสุด: ' + (st.mode === 'jobs' ? 'Sleep เมื่องาน Claude เสร็จ (รอ ' + (st.min || 5) + ' นาที)' : st.mode === 'proc' && st.proc ? 'Sleep เมื่อโปรแกรม ' + st.proc + ' ปิด' : 'ปิดอยู่'); box.appendChild(cur);
+}
+function segRow(title, vals, labels, cur, onPick) {
+  var h = document.createElement('h4'); h.textContent = title; var d = document.createElement('div'); d.className = 'seg';
+  vals.forEach(function (v, i) { var b = document.createElement('button'); b.textContent = labels[i]; b.setAttribute('aria-pressed', v === cur ? 'true' : 'false'); b.onclick = function () { onPick(v); buildShowSet(); }; d.appendChild(b); });
+  var f = document.createDocumentFragment(); f.appendChild(h); f.appendChild(d); return f;
+}
+function buildShowSet() {
+  var box = $('showSet'); if (!box || !window.KumShow) return; var c = KumShow.settings(); box.textContent = '';
+  var top = document.createElement('button'); top.className = 'item'; top.setAttribute('role', 'switch'); top.setAttribute('aria-checked', c.on ? 'true' : 'false');
+  top.innerHTML = '<span>✨ โหมดโชว์ (หน้าจอหรู)<br><small style="color:var(--dim)">ไม่มีคนแตะสักพัก จะสลับหน้าจอสวยๆ เป็นรอบ · แตะจอ = กลับหน้าหลัก</small></span><span class="knob"></span>';
+  top.onclick = function () { KumShow.set({ on: !c.on }); buildShowSet(); }; box.appendChild(top);
+  if (!c.on) return;
+  box.appendChild(segRow('เริ่มโชว์เมื่อไม่มีคนแตะนาน', [30, 60, 120, 300], ['30 วิ', '1 นาที', '2 นาที', '5 นาที'], c.idle, function (v) { KumShow.set({ idle: v }); }));
+  box.appendChild(segRow('สลับหน้าทุก', [8, 15, 30], ['8 วิ', '15 วิ', '30 วิ'], c.every, function (v) { KumShow.set({ every: v }); }));
+  var h = document.createElement('h4'); h.textContent = 'หน้าที่จะให้โชว์'; box.appendChild(h);
+  KumShow.PAGES.forEach(function (p) {
+    var b = document.createElement('button'); b.className = 'item'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', c.pages[p[0]] ? 'true' : 'false');
+    b.innerHTML = '<span></span><span class="knob"></span>'; b.firstChild.textContent = p[1];
+    b.onclick = function () { var on = Object.keys(c.pages).filter(function (k) { return c.pages[k]; }); if (c.pages[p[0]] && on.length <= 1) { note('ต้องเปิดไว้อย่างน้อย 1 หน้า', 'warn'); return; } var o = {}; o[p[0]] = !c.pages[p[0]]; KumShow.set({ pages: o }); buildShowSet(); };
+    box.appendChild(b);
+  });
+  var go = document.createElement('button'); go.className = 'close'; go.textContent = '▶ ดูโหมดโชว์เดี๋ยวนี้ (มือถือ + บอร์ด)'; go.onclick = function () { closeSet(); postRaw('show now'); KumShow.start(); }; box.appendChild(go);
+}
 
 /* ---------- ติดตั้งเป็นไอคอน ---------- */
 var deferred = null;
