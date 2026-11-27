@@ -94,6 +94,7 @@
     X.pic = el('button', '', '🖼️ เลือกรูปจากมือถือ'); X.file = el('input'); X.file.type = 'file'; X.file.accept = 'image/*'; X.file.hidden = true; X.pic.onclick = function () { X.file.click(); }; X.file.onchange = function () { if (X.file.files && X.file.files[0]) fromImage(X.file.files[0]); X.file.value = ''; };
     a.appendChild(X.pic); a.appendChild(X.file); sh.appendChild(a);
     var lb = el('label', 'opt'); X.nobg = el('input'); X.nobg.type = 'checkbox'; X.nobg.checked = true; lb.appendChild(X.nobg); lb.appendChild(document.createTextNode('ลบพื้นหลังของรูปให้ (ใช้ได้ดีกับรูปที่พื้นหลังสีเรียบ)')); sh.appendChild(lb);
+    var lb2 = el('label', 'opt'); X.autosend = el('input'); X.autosend.type = 'checkbox'; X.autosend.checked = true; lb2.appendChild(X.autosend); lb2.appendChild(document.createTextNode('แปลงรูปเสร็จแล้ว บันทึก + ส่งขึ้นบอร์ดให้เลย (ไม่ต้องกดอะไรอีก)')); sh.appendChild(lb2);
     X.pv = el('canvas', 'pv'); X.pv.width = 320; X.pv.height = 150; X.pv.setAttribute('aria-label', 'ตัวอย่างตัวละครเดินเล่น'); sh.appendChild(X.pv);
     X.msg = el('div', 'msg'); X.msg.setAttribute('aria-live', 'polite'); 
     var bar = el('div', 'bar'), b2 = el('div', 'bot2'); bar.appendChild(X.msg);
@@ -199,6 +200,7 @@
       st.eyes = [[Math.max(0, Math.round(mid - sp - 1)), ey], [Math.min(N - 2, Math.round(mid + sp)), ey]]; st.hasLegs = false;
       if (!st.name) { st.name = (file.name || '').replace(/\.[^.]+$/, '').slice(0, 24); X.name.value = st.name; }
       msg('แปลงรูปเสร็จแล้ว — ปรับสี/ตาต่อได้เลย (สีถูกลดเหลือ 16 สี)', 'ok'); upd();
+      if (X.autosend && X.autosend.checked) doSave(true);
     };
     img.src = url;
   }
@@ -230,10 +232,11 @@
     var was = st.id; register(); if (opts && opts.onDeleted) opts.onDeleted(was);
     st = blank(); undo = []; X.name.value = ''; msg('ลบแล้ว', 'ok'); upd();
   }
-  function open(o, editId) {
+  function open(o, editId, photo) {
     opts = o || {}; if (!root) build();
     var d = editId ? loadAll().filter(function (x) { return x.id === editId; })[0] : null;
     st = d ? fromData(d) : blank(); undo = []; X.name.value = st.name || ''; msg(''); root.classList.add('show'); upd();
+    if (photo && !d && X.file) X.file.click();
   }
   function close() { if (preview) { preview.destroy(); preview = null; } var list = window.KUM_CHARACTERS || []; for (var k = list.length - 1; k >= 0; k--) if (list[k].id === '__preview') list.splice(k, 1); if (root) root.classList.remove('show'); if (opts && opts.onClose) opts.onClose(); }
   api.open = open; api.close = close; api.payloadOf = function (id) { var d = loadAll().filter(function (x) { return x.id === id; })[0]; return d ? payload(d) : null; }; api.isOpen = function () { return !!(root && root.classList.contains('show')); };

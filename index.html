@@ -28,6 +28,7 @@
                      หน้า "วาดตัวละครของฉัน" (draw.js: ระบายพิกเซล/เลือกรูปให้แปลง ส่งบอร์ดด้วย charset) +
                      เมนู "ให้คอม Sleep เมื่องานเสร็จ" (ตั้งค่า → 🌙: เมื่องานเสร็จ รอ 1/5/10/30 นาที หรือเมื่อโปรแกรมที่ระบุปิด เตือน 60 วิ กด "อยู่ต่อ" ยกเลิก) +
                      ตั้งโหมดโชว์ในแอปแล้วส่งไปบอร์ดจริง + ปุ่ม "โชว์บนบอร์ดเดี๋ยวนี้" (ต้อง KumWake v2.3+, KumCom v2.7) · ปุ่มปลุกใหญ่ + ประวัติ (2.5/2.6) ยังอยู่ครบ
+    2.8 (27/11/2026) ทำตัวละครจากรูปแบบอัตโนมัติ: ตั้งค่า → 🖼️ ทำตัวละครจากรูป → เลือกรูป แอปแปลง+บันทึก+ส่งขึ้นบอร์ดให้เองในขั้นเดียว (ปิดส่งอัตโนมัติได้ในหน้าวาด)
 -->
 <html lang="th">
 <head>
@@ -238,7 +239,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.7 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.8 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -258,6 +259,7 @@
   <h3 id="setT">ตั้งค่า</h3>
   <p style="margin:0 0 6px">ตัวละคร (แตะเพื่อเลือก)</p>
   <div class="chars" id="chars"></div>
+  <button class="item" id="bPhotoChar"><span>🖼️ ทำตัวละครจากรูป (อัตโนมัติ)<br><small style="color:var(--dim)">เลือกรูปจากมือถือ แอปแปลงแล้วส่งขึ้นบอร์ดให้เอง</small></span><span style="color:var(--dim)">›</span></button>
   <button class="item" id="bDrawChar"><span>✏️ วาดตัวละครของฉัน<br><small style="color:var(--dim)">ระบายเอง หรือเลือกรูปจากมือถือ แล้วส่งให้บอร์ดได้</small></span><span style="color:var(--dim)">›</span></button>
   <div class="showset" id="showSet"></div>
   <div class="showset" id="sdSet"></div>
@@ -267,11 +269,11 @@
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.7"></script>
-<script src="draw.js?v=2.7"></script>
-<script src="bot.js?v=2.7"></script>
-<script src="voice.js?v=2.7"></script>
-<script src="show.js?v=2.7"></script>
+<script src="characters.js?v=2.8"></script>
+<script src="draw.js?v=2.8"></script>
+<script src="bot.js?v=2.8"></script>
+<script src="voice.js?v=2.8"></script>
+<script src="show.js?v=2.8"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -662,15 +664,17 @@ function sendChar(id) {
   return fetch(NTFY + topic, { method: 'POST', body: body }).then(function () { return true; }).catch(function () { return false; });
 }
 function anySheetOpen() { return $('veil').classList.contains('show') || $('setVeil').classList.contains('show') || (window.KumDraw && KumDraw.isOpen()); }
-$('bDrawChar').onclick = function () {
+function openDraw(photo) {
   closeSet();
   KumDraw.open({
     send: function (text) { if (!topic) return Promise.resolve(false); return fetch(NTFY + topic, { method: 'POST', body: text }).then(function () { return true; }).catch(function () { return false; }); },
     onChange: function (id, sent) { if (sent) { store(CHAR_KEY, id); if (bot) { bot.setCharacter(id); bot.poke(); } } },
     onDeleted: function (id) { if (store(CHAR_KEY) === id) { var f = (window.KUM_CHARACTERS || [])[0]; store(CHAR_KEY, f ? f.id : null); if (bot && f) bot.setCharacter(f.id); } },
     onClose: function () { $('bSet').onclick(); }
-  });
-};
+  }, null, photo);
+}
+$('bDrawChar').onclick = function () { openDraw(false); };
+$('bPhotoChar').onclick = function () { openDraw(true); };
 
 /* ---------- โหมดโชว์ ---------- */
 function curChar() { var id = store(CHAR_KEY), l = window.KUM_CHARACTERS || []; for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return l[0]; }
