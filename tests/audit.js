@@ -27,6 +27,11 @@ const out = [];
         document.querySelectorAll('button,span,div,h1,h2,h3,h4,p,li').forEach(e => { if (!vis(e) || e.children.length) return; const s = getComputedStyle(e); if (s.textOverflow === 'ellipsis' || s.webkitLineClamp !== 'none') return; if (e.scrollWidth > e.clientWidth + 2 && s.overflowX !== 'visible') issues.push('text cut: ' + lbl(e)); });
         // ปุ่มที่โดนอย่างอื่นบัง (จุดกลางปุ่ม)
         document.querySelectorAll('button,input').forEach(e => { if (!vis(e) || e.type === 'hidden') return; const r = e.getBoundingClientRect(); const cx = r.x + r.width / 2, cy = r.y + r.height / 2; if (cy < 0 || cy > H || cx < 0 || cx > W) return; const t = document.elementFromPoint(cx, cy); if (t && t !== e && !e.contains(t) && !t.closest('.veil.show') !== !e.closest('.veil.show')) return; if (t && t !== e && !e.contains(t) && !t.contains(e)) { const topVeil = t.closest('.veil.show'); const myVeil = e.closest('.veil.show'); if (topVeil === myVeil) issues.push('covered: ' + lbl(e) + ' by ' + lbl(t)); } });
+        // ตัวหนังสือบนปุ่มอ่านไม่ออก (สีตัวหนังสือกับสีพื้นใกล้กันเกิน)
+        const rgb = c => { const m = c.match(/[\d.]+/g); return m ? m.slice(0, 4).map(Number) : [0, 0, 0, 0]; };
+        const lum = a => { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(a[0]) + .7152 * f(a[1]) + .0722 * f(a[2]); };
+        const bgOf = e => { for (let x = e; x; x = x.parentElement) { const c = rgb(getComputedStyle(x).backgroundColor); if (c[3] === undefined || c[3] > .5) return c; } return [23, 33, 54]; };
+        document.querySelectorAll('button').forEach(e => { if (!vis(e) || e.disabled || !(e.innerText || '').trim()) return; const r = e.getBoundingClientRect(); if (r.bottom < 0 || r.top > H) return; const fg = rgb(getComputedStyle(e).color), bg = bgOf(e); const L1 = lum(fg), L2 = lum(bg), cr = (Math.max(L1, L2) + .05) / (Math.min(L1, L2) + .05); if (cr < 3) issues.push('hard to read: ' + lbl(e) + ' contrast ' + cr.toFixed(1)); });
         // ตัวหนังสือเล็กเกิน
         let tiny = 0; document.querySelectorAll('body *').forEach(e => { if (!vis(e) || e.children.length || !(e.innerText || '').trim()) return; if (parseFloat(getComputedStyle(e).fontSize) < 11.5) tiny++; }); if (tiny) issues.push('tiny text elements: ' + tiny);
         return [...new Set(issues)].slice(0, 25);
@@ -55,6 +60,7 @@ const out = [];
     // 6 ตั้งค่า 4 แท็บ
     await p.click('#bSet'); await p.waitForTimeout(400);
     for (const t of ['char', 'screen', 'pc', 'app']) { await p.click(`#setVeil [data-tab=${t}]`); await p.waitForTimeout(400); await check('08-set-' + t); await p.evaluate(() => document.querySelector('#setVeil .sheet').scrollTop = 99999); await p.waitForTimeout(200); await check('08-set-' + t + '-bottom'); }
+    await p.click('#setVeil [data-tab=screen]'); await p.evaluate(() => document.querySelector('#setVeil .row2b').scrollIntoView({ block: 'center' })); await p.waitForTimeout(200); await check('08-set-screen-buttons');
     // 7 หน้าวาด
     await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(600); await check('09-draw');
     await p.click('.kd summary'); await p.evaluate(() => document.querySelector('.kd .sheet').scrollTop = 99999); await p.waitForTimeout(300); await check('09-draw-options');

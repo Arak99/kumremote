@@ -33,6 +33,7 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.21 (27/11/2026) แก้: ปุ่ม "โชว์บนบอร์ดเดี๋ยวนี้" ดูจางเหมือนกดไม่ได้ (สีพื้นโดนทับ) → สีฟ้าชัด, กดแล้วขึ้น "✓ สั่งบอร์ดแล้ว", มีคำอธิบายใต้ปุ่มว่าใช้ตอนไหน
     2.20 (27/11/2026) หน้าวาด: ปุ่ม ↩︎ ย้อนกลับ คู่กับ ↪︎ ทำซ้ำ อยู่หัวหน้าข้าง ✕ (เดิมมีแค่ย้อน) · แถบเครื่องมือเหลือ 5 ปุ่ม ใหญ่ขึ้น
     2.19 (27/11/2026) หน้าวาด: จำว่ากาง/หุบ "ตัวเลือกเพิ่มเติม" ไว้ (เดิมรีเฟรชแล้วหุบเองทุกครั้ง)
     2.18 (27/11/2026) ตรวจทุกหน้า (จอ 360×640 และ 412×915): ปุ่ม "ตั้งค่า" ท้ายหน้าและ "ดูทั้งหมด" กดง่ายขึ้น (เดิมเล็กเกินนิ้ว),
@@ -131,7 +132,9 @@
   .pages button[aria-pressed=true] .ck{background:var(--on)}
   .row2b{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 6px}
   .sheet .row2b button{flex:none;background:#24304a;border-radius:14px;padding:12px 6px;font-size:15px;font-weight:650;min-height:48px}
-  .row2b .go{background:var(--accent);color:#04121f}
+  .sheet .row2b .go{background:var(--accent);color:#04121f}
+  .sheet .row2b .done{background:var(--on);color:#04201a}
+  .gohint{font-size:13px;color:var(--dim);margin:0 0 12px;line-height:1.5}
   .set .knob{width:52px;height:30px;border-radius:30px;background:#33405c;position:relative;flex:none}
   .set .knob::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
   .set .item[aria-checked=true] .knob{background:var(--on)}
@@ -296,7 +299,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.20 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.21 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -346,11 +349,11 @@
   <div class="setfoot"><button class="close" id="setClose">เสร็จ</button></div>
 </div></div>
 
-<script src="characters.js?v=2.20"></script>
-<script src="draw.js?v=2.20"></script>
-<script src="bot.js?v=2.20"></script>
-<script src="voice.js?v=2.20"></script>
-<script src="show.js?v=2.20"></script>
+<script src="characters.js?v=2.21"></script>
+<script src="draw.js?v=2.21"></script>
+<script src="bot.js?v=2.21"></script>
+<script src="voice.js?v=2.21"></script>
+<script src="show.js?v=2.21"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -937,8 +940,10 @@ function buildShowSet() {
   var cap = document.createElement('div'); cap.className = 'pvcap'; cap.id = 'pvCap'; box.appendChild(cap);
   var acts = document.createElement('div'); acts.className = 'row2b';
   var bPhone = document.createElement('button'); bPhone.textContent = '📱 ดูเต็มจอในมือถือ'; bPhone.onclick = function () { KumShow.start(); };   // v2.18: ไม่ปิดตั้งค่า แตะออกจากโชว์แล้วกลับมาที่เดิม
-  var bBoard = document.createElement('button'); bBoard.className = 'go'; bBoard.textContent = '📺 โชว์บนบอร์ดเดี๋ยวนี้'; bBoard.onclick = function () { postRaw('show now', 'สั่งบอร์ดให้โชว์แล้ว'); };
+  var bBoard = document.createElement('button'); bBoard.className = 'go'; bBoard.textContent = '📺 โชว์บนบอร์ดเดี๋ยวนี้';
+  bBoard.onclick = function () { bBoard.disabled = true; pub('show now').then(function () { bBoard.className = 'done'; bBoard.textContent = '✓ สั่งบอร์ดแล้ว'; }).catch(function () { bBoard.textContent = 'ส่งไม่ได้ ลองใหม่'; }).then(function () { setTimeout(function () { bBoard.disabled = false; bBoard.className = 'go'; bBoard.textContent = '📺 โชว์บนบอร์ดเดี๋ยวนี้'; }, 2500); }); };
   acts.appendChild(bPhone); acts.appendChild(bBoard); box.appendChild(acts);
+  var gh = document.createElement('p'); gh.className = 'gohint'; gh.textContent = 'ปกติบอร์ดเริ่มโชว์เองเมื่อไม่มีคนแตะจอ · ปุ่มฟ้า = สั่งให้เริ่มทันที · แตะจอบอร์ดเพื่อกลับ'; box.appendChild(gh);
   var h = document.createElement('h4'); h.textContent = 'หน้าที่จะให้โชว์ (แตะเพื่อเลือก/ไม่เลือก)'; box.appendChild(h);
   var grid = document.createElement('div'); grid.className = 'pages';
   KumShow.PAGES.forEach(function (p) {
