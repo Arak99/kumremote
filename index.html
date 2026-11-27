@@ -33,6 +33,10 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.15 (27/11/2026) เลื่อนหน้าจอด้วยนิ้วได้ไม่โดนคำสั่ง: ไมค์เปิดเฉพาะตอนแตะ/กดค้างนิ่งๆ (ไถผ่านแล้วจอเลื่อนตามปกติ),
+                     ย้ายแถบความสว่างจอบอร์ดไปไว้ในตั้งค่า, ปุ่มเตี้ยลง หน้าหลักสั้นลง
+                     · ตั้งค่าแบ่งเป็นแท็บ: ตัวละคร / จอบอร์ด / คอม / แอป (จำแท็บล่าสุด) ปุ่ม "เสร็จ" อยู่ล่างเสมอ
+                     · โหมดโชว์มีจอตัวอย่างขยับจริงในตั้งค่า เลือกหน้าที่จะโชว์จากรูปตัวอย่าง แยกปุ่ม "ดูเต็มจอในมือถือ" กับ "โชว์บนบอร์ดเดี๋ยวนี้"
     2.14 (27/11/2026) ใช้ตัวกลางของเราเอง "สบายใจ" (Cloudflare) แทน ntfy: ส่งคำสั่งผ่านสบายใจก่อน ส่งไม่ได้ค่อยใช้ ntfy,
                      ฟังทั้งสบายใจ (WebSocket) และ ntfy พร้อมกัน, ดึงประวัติจากทั้งสองที่, ป้ายเน็ตบอกว่าต่อผ่านทางไหน (ต้อง KumCom v2.8 / KumWake v2.13)
     2.13 (27/11/2026) ตัวละครจากรูปเลือกความละเอียด "สูงมาก 32×32" ได้ (ค่าเริ่มต้น) · ตัดเศษสีเทาที่ติดขอบรูปออกให้ (ต้อง KumWake v2.10 สำหรับ 32×32)
@@ -76,7 +80,7 @@
   .heard b{color:var(--accent);font-weight:600}
   .mic{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;border-radius:20px;background:linear-gradient(160deg,#2a1d4d,#1a1f3d);border:1px solid #4b3a86;font-size:19px;font-weight:650}
   .mic svg{width:26px;height:26px;color:#c08cff}
-  .mic{user-select:none;-webkit-user-select:none;touch-action:none;-webkit-touch-callout:none}
+  .mic{user-select:none;-webkit-user-select:none;touch-action:pan-y;-webkit-touch-callout:none}
   .txt2{display:flex;gap:8px}
   .txt2 input{flex:1;font:inherit;font-size:16px;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:#0e1626;color:var(--text);min-width:0}
   .txt2 button{background:#24304a;border-radius:14px;padding:0 18px;font-weight:650}
@@ -87,12 +91,38 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .set .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line);font-size:16px;width:100%;background:none;text-align:left}
   .set .item:first-of-type{border-top:0}
+  .sheet.set{padding-top:0;padding-bottom:0}
+  .sethead{position:sticky;top:0;z-index:3;background:#172136;padding:16px 0 10px;margin:0 0 6px;border-bottom:1px solid var(--line)}
+  .sethead h3{margin:0 0 10px}
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .sheet .tabs button{background:#24304a;border-radius:12px;padding:10px 2px;font-size:15px;font-weight:650;min-height:44px;flex:none;white-space:nowrap}
+  .sheet .tabs button[aria-selected=true]{background:var(--accent);color:#04121f}
+  .tab{display:none;padding-bottom:8px}
+  .tab.on{display:block}
+  .tab .lead{font-size:14px;color:var(--dim);margin:2px 0 10px}
+  .setfoot{position:sticky;bottom:0;z-index:3;background:#172136;padding:10px 0 calc(env(safe-area-inset-bottom) + 14px);border-top:1px solid var(--line)}
+  .setfoot .close{margin-top:0}
+  .tab .scr{margin:4px 0 10px;background:#101a2c}
+  .pvbox{background:#e8b923;border-radius:16px;padding:9px 11px 13px;margin:6px 0 4px}
+  .pvbox canvas{width:100%;aspect-ratio:4/3;display:block;border-radius:6px;background:#000}
+  .pvcap{font-size:13.5px;color:var(--dim);text-align:center;margin:2px 0 10px}
+  .pages{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+  .sheet .pages button{flex:none;background:#0e1626;border:2px solid var(--line);border-radius:14px;padding:6px 6px 8px;font-size:14px;font-weight:600;text-align:center;position:relative}
+  .pages button canvas{width:100%;aspect-ratio:4/3;display:block;border-radius:8px;margin-bottom:6px;opacity:.45;background:#000}
+  .pages button[aria-pressed=true]{border-color:var(--on)}
+  .pages button[aria-pressed=true] canvas{opacity:1}
+  .pages button .ck{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:#33405c;color:#04121f;font-size:15px;line-height:24px;font-weight:800}
+  .pages button[aria-pressed=true] .ck{background:var(--on)}
+  .row2b{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 6px}
+  .sheet .row2b button{flex:none;background:#24304a;border-radius:14px;padding:12px 6px;font-size:15px;font-weight:650;min-height:48px}
+  .row2b .go{background:var(--accent);color:#04121f}
   .set .knob{width:52px;height:30px;border-radius:30px;background:#33405c;position:relative;flex:none}
   .set .knob::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
   .set .item[aria-checked=true] .knob{background:var(--on)}
   .set .item[aria-checked=true] .knob::after{left:25px}
-  .chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:4px 0 10px}
-  .chars button{background:#0e1626;border:2px solid var(--line);border-radius:14px;padding:6px 4px 8px;font-size:13.5px}
+  .chars{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 10px}
+  .sheet .chars button{flex:none;background:#0e1626;border:2px solid var(--line);border-radius:14px;padding:4px 3px 6px;font-size:12.5px;font-weight:600;line-height:1.3;min-width:0}
+  .chars button div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
   .chars button[aria-pressed=true]{border-color:var(--accent)}
   .chars canvas{width:100%;aspect-ratio:150/110;display:block}
   .sheet .close{width:100%;margin-top:8px;background:#24304a;border-radius:16px;padding:14px;font-size:17px;font-weight:650}
@@ -109,13 +139,13 @@
 
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   button{font:inherit;color:inherit;border:0;cursor:pointer}
-  .act{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 12px 16px;min-height:112px;
-       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:650;font-size:18px;
+  .act{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px 12px;min-height:72px;
+       display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;font-weight:650;font-size:18px;
        transition:transform .08s,background .15s}
   .act:active{transform:scale(.97);background:#1a2540}
-  .act svg{width:34px;height:34px}
-  .act.wake{grid-column:1 / -1;min-height:124px;background:linear-gradient(160deg,#0f3a2e,#12283a);border-color:#1f6b55;font-size:22px}
-  .act.wake svg{width:42px;height:42px;color:var(--on)}
+  .act svg{width:28px;height:28px}
+  .act.wake{grid-column:1 / -1;min-height:84px;background:linear-gradient(160deg,#0f3a2e,#12283a);border-color:#1f6b55;font-size:22px}
+  .act.wake svg{width:34px;height:34px;color:var(--on)}
   .act.sleep svg{color:#a5b4fc}
   .act.off svg{color:var(--bad)}
   .act[disabled]{opacity:.45}
@@ -232,21 +262,13 @@
     </section>
     <div class="row2"><button class="check" id="bCheck">เช็คสถานะ</button><button class="check" id="bStay">อยู่ต่อ (ไม่หลับเอง)</button></div>
     <div class="note" id="note"></div>
-
-    <section class="scr unknown" id="scr">
-      <div class="top"><span>ความสว่างจอตัวปลุก</span><b id="briVal">–</b></div>
-      <input type="range" id="bri" min="10" max="100" step="10" value="100" aria-label="ความสว่างจอตัวปลุก">
-      <div class="ends"><span>มืด</span><span>สว่าง</span></div>
-      <button class="sw" id="dimSw" role="switch" aria-checked="true"><span>หรี่เองเมื่อไม่มีคนแตะจอ</span><span class="knob"></span></button>
-    </section>
-
     <section class="log">
       <h2 style="display:flex;justify-content:space-between;align-items:center">ล่าสุด <button class="more" id="bHist">ดูทั้งหมด ›</button></h2>
       <ul id="log"><li class="empty">ยังไม่มีเหตุการณ์</li></ul>
     </section>
   </div>
 
-  <footer>KumRemote v2.14 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.15 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -263,24 +285,43 @@
 </div></div>
 
 <div class="veil" id="setVeil"><div class="sheet set" role="dialog" aria-modal="true" aria-labelledby="setT">
-  <h3 id="setT">ตั้งค่า</h3>
-  <p style="margin:0 0 6px">ตัวละคร (แตะเพื่อเลือก)</p>
-  <div class="chars" id="chars"></div>
-  <button class="item" id="bPhotoChar"><span>🖼️ ทำตัวละครจากรูป (อัตโนมัติ)<br><small style="color:var(--dim)">เลือกรูป → จัดกรอบ → แอปแปลง 24×24 แล้วส่งขึ้นบอร์ดให้เอง</small></span><span style="color:var(--dim)">›</span></button>
-  <button class="item" id="bDrawChar"><span>✏️ วาดตัวละครของฉัน<br><small style="color:var(--dim)">ระบายเอง หรือเลือกรูปจากมือถือ แล้วส่งให้บอร์ดได้</small></span><span style="color:var(--dim)">›</span></button>
-  <div class="showset" id="showSet"></div>
-  <div class="showset" id="sdSet"></div>
-  <button class="item" id="swKeep" role="switch" aria-checked="false"><span>เปิดจอค้างไว้<br><small style="color:var(--dim)">จอมือถือไม่ดับเองตอนเปิดหน้านี้ (ควรเสียบชาร์จ)</small></span><span class="knob"></span></button>
-  <button class="item" id="swSpeak" role="switch" aria-checked="true"><span>บอทพูดตอบ</span><span class="knob"></span></button>
-  <button class="item" id="reset"><span>ตั้งค่าลิงก์ใหม่</span><span style="color:var(--dim)">›</span></button>
-  <button class="close" id="setClose">เสร็จ</button>
+  <div class="sethead">
+    <h3 id="setT">ตั้งค่า</h3>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="char" aria-selected="true">ตัวละคร</button><button role="tab" data-tab="screen" aria-selected="false">จอบอร์ด</button><button role="tab" data-tab="pc" aria-selected="false">คอม</button><button role="tab" data-tab="app" aria-selected="false">แอป</button>
+    </div>
+  </div>
+  <div class="tab on" data-tab="char">
+    <p class="lead">แตะเพื่อเลือก — ตัวบนบอร์ดเปลี่ยนตามทันที</p>
+    <div class="chars" id="chars"></div>
+    <button class="item" id="bPhotoChar"><span>🖼️ ทำตัวละครจากรูป (อัตโนมัติ)<br><small style="color:var(--dim)">เลือกรูป → จัดกรอบ → แอปแปลงแล้วส่งขึ้นบอร์ดให้เอง</small></span><span style="color:var(--dim)">›</span></button>
+    <button class="item" id="bDrawChar"><span>✏️ วาดตัวละครของฉัน<br><small style="color:var(--dim)">ระบายเอง หรือเลือกรูปจากมือถือ แล้วส่งให้บอร์ดได้</small></span><span style="color:var(--dim)">›</span></button>
+  </div>
+  <div class="tab" data-tab="screen">
+    <section class="scr unknown" id="scr">
+      <div class="top"><span>ความสว่างจอตัวปลุก</span><b id="briVal">–</b></div>
+      <input type="range" id="bri" min="10" max="100" step="10" value="100" aria-label="ความสว่างจอตัวปลุก">
+      <div class="ends"><span>มืด</span><span>สว่าง</span></div>
+      <button class="sw" id="dimSw" role="switch" aria-checked="true"><span>หรี่เองเมื่อไม่มีคนแตะจอ</span><span class="knob"></span></button>
+    </section>
+    <div class="showset" id="showSet"></div>
+  </div>
+  <div class="tab" data-tab="pc">
+    <div class="showset" id="sdSet" style="border-top:0"></div>
+  </div>
+  <div class="tab" data-tab="app">
+    <button class="item" id="swKeep" role="switch" aria-checked="false"><span>เปิดจอค้างไว้<br><small style="color:var(--dim)">จอมือถือไม่ดับเองตอนเปิดหน้านี้ (ควรเสียบชาร์จ)</small></span><span class="knob"></span></button>
+    <button class="item" id="swSpeak" role="switch" aria-checked="true"><span>บอทพูดตอบ</span><span class="knob"></span></button>
+    <button class="item" id="reset"><span>ตั้งค่าลิงก์ใหม่</span><span style="color:var(--dim)">›</span></button>
+  </div>
+  <div class="setfoot"><button class="close" id="setClose">เสร็จ</button></div>
 </div></div>
 
-<script src="characters.js?v=2.14"></script>
-<script src="draw.js?v=2.14"></script>
-<script src="bot.js?v=2.14"></script>
-<script src="voice.js?v=2.14"></script>
-<script src="show.js?v=2.14"></script>
+<script src="characters.js?v=2.15"></script>
+<script src="draw.js?v=2.15"></script>
+<script src="bot.js?v=2.15"></script>
+<script src="voice.js?v=2.15"></script>
+<script src="show.js?v=2.15"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -347,7 +388,7 @@ function render() {
   $('small').textContent = small;
   updateBot();
   var ul = $('log'); ul.textContent = '';
-  var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && (m.c.cmd === 'status' || m.c.cmd === 'screen')) && m.c.kind !== 'other'; }).slice(-8).reverse();
+  var list = msgs.filter(function (m) { return m.c.kind !== 'status' && !(m.c.kind === 'cmd' && (m.c.cmd === 'status' || m.c.cmd === 'screen')) && m.c.kind !== 'other'; }).slice(-4).reverse();
   if (!list.length) { var e = document.createElement('li'); e.className = 'empty'; e.textContent = 'ยังไม่มีเหตุการณ์'; ul.appendChild(e); }
   list.forEach(function (m) {
     var li = document.createElement('li'), tm = document.createElement('time'), sp = document.createElement('span');
@@ -669,20 +710,36 @@ function micStart() {
     onEnd: micReset
   }, { hold: true, endOnFinal: function () { return tapMode; } });
 }
+// v2.15: ไม่เปิดไมค์ทันทีที่นิ้วแตะ — ไถผ่านปุ่ม = เลื่อนจอตามปกติ · แตะ = ฟังจนจบประโยค · กดค้างนิ่งๆ = พูดจนปล่อย
+var micPend = null;
 $('bMic').addEventListener('pointerdown', function (e) {
-  e.preventDefault();
   if (listening) { KumVoice.stop(); return; }          // แตะอีกครั้ง = จบ
-  micDown = Date.now(); micStart();
-  try { this.setPointerCapture(e.pointerId); } catch (x) {}
+  var el = this, p = { x: e.clientX, y: e.clientY, id: e.pointerId, moved: false, started: false };
+  micPend = p;
+  p.timer = setTimeout(function () {
+    if (micPend !== p || p.moved) return;
+    p.started = true; micDown = Date.now(); micStart();
+    try { el.setPointerCapture(p.id); } catch (x) {}
+  }, 300);
 });
+$('bMic').addEventListener('pointermove', function (e) {
+  var p = micPend; if (!p || p.started) return;
+  if (Math.abs(e.clientX - p.x) > 10 || Math.abs(e.clientY - p.y) > 10) { p.moved = true; clearTimeout(p.timer); micPend = null; }
+});
+function micEnd(cancel) {
+  var p = micPend; micPend = null; if (!p) return; clearTimeout(p.timer);
+  if (p.started) { if (cancel) { if (listening) KumVoice.stop(); } else micUp(); return; }
+  if (cancel || p.moved) return;                         // ไถ/เลื่อนจอ = ไม่เปิดไมค์
+  micDown = Date.now(); micStart(); micUp();             // แตะสั้น = โหมดฟังจนจบประโยค
+}
 function micUp() {
   if (!listening || !micDown) return;
   var held = Date.now() - micDown; micDown = 0;
   if (held >= 450) KumVoice.stop();                      // กดค้าง → ปล่อย = พูดจบ
   else { tapMode = true; $('micT').textContent = 'กำลังฟัง… (แตะอีกครั้งเพื่อจบ)'; tapTimer = setTimeout(function () { if (listening) KumVoice.stop(); }, 10000); }   // แตะสั้น = ฟังจนจบประโยค (สูงสุด 10 วิ)
 }
-$('bMic').addEventListener('pointerup', micUp);
-$('bMic').addEventListener('pointercancel', micUp);
+$('bMic').addEventListener('pointerup', function () { micEnd(false); });
+$('bMic').addEventListener('pointercancel', function () { micEnd(true); });
 $('bMic').addEventListener('contextmenu', function (e) { e.preventDefault(); });
 $('txtF').onsubmit = function (e) {
   e.preventDefault(); var t = $('txtIn').value.trim(); if (!t) return;
@@ -708,8 +765,36 @@ function buildChars() {
   });
 }
 var minis = [];
-$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); buildChars(); buildShowSet(); buildSdSet(); $('setVeil').classList.add('show'); };
-function closeSet() { $('setVeil').classList.remove('show'); minis.forEach(function (m) { m.destroy(); }); minis = []; }
+var TAB_KEY = 'kumremote_settab';
+function setTab(t) {
+  var tabs = document.querySelectorAll('#setVeil [role=tab]'), panes = document.querySelectorAll('#setVeil .tab'), i;
+  for (i = 0; i < tabs.length; i++) tabs[i].setAttribute('aria-selected', tabs[i].getAttribute('data-tab') === t ? 'true' : 'false');
+  for (i = 0; i < panes.length; i++) panes[i].classList.toggle('on', panes[i].getAttribute('data-tab') === t);
+  store(TAB_KEY, t); document.querySelector('#setVeil .sheet').scrollTop = 0; pvLoop();
+}
+(function () { var tabs = document.querySelectorAll('#setVeil [role=tab]'); for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { setTab(this.getAttribute('data-tab')); }; })();
+$('bSet').onclick = function () { sw('swKeep', store(KEEP_KEY) === '1'); sw('swSpeak', store(SPEAK_KEY) !== '0'); buildChars(); buildShowSet(); buildSdSet(); $('setVeil').classList.add('show'); setTab(store(TAB_KEY) || 'char'); renderScr(); };
+function closeSet() { $('setVeil').classList.remove('show'); minis.forEach(function (m) { m.destroy(); }); minis = []; pvStop(); }
+/* ---------- จอตัวอย่างโหมดโชว์ (v2.15) ---------- */
+var pv = { raf: 0, idx: 0, since: 0, page: null };
+function pvPages() { var c = KumShow.settings(); return KumShow.PAGES.filter(function (p) { return c.pages[p[0]]; }); }
+function pvStop() { cancelAnimationFrame(pv.raf); pv.raf = 0; }
+function pvLoop() {
+  pvStop();
+  if (!window.KumShow || !$('setVeil').classList.contains('show') || store(TAB_KEY) !== 'screen' || !$('pv')) return;
+  var tick = function (now) {
+    var cv = $('pv'); if (!cv || !$('setVeil').classList.contains('show')) { pv.raf = 0; return; }
+    var list = pvPages(); if (!list.length) list = [KumShow.PAGES[0]];
+    if (!pv.since) pv.since = now;
+    if (pv.page) { var k = list.map(function (p) { return p[0]; }).indexOf(pv.page); if (k >= 0) pv.idx = k; pv.page = null; pv.since = now; }
+    if (now - pv.since > 4000) { pv.idx = (pv.idx + 1) % list.length; pv.since = now; }
+    var cur = list[pv.idx % list.length], ctx = cv.getContext('2d');
+    ctx.setTransform(cv.width / 320, 0, 0, cv.height / 240, 0, 0); KumShow.draw(ctx, cur[0], now);
+    var cap = $('pvCap'); if (cap) cap.textContent = 'ตัวอย่าง: ' + cur[1] + (list.length > 1 ? '  (' + (pv.idx % list.length + 1) + '/' + list.length + ' · แตะจอเพื่อดูหน้าถัดไป)' : '');
+    pv.raf = requestAnimationFrame(tick);
+  };
+  pv.raf = requestAnimationFrame(tick);
+}
 $('setClose').onclick = closeSet;
 $('setVeil').onclick = function (e) { if (e.target === $('setVeil')) closeSet(); };
 $('swKeep').onclick = function () { var on = store(KEEP_KEY) !== '1'; store(KEEP_KEY, on ? '1' : '0'); sw('swKeep', on); keepOn(on); };
@@ -792,19 +877,36 @@ function segRow(title, vals, labels, cur, onPick) {
 function buildShowSet() {
   var box = $('showSet'); if (!box || !window.KumShow) return; var c = KumShow.settings(); box.textContent = '';
   var top = document.createElement('button'); top.className = 'item'; top.setAttribute('role', 'switch'); top.setAttribute('aria-checked', c.on ? 'true' : 'false');
-  top.innerHTML = '<span>✨ โหมดโชว์ (หน้าจอหรู)<br><small style="color:var(--dim)">ไม่มีคนแตะสักพัก จะสลับหน้าจอสวยๆ เป็นรอบ · แตะจอ = กลับหน้าหลัก</small></span><span class="knob"></span>';
-  top.onclick = function () { KumShow.set({ on: !c.on }); buildShowSet(); }; box.appendChild(top);
-  if (!c.on) return;
+  top.innerHTML = '<span>✨ โหมดโชว์ (หน้าจอหรู)<br><small style="color:var(--dim)">ไม่มีคนแตะสักพัก จอบอร์ดและแอปจะสลับหน้าจอสวยๆ เป็นรอบ · แตะจอ = กลับหน้าหลัก</small></span><span class="knob"></span>';
+  top.onclick = function () { KumShow.set({ on: !c.on }); buildShowSet(); pvLoop(); }; box.appendChild(top);
+  if (!c.on) { pvStop(); return; }
+  var pb = document.createElement('div'); pb.className = 'pvbox';
+  var cv = document.createElement('canvas'); cv.id = 'pv'; cv.width = 640; cv.height = 480; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'ตัวอย่างโหมดโชว์ แตะเพื่อดูหน้าถัดไป');
+  cv.onclick = function () { pv.idx++; pv.since = performance.now(); };
+  pb.appendChild(cv); box.appendChild(pb);
+  var cap = document.createElement('div'); cap.className = 'pvcap'; cap.id = 'pvCap'; box.appendChild(cap);
+  var acts = document.createElement('div'); acts.className = 'row2b';
+  var bPhone = document.createElement('button'); bPhone.textContent = '📱 ดูเต็มจอในมือถือ'; bPhone.onclick = function () { closeSet(); KumShow.start(); };
+  var bBoard = document.createElement('button'); bBoard.className = 'go'; bBoard.textContent = '📺 โชว์บนบอร์ดเดี๋ยวนี้'; bBoard.onclick = function () { postRaw('show now', 'สั่งบอร์ดให้โชว์แล้ว'); };
+  acts.appendChild(bPhone); acts.appendChild(bBoard); box.appendChild(acts);
+  var h = document.createElement('h4'); h.textContent = 'หน้าที่จะให้โชว์ (แตะเพื่อเลือก/ไม่เลือก)'; box.appendChild(h);
+  var grid = document.createElement('div'); grid.className = 'pages';
+  KumShow.PAGES.forEach(function (p) {
+    var b = document.createElement('button'), tc = document.createElement('canvas'), nm = document.createElement('div'), ck = document.createElement('span');
+    b.setAttribute('aria-pressed', c.pages[p[0]] ? 'true' : 'false'); tc.width = 320; tc.height = 240; nm.textContent = p[1]; ck.className = 'ck'; ck.textContent = '✓';
+    b.appendChild(tc); b.appendChild(nm); b.appendChild(ck);
+    var tctx = tc.getContext('2d'); KumShow.draw(tctx, p[0], 4000);
+    b.onclick = function () {
+      var on = Object.keys(c.pages).filter(function (k) { return c.pages[k]; });
+      if (c.pages[p[0]] && on.length <= 1) { note('ต้องเลือกไว้อย่างน้อย 1 หน้า', 'warn'); return; }
+      var o = {}; o[p[0]] = !c.pages[p[0]]; KumShow.set({ pages: o }); if (o[p[0]]) pv.page = p[0]; buildShowSet(); pvLoop();
+    };
+    grid.appendChild(b);
+  });
+  box.appendChild(grid);
   box.appendChild(segRow('เริ่มโชว์เมื่อไม่มีคนแตะนาน', [30, 60, 120, 300], ['30 วิ', '1 นาที', '2 นาที', '5 นาที'], c.idle, function (v) { KumShow.set({ idle: v }); }));
   box.appendChild(segRow('สลับหน้าทุก', [8, 15, 30], ['8 วิ', '15 วิ', '30 วิ'], c.every, function (v) { KumShow.set({ every: v }); }));
-  var h = document.createElement('h4'); h.textContent = 'หน้าที่จะให้โชว์'; box.appendChild(h);
-  KumShow.PAGES.forEach(function (p) {
-    var b = document.createElement('button'); b.className = 'item'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', c.pages[p[0]] ? 'true' : 'false');
-    b.innerHTML = '<span></span><span class="knob"></span>'; b.firstChild.textContent = p[1];
-    b.onclick = function () { var on = Object.keys(c.pages).filter(function (k) { return c.pages[k]; }); if (c.pages[p[0]] && on.length <= 1) { note('ต้องเปิดไว้อย่างน้อย 1 หน้า', 'warn'); return; } var o = {}; o[p[0]] = !c.pages[p[0]]; KumShow.set({ pages: o }); buildShowSet(); };
-    box.appendChild(b);
-  });
-  var go = document.createElement('button'); go.className = 'close'; go.textContent = '▶ ดูโหมดโชว์เดี๋ยวนี้ (มือถือ + บอร์ด)'; go.onclick = function () { closeSet(); postRaw('show now'); KumShow.start(); }; box.appendChild(go);
+  pvLoop();
 }
 
 /* ---------- ติดตั้งเป็นไอคอน ---------- */

@@ -209,7 +209,9 @@
     },
     settings: function () { return JSON.parse(JSON.stringify(cfg)); },
     set: function (o) { if (o.on !== undefined) cfg.on = !!o.on; if (o.idle) cfg.idle = o.idle; if (o.every) cfg.every = o.every; if (o.pages) for (var k in o.pages) if (k in cfg.pages) cfg.pages[k] = !!o.pages[k]; save(); if (!cfg.on) { clearTimeout(idleT); if (running) stop(); } else bump(); },
-    start: start, stop: stop, isRunning: function () { return running; }
+    start: start, stop: stop, isRunning: function () { return running; },
+    // v2.15 วาดหน้าโชว์ลงจอเล็กอื่น (ตัวอย่างในหน้าตั้งค่า) — ctx ต้องตั้งขนาดเป็นพิกัด 320×240 เอง
+    draw: function (ctx, name, t) { ctx.save(); try { (FN[name] || FN.city)(ctx, t); } catch (e) {} ctx.restore(); }
   };
   window.KumShow = api;
 })();
