@@ -1,6 +1,6 @@
 {
-  "name": "คุมคอม (KumRemote)",
-  "short_name": "คุมคอม",
+  "name": "สบายใจ",
+  "short_name": "สบายใจ",
   "description": "ปุ่มสั่งคอมจากมือถือ: ปลุก / Sleep / ปิดเครื่อง",
   "start_url": "./",
   "scope": "./",
