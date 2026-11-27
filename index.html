@@ -23,6 +23,7 @@
     2.4 (26/11/2026) เพิ่มคำคุยเล่นจากที่พูดจริง (ทดสอบ, วัดดี, ดีขึ้นแล้ว)
     2.5 (27/11/2026) แก้: อยู่นอกร้านแล้วกดปลุกไม่ได้/ไม่กล้ากด เพราะแอปโชว์สถานะเก่า — ปุ่ม "ปลุกคอม" ใหญ่กลับมาให้กดได้เสมอ,
                      สถานะเก่าเกิน 15 นาทีบอกว่าอาจไม่ตรง, ตัวปลุกไม่ตอบกลับ ≠ ปลุกไม่ขึ้น (ไม่โชว์ปุ่มแดงผิดๆ)
+    2.6 (27/11/2026) "ดูทั้งหมด": ประวัติทุกคำสั่ง/ทุกคำตอบ เก็บในมือถือ 7 วัน แยกตามวัน (เลือกรวมการเช็คสถานะ/ปรับจอได้), ดึงย้อนหลังจาก ntfy 12 ชม. (เดิม 6)
 -->
 <html lang="th">
 <head>
@@ -134,6 +135,12 @@
   .log li:first-child{border-top:0}
   .log time{color:var(--dim);flex:none;font-variant-numeric:tabular-nums;width:44px}
   .log .me{color:var(--accent)}
+  .log .more{background:none;color:var(--accent);font-size:14px;font-weight:600;padding:6px 0;letter-spacing:0}
+  .hlist{max-height:62vh;overflow:auto;margin:6px 0 4px}
+  .hlist h4{margin:12px 0 4px;font-size:13px;color:var(--dim);font-weight:600}
+  .hlist div{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14.5px}
+  .hlist time{color:var(--dim);flex:none;width:58px;font-variant-numeric:tabular-nums}
+  .hlist .me{color:var(--accent)}
   .log .empty{color:var(--dim);padding:10px 0 14px;font-size:15px}
   footer{margin-top:auto;text-align:center;color:#56627a;font-size:12.5px;padding-top:6px}
   footer button{background:none;color:#56627a;text-decoration:underline;font-size:12.5px;padding:6px}
@@ -216,17 +223,25 @@
     </section>
 
     <section class="log">
-      <h2>ล่าสุด</h2>
+      <h2 style="display:flex;justify-content:space-between;align-items:center">ล่าสุด <button class="more" id="bHist">ดูทั้งหมด ›</button></h2>
       <ul id="log"><li class="empty">ยังไม่มีเหตุการณ์</li></ul>
     </section>
   </div>
 
-  <footer>KumRemote v2.5 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.6 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
   <h3 id="askT"></h3><p id="askP"></p>
   <div class="row"><button class="no" id="askNo">ยกเลิก</button><button class="yes" id="askYes">ยืนยัน</button></div>
+</div></div>
+
+<div class="veil" id="histVeil"><div class="sheet set" role="dialog" aria-modal="true" aria-labelledby="histT">
+  <h3 id="histT">ประวัติทั้งหมด</h3>
+  <p style="margin:0 0 4px">เก็บไว้ในมือถือเครื่องนี้ 7 วัน (สีฟ้า = คำสั่งที่ส่งจากแอป)</p>
+  <button class="item" id="swAll" role="switch" aria-checked="false"><span>รวมการเช็คสถานะ / ปรับจอ</span><span class="knob"></span></button>
+  <div class="hlist" id="hlist"></div>
+  <button class="close" id="histClose">ปิด</button>
 </div></div>
 
 <div class="veil" id="setVeil"><div class="sheet set" role="dialog" aria-modal="true" aria-labelledby="setT">
@@ -239,9 +254,9 @@
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.5"></script>
-<script src="bot.js?v=2.5"></script>
-<script src="voice.js?v=2.5"></script>
+<script src="characters.js?v=2.6"></script>
+<script src="bot.js?v=2.6"></script>
+<script src="voice.js?v=2.6"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -331,6 +346,7 @@ function handle(m, live) {
   seen[m.id] = 1;
   var c = classify(m.message);
   msgs.push({ t: m.time, text: m.message, c: c });
+  archAdd(m);
   if (msgs.length > 60) msgs.shift();
   if (c.state && m.time >= stateAt) { state = c.state; stateAt = m.time; }
   if (c.kind === 'claude' && m.time >= claude.at) { claude = { mode: c.claude, at: m.time, title: firstLine((m.message || '').replace(/^🤖(✅|⚠️?)?\s*/, '').replace(/^(Claude\s*(กำลังทำงานบนคอม|ทำงานเสร็จ)|งานไม่สำเร็จ|งานใช้เวลานานเกิน หยุดไว้ก่อน)\s*:\s*/, '')) }; if (live && c.claude !== 'work') speak(c.claude === 'done' ? 'เสร็จแล้ว' : 'งานไม่สำเร็จ'); }
@@ -345,7 +361,7 @@ function handle(m, live) {
   }
 }
 function loadHistory() {
-  return fetch(NTFY + topic + '/json?poll=1&since=6h').then(function (r) { return r.text(); }).then(function (txt) {
+  return fetch(NTFY + topic + '/json?poll=1&since=12h').then(function (r) { return r.text(); }).then(function (txt) {
     txt.split('\n').forEach(function (ln) { if (ln.trim()) { try { handle(JSON.parse(ln), false); } catch (e) {} } });
     setNet(true); render(); renderScr();
   }).catch(function () { setNet(false); });
@@ -431,6 +447,42 @@ $('askYes').onclick = function () { var cb = askCb; closeAsk(); if (cb) cb(); };
 $('reset').onclick = function () { closeSet(); ask('ตั้งค่าลิงก์ใหม่?', 'จะลบลิงก์ที่จำไว้ในมือถือเครื่องนี้ แล้วให้วางลิงก์ใหม่', 'ลบและตั้งใหม่', true, function () { store(KEY, null); location.reload(); }); };
 document.addEventListener('visibilitychange', function () { if (!document.hidden && topic) { loadHistory().then(function () { connect(); askStatus(); }); } });
 window.addEventListener('online', function () { if (topic) { loadHistory().then(connect); } });
+
+/* ---------- ประวัติทั้งหมด (v2.6: เก็บในมือถือ 7 วัน) ---------- */
+var HIST_KEY = 'kumremote_hist', arch = null;
+function archLoad() { if (arch) return arch; try { arch = JSON.parse(store(HIST_KEY) || '[]'); } catch (e) { arch = []; } return arch; }
+var archTimer = null;
+function archAdd(m) {
+  var a = archLoad(); if (a.some(function (x) { return x.i === m.id; })) return;
+  a.push({ i: m.id, t: m.time, m: m.message || '' });
+  clearTimeout(archTimer); archTimer = setTimeout(function () {
+    var cut = Date.now() / 1000 - 7 * 86400; arch = archLoad().filter(function (x) { return x.t > cut; }).sort(function (x, y) { return x.t - y.t; }).slice(-1500);
+    store(HIST_KEY, JSON.stringify(arch));
+  }, 500);
+}
+function dayTh(t) { return new Date(t * 1000).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' }); }
+function renderHist() {
+  var all = $('swAll').getAttribute('aria-checked') === 'true', box = $('hlist'), day = '';
+  box.textContent = '';
+  var list = archLoad().slice().sort(function (x, y) { return y.t - x.t; });
+  var n = 0;
+  list.forEach(function (x) {
+    var c = classify(x.m);
+    if (!all && (c.kind === 'status' || (c.kind === 'cmd' && (c.cmd === 'status' || c.cmd === 'screen')) || (c.kind === 'ack' && c.cmd === 'screen'))) return;
+    var d = dayTh(x.t); if (d !== day) { day = d; var h = document.createElement('h4'); h.textContent = d; box.appendChild(h); }
+    var row = document.createElement('div'), tm = document.createElement('time'), sp = document.createElement('span');
+    var dt = new Date(x.t * 1000); tm.textContent = ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2) + ':' + ('0' + dt.getSeconds()).slice(-2);
+    if (c.kind === 'cmd') { sp.className = 'me'; sp.textContent = (CMD_LABEL[c.cmd] || 'ส่งคำสั่ง') + (c.cmd === 'screen' ? ' (' + x.m + ')' : ''); }
+    else if (x.m.indexOf('🎤?') === 0) sp.textContent = '🎤 ฟังไม่ออก: ' + x.m.slice(3).trim();
+    else sp.textContent = firstLine(x.m);
+    row.appendChild(tm); row.appendChild(sp); box.appendChild(row); n++;
+  });
+  if (!n) { var e = document.createElement('div'); e.textContent = 'ยังไม่มีประวัติ'; box.appendChild(e); }
+}
+$('bHist').onclick = function () { renderHist(); $('histVeil').classList.add('show'); };
+$('swAll').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); renderHist(); };
+$('histClose').onclick = function () { $('histVeil').classList.remove('show'); };
+$('histVeil').onclick = function (e) { if (e.target === $('histVeil')) $('histVeil').classList.remove('show'); };
 
 /* ---------- บอท ---------- */
 var CHAR_KEY = 'kumremote_char', claude = { mode: null, at: 0, title: '' }, listening = false, moodHold = null;
