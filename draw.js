@@ -18,7 +18,7 @@
   var PAL = DEFPAL.slice();
   var LET = 'ABCDEFGHIJKLMNOP', zoomed = false;
   function sizes() { return N > 24 ? [['เล็ก', 2], ['กลาง', 2.5], ['ใหญ่', 3]] : N > 12 ? [['เล็ก', 1.5], ['กลาง', 2], ['ใหญ่', 2.5]] : [['เล็ก', 1], ['กลาง', 1.25], ['ใหญ่', 1.5]]; }
-  var api = {}, st = null, undo = [], opts = null, root = null, preview = null, painting = false, lastCell = '', boxStart = null, boxIdx = 0, boxNext = 0;
+  var api = {}, st = null, undo = [], redo = [], opts = null, root = null, preview = null, painting = false, lastCell = '', boxStart = null, boxIdx = 0, boxNext = 0;
 
   // ---------- เก็บ/โหลด ----------
   function loadAll() { try { var a = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
@@ -73,7 +73,11 @@
     m.forEach(function (row, j) { for (var i = 0; i < N; i++) add(i, j); });
     return top() || 'A';
   }
-  function pushUndo() { undo.push(JSON.stringify([st.grid, st.eyes, st.pal, st.ec])); if (undo.length > 60) undo.shift(); upd(); }
+  function snap() { return JSON.stringify([st.grid, st.eyes, st.pal, st.ec]); }
+  function restore(j) { var p = JSON.parse(j); st.grid = p[0]; st.eyes = p[1]; if (p[2]) { st.pal = p[2]; PAL = st.pal; } st.ec = p[3] || []; }
+  function pushUndo() { undo.push(snap()); if (undo.length > 60) undo.shift(); redo = []; upd(); }
+  function doUndo() { if (!undo.length) return; redo.push(snap()); restore(undo.pop()); upd(); }
+  function doRedo() { if (!redo.length) return; undo.push(snap()); restore(redo.pop()); upd(); }
 
   // ---------- หน้าจอ ----------
   function css() {
@@ -86,7 +90,8 @@
       '.kd .sheet button{flex:none;padding:0;font-size:15px;font-weight:600;border-radius:12px;min-height:0;background:#24304a;color:var(--text,#e8eefc)}' +
       '.kd .head{position:sticky;top:0;z-index:4;background:#172136;display:flex;align-items:center;gap:10px;padding:14px 0 10px;border-bottom:1px solid var(--line);margin:0 0 10px}' +
       '.kd .head h3{margin:0;font-size:19px;flex:1}' +
-      '.kd .sheet .head .x{width:40px;height:40px;border-radius:50%;font-size:18px;background:#24304a}' +
+      '.kd .sheet .head .x{width:44px;height:44px;border-radius:50%;font-size:18px;background:#24304a}' +
+      '.kd .sheet .head .ur{font-size:22px;font-weight:700}.kd .sheet .head .ur[disabled]{opacity:.3}.kd .sheet .head .ur+.x:not(.ur){margin-left:8px}' +
       '.kd .mine{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none}.kd .mine::-webkit-scrollbar{display:none}' +
       '.kd .sheet .mine button{background:#0e1626;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;white-space:nowrap;min-height:38px}' +
       '.kd .sheet .mine button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}' +
@@ -95,7 +100,7 @@
       '.kd .gridw{position:relative;width:100%;max-width:330px;margin:0 auto 10px;touch-action:none;user-select:none;-webkit-user-select:none}' +
       '.kd canvas.g{width:100%;aspect-ratio:1;display:block;border-radius:12px;border:1px solid var(--line);background:#0e1626;touch-action:none}' +
       '.kd .gridw.zoom{overflow:auto;max-height:330px;touch-action:auto;border-radius:12px;border:1px solid var(--line)}.kd .gridw.zoom canvas.g{width:200%;max-width:none;border:0;border-radius:0}' +
-      '.kd .tools{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:0 0 10px}' +
+      '.kd .tools{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0 0 10px}' +
       '.kd .sheet .tools button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px 2px;min-height:54px;font-size:11.5px;font-weight:600;color:#b9c5dc}' +
       '.kd .sheet .tools button b{font-size:19px;line-height:1;font-weight:400}' +
       '.kd .sheet .tools button[aria-pressed=true]{background:var(--accent);color:#04121f}' +
@@ -147,7 +152,9 @@
     var sh = el('div', 'sheet'); sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-labelledby', 'kdT');
     // หัว: ชื่อหน้า + ปิด
     var hd = el('div', 'head'), h = el('h3', '', 'วาดตัวละคร'); h.id = 'kdT'; hd.appendChild(h);
-    X.bClose = el('button', 'x', '✕'); X.bClose.setAttribute('aria-label', 'ปิด'); X.bClose.onclick = close; hd.appendChild(X.bClose); sh.appendChild(hd);
+    X.undo = el('button', 'x ur', '↩︎'); X.undo.id = 'kdUndo'; X.undo.setAttribute('aria-label', 'ย้อนกลับ'); X.undo.title = 'ย้อนกลับ'; X.undo.onclick = doUndo; hd.appendChild(X.undo);
+    X.redo = el('button', 'x ur', '↪︎'); X.redo.id = 'kdRedo'; X.redo.setAttribute('aria-label', 'ทำซ้ำ'); X.redo.title = 'ทำซ้ำ'; X.redo.onclick = doRedo; hd.appendChild(X.redo);
+    X.bClose = el('button', 'x', '✕'); X.bClose.id = 'kdClose'; X.bClose.setAttribute('aria-label', 'ปิด'); X.bClose.onclick = close; hd.appendChild(X.bClose); sh.appendChild(hd);
     // ตัวที่เคยทำ + ตัวใหม่ + จากรูป
     X.mine = el('div', 'mine'); sh.appendChild(X.mine);
     X.file = el('input'); X.file.type = 'file'; X.file.accept = 'image/*'; X.file.hidden = true; X.file.onchange = function () { if (X.file.files && X.file.files[0]) openCrop(X.file.files[0]); X.file.value = ''; }; sh.appendChild(X.file);
@@ -159,7 +166,6 @@
     function tb(icon, label) { var b = el('button'); var i = el('b', '', icon); b.appendChild(i); b.appendChild(document.createTextNode(label)); return b; }
     [['paint', '🖌️', 'ระบาย'], ['erase', '🧽', 'ยางลบ'], ['eye', '👀', 'วางตา'], ['ebox', '🔲', 'กรอบตา'], ['pan', '✋', 'เลื่อน']].forEach(function (t) { var b = tb(t[1], t[2]); b.dataset.t = t[0]; b.onclick = function () { st.tool = t[0]; upd(); }; X.tools.appendChild(b); });
     X.zoom = tb('🔍', 'ซูม'); X.zoom.onclick = function () { zoomed = !zoomed; if (!zoomed && st.tool === 'pan') st.tool = 'paint'; upd(); }; X.tools.appendChild(X.zoom);
-    X.undo = tb('↩️', 'ย้อน'); X.undo.onclick = function () { if (!undo.length) return; var p = JSON.parse(undo.pop()); st.grid = p[0]; st.eyes = p[1]; if (p[2]) { st.pal = p[2]; PAL = st.pal; } st.ec = p[3] || []; upd(); }; X.tools.appendChild(X.undo);
     sh.appendChild(X.tools);
     // จานสี
     X.pal = el('div', 'pal'); PAL.forEach(function (c, i) { var b = el('button'); b.style.background = c; b.setAttribute('aria-label', 'สีที่ ' + (i + 1)); b.onclick = function () { st.color = i; st.tool = 'paint'; upd(); }; X.pal.appendChild(b); }); sh.appendChild(X.pal);
@@ -238,7 +244,7 @@
     X.gw.classList.toggle('zoom', zoomed); X.cv.style.touchAction = st.tool === 'pan' ? 'auto' : 'none';
     X.zoom.setAttribute('aria-pressed', zoomed ? 'true' : 'false'); Array.prototype.forEach.call(X.tools.children, function (b) { if (b.dataset.t === 'pan') b.disabled = !zoomed; });
     Array.prototype.forEach.call(X.pal.children, function (b, i) { b.style.background = st.pal[i]; });
-    X.undo.disabled = !undo.length; X.clear.disabled = isEmpty();
+    X.undo.disabled = !undo.length; X.redo.disabled = !redo.length; X.clear.disabled = isEmpty();
     var hasMine = !!st.id && loadAll().some(function (d) { return d.id === st.id; }); X.delRow.hidden = !hasMine;
     X.bSend.disabled = !(opts && opts.send); X.bSave.textContent = hasMine ? 'บันทึกทับ' : 'บันทึก';
     var hT = document.getElementById('kdT'); if (hT) hT.textContent = hasMine ? 'แก้ตัวละคร' : 'วาดตัวละครใหม่';
@@ -246,9 +252,9 @@
   }
   function buildMine() {
     X.mine.textContent = ''; var all = loadAll();
-    var nb = el('button', '', '＋ ตัวใหม่'); nb.onclick = function () { st = blank(); undo = []; X.name.value = ''; msg(''); upd(); }; nb.setAttribute('aria-pressed', st.id ? 'false' : 'true'); X.mine.appendChild(nb);
+    var nb = el('button', '', '＋ ตัวใหม่'); nb.onclick = function () { st = blank(); undo = []; redo = []; X.name.value = ''; msg(''); upd(); }; nb.setAttribute('aria-pressed', st.id ? 'false' : 'true'); X.mine.appendChild(nb);
     var pb = el('button', 'pic', '🖼️ ทำจากรูป'); pb.onclick = function () { X.file.click(); }; X.mine.appendChild(pb);
-    all.forEach(function (d) { var b = el('button', '', d.name); b.setAttribute('aria-pressed', st.id === d.id ? 'true' : 'false'); b.onclick = function () { st = fromData(d); undo = []; X.name.value = d.name; msg(''); upd(); }; X.mine.appendChild(b); });
+    all.forEach(function (d) { var b = el('button', '', d.name); b.setAttribute('aria-pressed', st.id === d.id ? 'true' : 'false'); b.onclick = function () { st = fromData(d); undo = []; redo = []; X.name.value = d.name; msg(''); upd(); }; X.mine.appendChild(b); });
   }
   function refreshPreview() {
     if (preview) { preview.destroy(); preview = null; }
@@ -344,7 +350,7 @@
   }
   function convert(hc, info, fname) {
     msg('กำลังแปลงรูป…');
-    st = blank(info.res || 24); undo = []; X.name.value = '';   // รูปใหม่ = ตัวละครใหม่เสมอ (ไม่ทับตัวเดิม)
+    st = blank(info.res || 24); undo = []; redo = []; X.name.value = '';   // รูปใหม่ = ตัวละครใหม่เสมอ (ไม่ทับตัวเดิม)
     var Z = N * 4, c2 = document.createElement('canvas'); c2.width = c2.height = Z; var g2 = c2.getContext('2d', { willReadFrequently: true });
     g2.imageSmoothingEnabled = true; g2.imageSmoothingQuality = 'high'; g2.drawImage(hc, 0, 0, Z, Z);
     var d = g2.getImageData(0, 0, Z, Z).data, px = [], empty = [], i, j, u, v;
@@ -427,12 +433,12 @@
     if (!window.confirm('ลบ "' + name + '" ออกจากมือถือเครื่องนี้?')) return;
     var all = loadAll().filter(function (d) { return d.id !== st.id; }); saveAll(all);
     var was = st.id; register(); if (opts && opts.onDeleted) opts.onDeleted(was);
-    st = blank(); undo = []; X.name.value = ''; msg('ลบแล้ว', 'ok'); upd();
+    st = blank(); undo = []; redo = []; X.name.value = ''; msg('ลบแล้ว', 'ok'); upd();
   }
   function open(o, editId, photo) {
     opts = o || {}; if (!root) build();
     var d = editId ? loadAll().filter(function (x) { return x.id === editId; })[0] : null;
-    st = d ? fromData(d) : blank(); undo = []; X.name.value = st.name || ''; msg(''); root.classList.add('show'); upd();
+    st = d ? fromData(d) : blank(); undo = []; redo = []; X.name.value = st.name || ''; msg(''); root.classList.add('show'); upd();
     if (photo && !d && X.file) X.file.click();
   }
   function close() { if (preview) { preview.destroy(); preview = null; } var list = window.KUM_CHARACTERS || []; for (var k = list.length - 1; k >= 0; k--) if (list[k].id === '__preview') list.splice(k, 1); if (root) { Array.prototype.forEach.call(root.querySelectorAll('.kdcrop'), function (n) { n.parentNode.removeChild(n); }); root.classList.remove('show'); } if (opts && opts.onClose) opts.onClose(); }

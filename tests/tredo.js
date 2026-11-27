@@ -1,0 +1,35 @@
+const { chromium } = require('playwright');
+let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,console.log('FAIL '+n+' -> '+JSON.stringify(d)));};
+(async () => {
+  const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
+  for (const vp of [[360,640],[390,844]]) { const tag=vp.join('x');
+  const ctx = await b.newContext({ viewport: { width: vp[0], height: vp[1] }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  await ctx.route(/sabaijai|ntfy\.sh/, r => r.request().url().includes('/sse') ? r.fulfill({status:200,headers:{'content-type':'text/event-stream'},body:': x\n\n'}) : r.fulfill({ status: 200, body: r.request().url().includes('/sub') ? '{"messages":[],"last":0}' : '{}' }));
+  const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(String(e)));
+  await p.addInitScript(() => { localStorage.setItem('kumremote_topic', 'shottest_abcdef'); window.WebSocket = undefined; });
+  await p.goto('http://127.0.0.1:8765/index.html'); await p.waitForTimeout(700);
+  await p.click('#bSet'); await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(400);
+  const dis = () => p.evaluate(()=>[document.getElementById('kdUndo').disabled, document.getElementById('kdRedo').disabled]);
+  ok(JSON.stringify(await dis())==='[true,true]', `[${tag}] start: both disabled`);
+  const stroke = async (y) => { const g = await p.evaluate(()=>{const c=document.querySelector('.kd canvas.g'); c.scrollIntoView({block:'center'}); const r=c.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width};}); await p.mouse.move(g.x+g.w*.3,g.y+g.w*y); await p.mouse.down(); await p.mouse.move(g.x+g.w*.7,g.y+g.w*y,{steps:8}); await p.mouse.up(); await p.waitForTimeout(150); };
+  const cells = () => p.evaluate(()=>document.querySelector('.kd .sheet') && JSON.parse(localStorage.getItem('x')||'0') || 0);
+  const count = () => p.evaluate(()=>{ const c=document.querySelector('.kd canvas.g').getContext('2d'); const d=c.getImageData(0,0,480,480).data; let n=0; for(let i=0;i<d.length;i+=4) if(d[i]>200&&d[i+1]<90) n++; return n; });
+  const n0 = await count(); await stroke(.3); const n1 = await count(); await stroke(.6); const n2 = await count();
+  ok(n2>n1 && n1>n0, `[${tag}] two strokes drawn`, [n0,n1,n2]);
+  await p.click('#kdUndo'); await p.waitForTimeout(150);
+  ok(Math.abs(await count()-n1)<50, `[${tag}] undo removes last stroke`);
+  ok(JSON.stringify(await dis())==='[false,false]', `[${tag}] after undo: redo enabled`);
+  await p.click('#kdRedo'); await p.waitForTimeout(150);
+  ok(Math.abs(await count()-n2)<50, `[${tag}] redo brings stroke back`);
+  await p.click('#kdUndo'); await p.click('#kdUndo'); await p.waitForTimeout(150);
+  ok(Math.abs(await count()-n0)<50 && JSON.stringify(await dis())==='[true,false]', `[${tag}] undo all the way back`);
+  await p.click('#kdRedo'); await stroke(.8); await p.waitForTimeout(150);
+  ok((await dis())[1]===true, `[${tag}] drawing new stroke clears redo`);
+  const hb = await p.evaluate(()=>[...document.querySelectorAll('.kd .head button')].map(b=>Math.round(b.getBoundingClientRect().width)));
+  ok(hb.every(w=>w>=44), `[${tag}] header buttons finger size`, hb);
+  ok(await p.evaluate(()=>new Set([...document.querySelectorAll('.kd .tools button')].filter(b=>!b.hidden).map(b=>Math.round(b.getBoundingClientRect().top))).size)===1, `[${tag}] tools one row`);
+  if (tag==='390x844') await p.screenshot({path:'/tmp/redo.png'});
+  ok(errs.length===0, `[${tag}] no page errors`, errs);
+  await ctx.close(); }
+  await b.close(); console.log('----\npassed='+pass+' failed='+fail);
+})();

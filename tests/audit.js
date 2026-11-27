@@ -58,7 +58,7 @@ const out = [];
     // 7 หน้าวาด
     await p.click('#setVeil [data-tab=char]'); await p.click('#bDrawChar'); await p.waitForTimeout(600); await check('09-draw');
     await p.click('.kd summary'); await p.evaluate(() => document.querySelector('.kd .sheet').scrollTop = 99999); await p.waitForTimeout(300); await check('09-draw-options');
-    await p.click('.kd .head .x'); await p.waitForTimeout(400);
+    await p.click('#kdClose'); await p.waitForTimeout(400);
     out.push(`[${tag}] closing draw returns to settings: ` + (await p.evaluate(() => document.getElementById('setVeil').classList.contains('show')) ? 'OK' : 'NO'));
     await p.click('#setClose'); await p.waitForTimeout(300);
     // 8 โหมดโชว์เต็มจอ

@@ -16,7 +16,7 @@ let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,
   const g = await p.evaluate(()=>{const c=document.querySelector('.kd canvas.g'); c.scrollIntoView({block:'center'}); const r=c.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width};});
   await p.mouse.move(g.x+g.w*.4,g.y+g.w*.4); await p.mouse.down(); await p.mouse.move(g.x+g.w*.6,g.y+g.w*.5,{steps:5}); await p.mouse.up(); await p.waitForTimeout(200);
   ok(await isOpen(), 'stays open while drawing and changing options');
-  await p.click('.kd .head .x'); await p.click('#bDrawChar'); await p.waitForTimeout(300);
+  await p.click('#kdClose'); await p.click('#bDrawChar'); await p.waitForTimeout(300);
   ok(await isOpen(), 'still open after close and reopen');
   await openDraw();
   ok(await isOpen(), 'still open after page refresh');

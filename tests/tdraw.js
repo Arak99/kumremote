@@ -17,7 +17,7 @@ let pass=0,fail=0; const ok=(c,n,d)=>{c?(pass++,console.log('PASS '+n)):(fail++,
   await p.click('.kd .pal button >> nth=2'); const g2 = await p.evaluate(()=>{const c=document.querySelector('.kd canvas.g'); c.scrollIntoView({block:'center'}); const r=c.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width};}); Object.assign(g,g2);
   await p.mouse.move(g.x+g.w*0.3, g.y+g.w*0.5); await p.mouse.down(); await p.mouse.move(g.x+g.w*0.7, g.y+g.w*0.55, {steps:10}); await p.mouse.up();
   await p.waitForTimeout(300);
-  ok(await p.evaluate(()=>!document.querySelector('.kd .tools button:nth-child(7)').disabled), `[${tag}] painting enables undo`);
+  ok(await p.evaluate(()=>!document.getElementById('kdUndo').disabled), `[${tag}] painting enables undo`);
   // ปุ่มทั้งหมดในแถบเครื่องมืออยู่แถวเดียว
   const rowsTools = await p.evaluate(()=>new Set([...document.querySelectorAll('.kd .tools button')].filter(b=>!b.hidden).map(b=>Math.round(b.getBoundingClientRect().top))).size);
   ok(rowsTools===1, `[${tag}] tools fit one row`, rowsTools);
