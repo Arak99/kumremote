@@ -21,6 +21,8 @@
     2.3 (26/11/2026) ไมค์ใช้ง่ายขึ้น: กดค้างแล้วพูด ปล่อยเมื่อจบ (แตะสั้น = ฟังจนจบประโยค), สั่นเบาๆ ตอนไมค์พร้อม,
                      ช่องพิมพ์คำสั่ง (ใช้ไมค์ของคีย์บอร์ดมือถือได้ ลื่นกว่า)
     2.4 (26/11/2026) เพิ่มคำคุยเล่นจากที่พูดจริง (ทดสอบ, วัดดี, ดีขึ้นแล้ว)
+    2.5 (27/11/2026) แก้: อยู่นอกร้านแล้วกดปลุกไม่ได้/ไม่กล้ากด เพราะแอปโชว์สถานะเก่า — ปุ่ม "ปลุกคอม" ใหญ่กลับมาให้กดได้เสมอ,
+                     สถานะเก่าเกิน 15 นาทีบอกว่าอาจไม่ตรง, ตัวปลุกไม่ตอบกลับ ≠ ปลุกไม่ขึ้น (ไม่โชว์ปุ่มแดงผิดๆ)
 -->
 <html lang="th">
 <head>
@@ -193,7 +195,7 @@
     </div>
 
     <section class="grid">
-      <button class="act wake" id="bWake" hidden>
+      <button class="act wake" id="bWake">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>ปลุกคอม
       </button>
       <button class="act sleep" id="bSleep">
@@ -219,7 +221,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.4 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.5 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -237,9 +239,9 @@
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.4"></script>
-<script src="bot.js?v=2.4"></script>
-<script src="voice.js?v=2.4"></script>
+<script src="characters.js?v=2.5"></script>
+<script src="bot.js?v=2.5"></script>
+<script src="voice.js?v=2.5"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -294,9 +296,9 @@ function render() {
   var v = VIEW[state] || VIEW.unknown;
   $('status').setAttribute('data-s', v[0]);
   $('big').textContent = v[1];
-  var small = stateAt ? 'ข้อมูลเมื่อ ' + hhmm(stateAt) : ' ';
+  var small = stateAt ? 'ข้อมูลเมื่อ ' + hhmm(stateAt) + (stale() ? ' (นานแล้ว อาจไม่ตรง — กดปลุกได้เลย)' : '') : ' ';
   if (state === 'wakefail') small = 'เช็คว่าคอมเสียบสายแลนและมีไฟเข้า แล้วลองอีกครั้ง';
-  if (state === 'noboard') small = 'เช็คว่าบอร์ดตัวปลุกมีไฟ และต่อ WiFi ร้านอยู่';
+  if (state === 'noboard') small = 'ตัวปลุกไม่ตอบกลับ แต่ยังรับคำสั่งได้ — กดปลุกคอมได้เลย';
   // Claude ทำงานบนคอม: ทับข้อความหลักชั่วคราว
   var cl = claudeNow();
   if (cl) { $('big').textContent = cl.mode === 'work' ? 'Claude กำลังทำงาน' : cl.mode === 'done' ? 'Claude ทำงานเสร็จ ✓' : 'งานของ Claude ไม่สำเร็จ'; small = cl.title; }
@@ -359,10 +361,10 @@ function connect() {
 
 /* ---------- ส่งคำสั่ง ---------- */
 var WAIT_MSG = {
-  wake: ['ส่งคำสั่งปลุกแล้ว รอสักครู่…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่'],
+  wake: ['ส่งคำสั่งปลุกแล้ว รอสักครู่…', 'ส่งคำสั่งปลุกไปแล้ว แต่ตัวปลุกยังไม่ตอบกลับ — คอมอาจกำลังตื่นอยู่ รอสัก 1 นาทีแล้วกดเช็คสถานะ'],
   sleep: ['ส่งคำสั่ง Sleep แล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
   shutdown: ['ส่งคำสั่งปิดเครื่องแล้ว…', 'คอมไม่ตอบ — คอมอาจหลับหรือปิดอยู่แล้ว'],
-  status: ['กำลังเช็คสถานะ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่'],
+  status: ['กำลังเช็คสถานะ…', 'ตัวปลุกไม่ตอบกลับ — แต่สั่งปลุกได้ตามปกติ กดปุ่ม "ปลุกคอม" ได้เลย'],
   stay: ['บอกคอมว่าอยู่ต่อ…', 'คอมไม่ตอบ — คอมอาจหลับอยู่ (ปลุกก่อน)'],
   screen: ['กำลังตั้งค่าจอ…', 'ตัวปลุกไม่ตอบ — เช็คว่าบอร์ดมีไฟและต่อ WiFi อยู่ (ต้องเป็น KumWake v1.8 ขึ้นไป)']
 };
@@ -434,6 +436,8 @@ window.addEventListener('online', function () { if (topic) { loadHistory().then(
 var CHAR_KEY = 'kumremote_char', claude = { mode: null, at: 0, title: '' }, listening = false, moodHold = null;
 // จอบอร์ดจำลอง: วาดเหมือนจอ KumWake v2.0 (320x240)
 var BOARD_BTN = { x: 6, y: 184, w: 308, h: 52 };
+// v2.5: สถานะเก่าเกิน 15 นาที = ไม่แน่ใจแล้ว (เช่น ตัวปลุกส่งข้อความกลับไม่ได้) → ให้กดปลุกได้เสมอ
+function stale() { return !stateAt || Date.now() / 1000 - stateAt > 15 * 60; }
 function boardChrome(c, t) {
   var F = 'system-ui,"Noto Sans Thai","Leelawadee UI",sans-serif', now = new Date();
   c.fillStyle = '#0F172A'; c.fillRect(0, 0, 320, 240);
@@ -450,8 +454,8 @@ function boardChrome(c, t) {
   c.fillStyle = ok ? '#16A34A' : '#D97706'; c.beginPath(); c.arc(306, 46, 5, 0, 7); c.fill();
   var bc = '#16A34A', bt = 'ปลุกคอม', bs = 24;
   if (state === 'waking') { bc = '#D97706'; bt = 'ส่งสัญญาณปลุกแล้ว รอสักครู่'; bs = 17; }
-  else if (state === 'wakefail' || state === 'noboard') { bc = '#DC2626'; bt = 'ปลุกไม่ขึ้น แตะเพื่อลองใหม่'; bs = 17; }
-  else if (state === 'on') { bc = '#475569'; bt = 'คอมเปิดอยู่แล้ว'; bs = 20; }
+  else if (state === 'wakefail') { bc = '#DC2626'; bt = 'ปลุกไม่ขึ้น แตะเพื่อลองใหม่'; bs = 17; }
+  else if (state === 'on' && !stale()) { bc = '#475569'; bt = 'คอมเปิดอยู่แล้ว'; bs = 20; }
   c.fillStyle = bc; c.beginPath(); c.roundRect(BOARD_BTN.x, BOARD_BTN.y, BOARD_BTN.w, BOARD_BTN.h, 14); c.fill();
   c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.font = '700 ' + bs + 'px ' + F; c.fillText(bt, 160, BOARD_BTN.y + BOARD_BTN.h / 2 + 1);
 }
