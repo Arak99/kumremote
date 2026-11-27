@@ -48,7 +48,7 @@ const out = [];
     await p.evaluate(() => scrollTo(0, 99999)); await p.waitForTimeout(200); await check('03-main-bottom'); await p.evaluate(() => scrollTo(0, 0));
     // 3 ยืนยัน Sleep / ปิดเครื่อง (ยกเลิก)
     const before = posts.length;
-    await p.click('#bSleep'); await p.waitForTimeout(300); await check('04-ask-sleep'); await p.click('#askNo'); await p.waitForTimeout(200);
+    await p.click('#bSleep'); await p.waitForTimeout(300); await check('04-ask-sleep'); await p.click('#askCol button.no'); await p.waitForTimeout(200);
     await p.click('#bOff'); await p.waitForTimeout(300); await check('05-ask-shutdown'); await p.click('#askNo'); await p.waitForTimeout(200);
     out.push(`[${tag}] cancel sleep/shutdown sent nothing: ` + (posts.length === before ? 'OK' : 'SENT ' + posts.slice(before)));
     // 4 พิมพ์คำที่ไม่รู้จัก → ปุ่มเลือก
