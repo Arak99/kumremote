@@ -29,6 +29,7 @@
                      เมนู "ให้คอม Sleep เมื่องานเสร็จ" (ตั้งค่า → 🌙: เมื่องานเสร็จ รอ 1/5/10/30 นาที หรือเมื่อโปรแกรมที่ระบุปิด เตือน 60 วิ กด "อยู่ต่อ" ยกเลิก) +
                      ตั้งโหมดโชว์ในแอปแล้วส่งไปบอร์ดจริง + ปุ่ม "โชว์บนบอร์ดเดี๋ยวนี้" (ต้อง KumWake v2.3+, KumCom v2.7) · ปุ่มปลุกใหญ่ + ประวัติ (2.5/2.6) ยังอยู่ครบ
     2.8 (27/11/2026) ทำตัวละครจากรูปแบบอัตโนมัติ: ตั้งค่า → 🖼️ ทำตัวละครจากรูป → เลือกรูป แอปแปลง+บันทึก+ส่งขึ้นบอร์ดให้เองในขั้นเดียว (ปิดส่งอัตโนมัติได้ในหน้าวาด)
+    2.9 (27/11/2026) ตัวละครละเอียดขึ้น 4 เท่า (24×24 ช่อง; ตัวเก่า 12×12 ยังใช้ได้) · หน้าครอบรูป (ลากเลื่อน/ซูม) ก่อนแปลง · สีของตัวละครมาจากสีหลักของรูป · ปุ่มซูม/เลื่อนดูตอนระบายมือ · แก้: ปิดหน้าวาดตอนอยู่หน้าครอบรูปแล้วหน้าครอบค้าง (ต้อง KumWake v2.5 บนบอร์ด)
 -->
 <html lang="th">
 <head>
@@ -239,7 +240,7 @@
     </section>
   </div>
 
-  <footer>KumRemote v2.8 · <button id="bSet">ตั้งค่า</button></footer>
+  <footer>KumRemote v2.9 · <button id="bSet">ตั้งค่า</button></footer>
 </main>
 
 <div class="veil" id="veil"><div class="sheet" role="dialog" aria-modal="true">
@@ -259,7 +260,7 @@
   <h3 id="setT">ตั้งค่า</h3>
   <p style="margin:0 0 6px">ตัวละคร (แตะเพื่อเลือก)</p>
   <div class="chars" id="chars"></div>
-  <button class="item" id="bPhotoChar"><span>🖼️ ทำตัวละครจากรูป (อัตโนมัติ)<br><small style="color:var(--dim)">เลือกรูปจากมือถือ แอปแปลงแล้วส่งขึ้นบอร์ดให้เอง</small></span><span style="color:var(--dim)">›</span></button>
+  <button class="item" id="bPhotoChar"><span>🖼️ ทำตัวละครจากรูป (อัตโนมัติ)<br><small style="color:var(--dim)">เลือกรูป → จัดกรอบ → แอปแปลง 24×24 แล้วส่งขึ้นบอร์ดให้เอง</small></span><span style="color:var(--dim)">›</span></button>
   <button class="item" id="bDrawChar"><span>✏️ วาดตัวละครของฉัน<br><small style="color:var(--dim)">ระบายเอง หรือเลือกรูปจากมือถือ แล้วส่งให้บอร์ดได้</small></span><span style="color:var(--dim)">›</span></button>
   <div class="showset" id="showSet"></div>
   <div class="showset" id="sdSet"></div>
@@ -269,11 +270,11 @@
   <button class="close" id="setClose">เสร็จ</button>
 </div></div>
 
-<script src="characters.js?v=2.8"></script>
-<script src="draw.js?v=2.8"></script>
-<script src="bot.js?v=2.8"></script>
-<script src="voice.js?v=2.8"></script>
-<script src="show.js?v=2.8"></script>
+<script src="characters.js?v=2.9"></script>
+<script src="draw.js?v=2.9"></script>
+<script src="bot.js?v=2.9"></script>
+<script src="voice.js?v=2.9"></script>
+<script src="show.js?v=2.9"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';

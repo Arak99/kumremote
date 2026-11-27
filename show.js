@@ -55,12 +55,12 @@
   // ปีศาจน้อย: วาดเวกเตอร์ไล่แสงเงา (ตามตัวอย่าง) · ตัวอื่น/ตัวที่วาดเอง: วาดจากแผนที่พิกเซลแล้วทับด้วยแสงเงาให้ดูนูน
   var cache = {};
   function glossy(ch, u) {
-    var k = ch.id + '|' + u + '|' + ch.map.join(''); if (cache[k]) return cache[k];
-    var rows = ch.map.length, cvs = document.createElement('canvas'), pad = u * 2; cvs.width = 12 * u + pad * 2; cvs.height = rows * u + pad * 2;
+    var k = ch.id + '|' + u + '|' + (ch.cols || 12) + '|' + (ch.pal ? JSON.stringify(ch.pal) : '') + '|' + ch.map.join(''); if (cache[k]) return cache[k];
+    var cw = ch.cols || 12, rows = ch.map.length, cvs = document.createElement('canvas'), pad = u * 2; cvs.width = cw * u + pad * 2; cvs.height = rows * u + pad * 2;
     var g = cvs.getContext('2d'), j, i, chr;
-    for (j = 0; j < rows; j++) for (i = 0; i < 12; i++) { chr = ch.map[j][i]; if (!chr || chr === '.') continue; g.fillStyle = ch.pal[chr] || '#888'; g.fillRect(pad + i * u, pad + j * u, u + .6, u + .6); }
+    for (j = 0; j < rows; j++) for (i = 0; i < cw; i++) { chr = ch.map[j][i]; if (!chr || chr === '.') continue; g.fillStyle = ch.pal[chr] || '#888'; g.fillRect(pad + i * u, pad + j * u, u + .6, u + .6); }
     g.globalCompositeOperation = 'source-atop';
-    var rg = g.createRadialGradient(pad + 4 * u, pad + rows * u * .3, u * .5, pad + 6 * u, pad + rows * u * .5, 9 * u);
+    var rg = g.createRadialGradient(pad + (cw / 3) * u, pad + rows * u * .3, u * .5, pad + (cw / 2) * u, pad + rows * u * .5, (cw * .75) * u);
     rg.addColorStop(0, 'rgba(255,255,255,.55)'); rg.addColorStop(.35, 'rgba(255,255,255,.08)'); rg.addColorStop(.8, 'rgba(0,0,0,.2)'); rg.addColorStop(1, 'rgba(0,0,0,.5)');
     g.fillStyle = rg; g.fillRect(0, 0, cvs.width, cvs.height);
     var o = { cvs: cvs, pad: pad }; cache[k] = o; return o;
@@ -75,7 +75,7 @@
     });
   }
   function pixChar(c, ch, cx, floorY, s, t, walk) {
-    var rows = ch.map.length, u = Math.max(2, s / Math.max(12, rows)), W = 12 * u, H = rows * u, legH = ch.legs && ch.legs.length ? u * 1.5 : 0;
+    var cw = ch.cols || 12, rows = ch.map.length, u = Math.max(2, s / Math.max(cw, rows)), W = cw * u, H = rows * u, legH = ch.legs && ch.legs.length ? u * 1.5 : 0;
     var hop = (!legH && walk) ? Math.abs(Math.sin(t / 180)) * u * .4 : 0;
     var x0 = cx - W / 2, y0 = floorY - legH - H - hop, g = glossy(ch, Math.round(u * 4) / 4 || u);
     c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(cx, floorY + 1, W * .42, u * .5, 0, 0, 7); c.fill();

@@ -6,6 +6,7 @@
   ตัวเลือก: { width, height, character, stage:{y,h} (โหมดจอบอร์ด: วาดบอทในแถบเดียวกับจอบอร์ด KumWake), chrome: function(ctx,t) วาดส่วนอื่นของจอ }
   ประวัติ: 1.0 (26/11/2026) เวอร์ชันแรก
           1.1 (26/11/2026) โหมดจอบอร์ด (stage/chrome) + หน้าตา/ขนาด/ท่าทางให้ตรงกับบนบอร์ด KumWake v2.0
+          1.3 (27/11/2026) รองรับตัวละครกว้างไม่ใช่ 12 ช่อง (ch.cols)
           1.2 (26/11/2026) ฉากหลังพิกเซลตามเวลาจริง: กลางวัน (ฟ้า พระอาทิตย์ เมฆ) / เย็น / กลางคืน (พระจันทร์ ดาวกะพริบ), ภูเขา, พื้นหญ้า — ตรงกับบนบอร์ด KumWake v2.2
 */
 (function () {
@@ -29,6 +30,7 @@
     var ch = find(opt.character), mood = 'on', since = 0, poked = 0;
     var b = { x: W / 2, tx: W / 2, face: 1, act: 'walk', until: 0, look: 1 };
     var U = 10, last = 0, raf = 0, alive = true;
+    function cw() { return (ch && ch.cols) || 12; }   // v2.9 ความกว้างตัวละคร (ช่อง)
 
     function fit() {
       var dpr = Math.min(3, window.devicePixelRatio || 1);
@@ -36,12 +38,12 @@
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.imageSmoothingEnabled = false;
       if (opt.stage) { U = 6; while (U > 3 && ch.map.length * U + (ch.legs.length ? U * 1.5 : 0) + 14 > opt.stage.h) U--; }   // เหมือนบนบอร์ด
-      else U = Math.max(5, Math.floor(Math.min((H * 0.66) / (ch.map.length + (ch.legs.length ? 1.5 : 0)), (W * 0.42) / 12)));
+      else U = Math.max(5, Math.floor(Math.min((H * 0.66) / (ch.map.length + (ch.legs.length ? 1.5 : 0)), (W * 0.42) / cw())));
     }
     fit();
 
     function think(t, dt) {
-      var half = 6 * U + 8, lo = half, hi = W - half;
+      var half = (cw() / 2) * U + 8, lo = half, hi = W - half;
       if (mood === 'on' || mood === 'work') {
         var speed = mood === 'work' ? 55 : 18;
         if (b.act === 'walk') {
@@ -64,7 +66,7 @@
       var rows = ch.map, pal = {}, k;
       for (k in ch.pal) pal[k] = mood === 'sleep' ? shade(ch.pal[k], .55) : ch.pal[k];
       var DEP = Math.max(2, Math.round(U * .38));
-      function cx(i) { return face < 0 ? x0 + (11 - i) * U : x0 + i * U; }
+      function cx(i) { return face < 0 ? x0 + (cw() - 1 - i) * U : x0 + i * U; }
       var legY = y0 + rows.length * U;
       if (!sit && mood !== 'sleep' && ch.legs.length) {
         ch.legs.forEach(function (lx, n) {
@@ -75,7 +77,7 @@
         });
       }
       for (var pass = 0; pass < 2; pass++) {
-        for (var j = 0; j < rows.length; j++) for (var i = 0; i < 12; i++) {
+        for (var j = 0; j < rows.length; j++) for (var i = 0; i < cw(); i++) {
           var chr = rows[j][i]; if (!chr || chr === '.') continue;
           var xx = cx(i), yy = y0 + j * U;
           if (pass === 0) { c.fillStyle = shade(ch.pal[chr] || '#888888', mood === 'sleep' ? .3 : .55); c.fillRect(xx + DEP, yy + DEP, U, U); }
@@ -95,7 +97,7 @@
       var blink = (t % 3900) < 150 || (b.act === 'blink' && (t % 900) < 150);
       var dark = ch.eyeStyle === 'dark', E = ch.es || 1, line = dark ? '#ffffff' : '#1b2333';
       ch.eyes.forEach(function (e) {
-        var ex = face < 0 ? 11 - e[0] - 1 : e[0], X = x0 + ex * U, Y = y0 + e[1] * U;
+        var ex = face < 0 ? cw() - 1 - e[0] - 1 : e[0], X = x0 + ex * U, Y = y0 + e[1] * U;
         var big = (mood === 'listen' ? 1.25 : 1) * E, w = U * 2 * big, X0 = X - (big - 1) * U, Y0 = Y - (big - 1) * U;
         if (mood === 'sleep' || ((mood === 'on' || mood === 'listen') && blink)) { c.fillStyle = '#1b2333'; c.fillRect(X0, Y0 + w * .55, w, Math.max(2, U * .3)); return; }
         if (mood === 'done') { c.fillStyle = '#1b2333'; var s = Math.max(2, U * .3); c.fillRect(X0, Y0 + w * .45, w * .3, s); c.fillRect(X0 + w * .3, Y0 + w * .25, w * .4, s); c.fillRect(X0 + w * .7, Y0 + w * .45, w * .3, s); return; }
@@ -176,7 +178,7 @@
       var hgt = ch.map.length * U;
       var y = floor - (noLeg ? 0 : U * 1.5) - hgt - jump - hop + (sit ? U : 0) + (mood === 'sleep' && !noLeg ? U * 1.5 : 0) + (mood === 'waking' ? Math.sin(t / 140) * 2 : 0);
       c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x, floor, Math.max(8, 5 * U - jump), 3, 0, 0, 7); c.fill();
-      sprite(x - 6 * U, y, face, Math.floor(t / 220) % 2, sit, t);
+      sprite(x - (cw() / 2) * U, y, face, Math.floor(t / 220) % 2, sit, t);
       extras(x, y, t);
       if (!still) raf = requestAnimationFrame(frame);
     }
