@@ -33,6 +33,9 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.33 (28/11/2026) เลือกธีมได้ (ตั้งค่า → แอป → ธีม): ไซเบอร์ฟ้า · วงล้อ · ซากุระ — แต่ละธีมเปลี่ยนทั้งการจัดวางและสี จำธีมที่เลือก
+                     · วงล้อ: ป้ายสถานะแคปซูล ตัวการ์ตูนในวงแหวน ปุ่ม 3 ชิ้นแบบวงล้อ (กดได้เฉพาะชิ้นตัวเอง) ไมค์กลมใต้วงล้อ (แบบจาก ChatGPT)
+                     · ซากุระ: การ์ดกระจกโทนม่วงชมพู ปุ่ม 3 ช่องมีไอคอนสี ไมค์กลมม่วง
     2.32 (28/11/2026) หน้าตาไซเบอร์ฟ้าแบบใหม่ทั้งหน้า ใช้ลวดลายที่ ChatGPT วาดจากภาพต้นแบบ (Arak: v2.31 ยังไม่เหมือน → ให้ GPT ทำ): กรอบจอสถานะ HUD มุมตัดพร้อมเกจ,
                      แผงไมค์มีเกจวงกลมซ้ายขวา, แถบประดับ ◀◀ ● ▶▶ (เป็นลายประดับ ไม่ใช่ปุ่ม), ปุ่มหลักแบบกรอบเรืองแสง ฟอนต์ Kanit
                      · ตัวการ์ตูนตัวเล็กในวงแหวน (ไม่มีฉากหลัง) · สถานะ "เปิดอยู่ / ตั้งแต่ hh:mm" เป็นตัวหนังสือจริงบนจอ
@@ -308,7 +311,7 @@
   [data-theme=cyber] .status-content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding-top:5.5%}
   [data-theme=cyber] .status .big{display:block;font-size:22px;line-height:1.35;font-weight:500;color:#effcff;text-shadow:0 0 12px rgba(40,211,255,.3)}
   [data-theme=cyber] .status[data-s=bad] .big{color:#fb7185} [data-theme=cyber] .status[data-s=busy] .big{color:#fbbf24}
-  [data-theme=cyber] .since{font-size:21px;line-height:1.3;color:#effaff;min-height:1.3em}
+  [data-theme=cyber] .since{display:block;font-size:21px;line-height:1.3;color:#effaff;min-height:1.3em}
   [data-theme=cyber] #char{width:150px;height:110px;flex:none;margin-top:0}
   [data-theme=cyber] #bot{width:150px;height:110px;aspect-ratio:auto;border:0;border-radius:0;box-shadow:none;margin:0;image-rendering:pixelated}
   .spin{transform-origin:175px 112px;animation:hudspin 24s linear infinite} .spin2{transform-origin:175px 32px;animation:hudspin 12s linear infinite reverse}
@@ -345,11 +348,135 @@
   [data-theme=cyber] .act:active{transform:none;background:linear-gradient(145deg,#12638b,#075075);box-shadow:0 0 20px rgba(0,221,255,.5)}
   [data-theme=cyber] .act.dim{opacity:.4;filter:grayscale(.5)}
   [data-theme=cyber] .log{background:rgba(8,38,65,.6);border-color:rgba(52,177,221,.25)}
+  /* ---------- v2.33 ธีม: ส่วนกลาง ---------- */
+  .wheel-svg,.act .ic,.act .in{display:none} .act .face{display:contents} .pill{display:contents}
+  .thh{margin:4px 0 8px;font-size:14px;color:var(--dim);font-weight:600}
+  .themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+  .sheet .themes button{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 6px 10px;border-radius:14px;background:#0e1626;border:2px solid var(--line);font-size:14px;font-weight:650}
+  .sheet .themes button[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px rgba(34,211,238,.25)}
+  .tpv{display:block;width:100%;aspect-ratio:9/14;border-radius:10px}
+  .tp-cyber{background:linear-gradient(160deg,#08294d,#031324);box-shadow:inset 0 0 0 2px #16dcf8}
+  .tp-radial{background:conic-gradient(from -150deg at 50% 62%,#9d28ff 0 120deg,#ff244d 0 240deg,#087cff 0) center 62%/70% 45% no-repeat,radial-gradient(circle at 50% 28%,#0a3a7a 0 18%,transparent 19%),#020a1d}
+  .tp-sakura{background:radial-gradient(circle at 30% 30%,#ffc6e6,transparent 40%),radial-gradient(circle at 75% 60%,#c9a2ff,transparent 45%),linear-gradient(170deg,#f7c4e4,#8e6fe0 60%,#4b2a8a)}
+  body[data-theme=radial] .heard,body[data-theme=sakura] .heard{order:3}
+
+  /* ---------- v2.33 ธีม "วงล้อ" (แบบจาก ChatGPT) ---------- */
+  body[data-theme=radial]{--bg:#020a1d;--card:#0a1a3a;--line:rgba(0,171,255,.3);--text:#fff;--dim:#9caecc;--accent:#9d28ff;
+    font-family:'Kanit',system-ui,"Noto Sans Thai",sans-serif;
+    background:repeating-linear-gradient(90deg,transparent 0 48px,rgba(0,155,255,.05) 49px,transparent 50px),repeating-linear-gradient(0deg,transparent 0 48px,rgba(0,155,255,.045) 49px,transparent 50px),
+      radial-gradient(ellipse at 50% 34%,rgba(0,105,255,.2),transparent 43%),radial-gradient(ellipse at 50% 75%,rgba(0,60,160,.22),transparent 42%),linear-gradient(180deg,#06152f 0%,#020a1d 52%,#020719 100%) fixed,#020a1d}
+  [data-theme=radial] main{gap:12px;align-items:center}
+  [data-theme=radial] main > *{width:100%}
+  [data-theme=radial] header{align-items:center;border-bottom:1px solid rgba(0,171,255,.3);padding-bottom:10px}
+  [data-theme=radial] header h1{font-size:20px;font-weight:700;text-shadow:0 0 10px rgba(255,255,255,.35)}
+  [data-theme=radial] .gear{color:#fff;border-radius:14px;background:linear-gradient(145deg,#d22cff,#8100ff);box-shadow:0 0 15px rgba(159,0,255,.65)}
+  [data-theme=radial] .status{order:1;background:none;border:0;padding:0;display:block}
+  [data-theme=radial] .status-svg,[data-theme=radial] .mic-svg,[data-theme=radial] .control-strip{display:none}
+  [data-theme=radial] .status-content{display:flex;flex-direction:column;align-items:center;gap:16px}
+  [data-theme=radial] .pill{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 18px;border-radius:30px;background:linear-gradient(180deg,rgba(13,49,65,.95),rgba(4,27,42,.96));border:1px solid rgba(85,255,210,.75);box-shadow:0 0 8px rgba(0,255,190,.3),inset 0 0 12px rgba(0,255,190,.12);font-size:17px;font-weight:600}
+  [data-theme=radial] .pill::before{content:"";width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#aaffad,#00df54 65%,#008d32);box-shadow:0 0 12px #00ff68}
+  [data-theme=radial] .status[data-s=off] .pill::before{background:#64748b;box-shadow:none}
+  [data-theme=radial] .status[data-s=busy] .pill::before{background:#fbbf24;box-shadow:0 0 12px #fbbf24}
+  [data-theme=radial] .status[data-s=bad] .pill::before{background:#fb7185;box-shadow:0 0 12px #fb7185}
+  [data-theme=radial] .status[data-s=unknown] .pill::before{background:#475569;box-shadow:none}
+  [data-theme=radial] .status .big{font-size:17px;font-weight:600;color:#fff}
+  [data-theme=radial] .since{font-size:17px;font-weight:600}
+  [data-theme=radial] #char{width:210px;height:210px;border-radius:50%;display:grid;place-items:center;border:3px solid #008dff;
+    background:radial-gradient(circle,rgba(18,93,255,.28),transparent 70%);box-shadow:0 0 0 12px rgba(0,147,255,.08),0 0 0 14px rgba(0,147,255,.45),0 0 22px #008dff,inset 0 0 18px #007dff}
+  [data-theme=radial] #bot{width:150px;height:110px;margin:0}
+  [data-theme=radial] .info{order:2;display:flex;justify-content:center;flex-wrap:wrap;margin-top:-6px}
+  [data-theme=radial] .info .small{display:none}
+  [data-theme=radial] #pends{display:contents}
+  [data-theme=radial] .nopend{margin:0;padding:8px 25px;border-radius:25px;background:linear-gradient(180deg,#102a52,#06142c);border:1px solid #32baff;box-shadow:0 0 12px rgba(0,125,255,.5);color:#fff;font-size:16px;font-weight:600}
+  [data-theme=radial] .grid{order:4;display:block;position:relative;width:280px;height:280px;margin:0 auto}
+  [data-theme=radial] .wheel-svg{display:block;position:absolute;inset:0;width:280px;height:280px;pointer-events:none;z-index:2}
+  [data-theme=radial] .wheel-svg path{fill:none;stroke-width:2;filter:url(#wglow)}
+  [data-theme=radial] .w-wake{stroke:#e5a2ff} [data-theme=radial] .w-sleep{stroke:#42caff} [data-theme=radial] .w-off{stroke:#ff849b}
+  [data-theme=radial] .action{position:absolute;inset:0;pointer-events:none}
+  [data-theme=radial] .action > small{display:none}
+  [data-theme=radial] .act,[data-theme=radial] .act.wake{position:absolute;left:0;top:0;width:280px;height:280px;min-height:0;padding:0;border:0;border-radius:0;pointer-events:auto;display:block;color:#fff;font-size:18px;font-weight:700;box-shadow:none}
+  [data-theme=radial] #bWake{clip-path:path("M109.5 120.9 L26.4 69.0 A134 134 0 0 1 253.6 69.0 L170.5 120.9 A36 36 0 0 0 109.5 120.9 Z");background:linear-gradient(135deg,#d255ff,#5b00ff)}
+  [data-theme=radial] #bOff{clip-path:path("M171.8 123.1 L258.3 77.1 A134 134 0 0 1 144.7 273.9 L141.3 176.0 A36 36 0 0 0 171.8 123.1 Z");background:linear-gradient(225deg,#ff234b,#9d001f)}
+  [data-theme=radial] #bSleep{clip-path:path("M138.7 176.0 L135.3 273.9 A134 134 0 0 1 21.7 77.1 L108.2 123.1 A36 36 0 0 0 138.7 176.0 Z");background:linear-gradient(135deg,#007cff,#0034ae)}
+  [data-theme=radial] .act:active{filter:brightness(1.35);transform:none}
+  [data-theme=radial] .act .face{display:flex;flex-direction:column;align-items:center;position:absolute;transform:translate(-50%,-50%);text-align:center;line-height:1.25;width:110px}
+  [data-theme=radial] #bWake .face{left:140px;top:60px} [data-theme=radial] #bSleep .face{left:74px;top:182px} [data-theme=radial] #bOff .face{left:206px;top:182px}
+  [data-theme=radial] .act .ic{display:block;width:34px;height:34px;margin-bottom:4px;filter:drop-shadow(0 0 6px rgba(255,255,255,.6))}
+  [data-theme=radial] .act .in{display:block;font-size:12px;font-weight:600;opacity:.95}
+  [data-theme=radial] .act.dim{opacity:.45;filter:grayscale(.4)}
+  [data-theme=radial] .mic-panel{order:5}
+  [data-theme=radial] .mic{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;min-height:0;padding:0;color:#fff;font-size:16px;font-weight:700}
+  [data-theme=radial] .micbtn{width:90px;height:90px;border-radius:50%;display:grid;place-items:center;border:3px solid #258fff;background:radial-gradient(circle at 50% 40%,#132d6a,#050d2a 70%);box-shadow:0 0 0 5px rgba(0,105,255,.16),0 0 15px #006dff,inset 0 0 18px rgba(0,103,255,.5)}
+  [data-theme=radial] .micbtn svg{width:40px;height:auto;filter:drop-shadow(0 0 8px #47baff)}
+  [data-theme=radial] .micbtn svg *{fill:#fff;stroke:#fff}
+  [data-theme=radial] #micT{text-shadow:0 0 8px #168dff}
+  [data-theme=radial] .mic.on{animation:none;background:none} [data-theme=radial] .mic.on .micbtn{background:#258fff;animation:pulse 1.2s ease-in-out infinite}
+  [data-theme=radial] .chips{order:6}
+  [data-theme=radial] .txt2{order:7;height:50px;align-items:center;border-radius:28px;padding:4px 6px 4px 16px;background:linear-gradient(180deg,#102443,#07142b);border:1.5px solid #54baff;box-shadow:0 0 12px rgba(0,139,255,.45),inset 0 0 12px rgba(0,93,255,.18)}
+  [data-theme=radial] .txt2 input{border:0;background:transparent;padding:0;height:100%;font-size:16px}
+  [data-theme=radial] .txt2 button{flex:none;width:38px;height:38px;padding:0;border-radius:50%;background:linear-gradient(135deg,#9e32ff,#4715e9);color:#fff;display:grid;place-items:center;box-shadow:0 0 12px #762aff}
+  [data-theme=radial] .txt2 button svg{width:22px;height:22px}
+  [data-theme=radial] .note{order:8} [data-theme=radial] .log{order:9;background:rgba(10,26,58,.7)}
+  [data-theme=radial] .install{order:0}
+
+  /* ---------- v2.33 ธีม "ซากุระ" ---------- */
+  body[data-theme=sakura]{--bg:#3b1d6e;--card:rgba(255,255,255,.55);--line:rgba(255,255,255,.6);--text:#2a1550;--dim:#5a4785;--accent:#7b3cff;
+    font-family:'Kanit',system-ui,"Noto Sans Thai",sans-serif;color:#2a1550;
+    background:var(--sakura-bg,none) center top/cover no-repeat fixed,radial-gradient(circle at 18% 12%,#ffd1ec 0,transparent 32%),radial-gradient(circle at 85% 30%,#e7c8ff 0,transparent 35%),radial-gradient(circle at 50% 70%,#b48cff 0,transparent 45%),linear-gradient(175deg,#f9cfe8 0%,#c8a6f2 38%,#8461d6 70%,#4b2a8a 100%) fixed,#8461d6}
+  [data-theme=sakura] main{gap:12px;align-items:center}
+  [data-theme=sakura] main > *{width:100%}
+  [data-theme=sakura] header h1{font-size:21px;font-weight:700;color:#fff;text-shadow:0 1px 8px rgba(80,30,140,.6)}
+  [data-theme=sakura] header h1 .ver{color:#fff;opacity:.85}
+  [data-theme=sakura] header .net{color:#fff;text-shadow:0 1px 4px rgba(60,20,120,.6)}
+  [data-theme=sakura] .gear{color:#fff;border-radius:14px;background:linear-gradient(145deg,#7b4dff,#4b2ad1);box-shadow:0 4px 12px rgba(70,30,180,.45)}
+  [data-theme=sakura] .status{order:1;background:none;border:0;padding:0;display:block}
+  [data-theme=sakura] .status-svg,[data-theme=sakura] .mic-svg,[data-theme=sakura] .control-strip{display:none}
+  [data-theme=sakura] .status-content{display:flex;flex-direction:column;align-items:center;gap:10px}
+  [data-theme=sakura] .pill{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 20px;border-radius:30px;background:rgba(255,255,255,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.85);box-shadow:0 6px 18px rgba(80,30,140,.25);font-size:17px;font-weight:600;color:#2a1550}
+  [data-theme=sakura] .pill::before{content:"";width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#aaffad,#00c853 65%,#008d32);box-shadow:0 0 10px #22e06a}
+  [data-theme=sakura] .status[data-s=off] .pill::before,[data-theme=sakura] .status[data-s=unknown] .pill::before{background:#94a3b8;box-shadow:none}
+  [data-theme=sakura] .status[data-s=busy] .pill::before{background:#f59e0b;box-shadow:0 0 10px #f59e0b}
+  [data-theme=sakura] .status[data-s=bad] .pill::before{background:#e11d48;box-shadow:0 0 10px #e11d48}
+  [data-theme=sakura] .status .big,[data-theme=sakura] .since{font-size:17px;font-weight:600;color:#2a1550}
+  [data-theme=sakura] #char{width:240px;height:176px;margin-top:40px;filter:drop-shadow(0 10px 14px rgba(60,20,120,.35))}
+  [data-theme=sakura] #bot{width:240px;height:176px;margin:0}
+  [data-theme=sakura] .info{order:2;display:flex;justify-content:center;flex-wrap:wrap}
+  [data-theme=sakura] .info .small{display:none}
+  [data-theme=sakura] #pends{display:contents}
+  [data-theme=sakura] .nopend{margin:0;padding:8px 24px;border-radius:14px;background:rgba(255,255,255,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.85);color:#2a1550;font-size:16px;font-weight:600}
+  [data-theme=sakura] .pend{background:rgba(255,255,255,.7);color:#2a1550;border-color:rgba(123,60,255,.45)}
+  [data-theme=sakura] .mic-panel{order:4}
+  [data-theme=sakura] .mic{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;min-height:0;padding:0;color:#fff;font-size:17px;font-weight:700;text-shadow:0 1px 8px rgba(60,20,120,.7)}
+  [data-theme=sakura] .micbtn{width:100px;height:100px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#8f6bff,#4b23d6 70%);border:3px solid rgba(255,255,255,.75);box-shadow:0 0 0 10px rgba(167,120,255,.28),0 0 0 22px rgba(167,120,255,.14),0 0 30px rgba(140,90,255,.8)}
+  [data-theme=sakura] .micbtn svg{width:42px;height:auto} [data-theme=sakura] .micbtn svg *{fill:#fff;stroke:#fff}
+  [data-theme=sakura] .mic.on{animation:none;background:none} [data-theme=sakura] .mic.on .micbtn{animation:pulse 1.2s ease-in-out infinite}
+  [data-theme=sakura] .txt2{order:5;height:54px;align-items:center;border-radius:18px;padding:5px 6px 5px 16px;background:rgba(255,255,255,.66);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.9);box-shadow:0 6px 18px rgba(80,30,140,.2)}
+  [data-theme=sakura] .txt2 input{border:0;background:transparent;padding:0;height:100%;font-size:16px;color:#2a1550}
+  [data-theme=sakura] .txt2 input::placeholder{color:#6b5a95}
+  [data-theme=sakura] .txt2 button{flex:none;width:42px;height:42px;padding:0;border-radius:50%;background:linear-gradient(135deg,#8a4dff,#5a26e0);color:#fff;display:grid;place-items:center;box-shadow:0 4px 12px rgba(90,38,224,.45)}
+  [data-theme=sakura] .txt2 button svg{width:22px;height:22px}
+  [data-theme=sakura] .chips{order:6}
+  [data-theme=sakura] .grid{order:7;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  [data-theme=sakura] .action > small{display:none}
+  [data-theme=sakura] .act,[data-theme=sakura] .act.wake{grid-column:auto;width:100%;min-height:118px;padding:12px 4px;border-radius:20px;background:rgba(255,255,255,.62);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 20px rgba(80,30,140,.22);color:#2a1550;font-size:19px;font-weight:700}
+  [data-theme=sakura] .act .face{display:flex;flex-direction:column;align-items:center;gap:2px}
+  [data-theme=sakura] .act .ic{display:block;width:36px;height:36px;margin-bottom:4px}
+  [data-theme=sakura] #bWake .ic{color:#4b2ad1} [data-theme=sakura] #bSleep .ic{color:#4b2ad1} [data-theme=sakura] #bOff .ic{color:#e11d48}
+  [data-theme=sakura] #bOff{background:rgba(255,228,236,.75)} [data-theme=sakura] #bOff .lb{color:#c8102e}
+  [data-theme=sakura] .act .in{display:block;font-size:11.5px;font-weight:500;color:#4a3a78;line-height:1.3}
+  [data-theme=sakura] .act:active{transform:scale(.97)}
+  [data-theme=sakura] .act.dim{opacity:.5}
+  [data-theme=sakura] .note{order:8;color:#fff;text-shadow:0 1px 6px rgba(60,20,120,.7)} [data-theme=sakura] .log{order:9;background:rgba(255,255,255,.6);border-color:rgba(255,255,255,.85);color:#2a1550}
+  [data-theme=radial] #bot,[data-theme=sakura] #bot{border:0;border-radius:0;box-shadow:none;aspect-ratio:auto}
+  [data-theme=radial] .app > *,[data-theme=sakura] .app > *{width:100%}
+  [data-theme=radial] .gear,[data-theme=sakura] .gear{flex:none;width:44px;height:44px;padding:9px}
+  [data-theme=radial] .act .ic,[data-theme=radial] .act.wake svg{color:#fff}
+  html:has(body[data-theme=sakura]){background:#4b2a8a} html:has(body[data-theme=radial]){background:#020719} html:has(body[data-theme=cyber]){background:#031324}
 </style>
 </head>
 <body data-theme="cyber">
 <main>
-  <header><h1>สบายใจ <span class="ver">v2.32</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
+  <header><h1>สบายใจ <span class="ver">v2.33</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
 
   <section class="setup" id="setup">
     <h2>ตั้งค่าครั้งแรก</h2>
@@ -397,7 +524,7 @@
 <path d="M92 29 L102 29 M248 29 L258 29 M92 194 L102 194 M248 194 L258 194" stroke="#1F91B9" stroke-width="1"/>
 <path d="M111 185 L111 189 M119 191 L120 195 M130 195 L132 199 M175 197 L175 201 M220 195 L218 199 M231 191 L230 195 M239 185 L239 189" stroke="#23C8E8" stroke-width="1"/>
 </svg>
-      <div class="status-content"><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="since" id="since"></div><div id="char"><canvas id="bot" role="img" aria-label="ตัวการ์ตูนสบายใจ (แตะเพื่อเล่น)"></canvas></div></div>
+      <div class="status-content"><div class="pill"><span class="big" id="big">กำลังเช็คสถานะ…</span><span class="since" id="since"></span></div><div id="char"><canvas id="bot" role="img" aria-label="ตัวการ์ตูนสบายใจ (แตะเพื่อเล่น)"></canvas></div></div>
     </section>
     <div class="info"><span class="small" id="small">&nbsp;</span><div id="pends"></div></div>
     <div class="heard" id="heard" hidden></div>
@@ -458,9 +585,15 @@
       <button data-c="wake">ปลุกคอม</button><button data-c="sleep">สลีป</button><button data-c="shutdown">ปิดคอม</button><button data-c="cancel">ไม่ใช่ทั้งหมด</button>
     </div>
     <section class="grid actions">
-      <div class="action"><button class="act wake" id="bWake"><span class="lb">ปลุกคอม</span></button><small>&nbsp;</small></div>
-      <div class="action"><button class="act sleep" id="bSleep"><span class="lb">สลีป</span></button><small>พักเครื่อง งานยังอยู่</small></div>
-      <div class="action"><button class="act off" id="bOff"><span class="lb">ปิดคอม</span></button><small>ปิดทุกโปรแกรม</small></div>
+      <svg class="wheel-svg" viewBox="0 0 280 280" aria-hidden="true"><defs><filter id="wglow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        <circle cx="140" cy="140" r="138" fill="none" stroke="#0096ff" stroke-opacity=".6" stroke-width="2" filter="url(#wglow)"/>
+        <path class="w-wake" d="M109.5 120.9 L26.4 69.0 A134 134 0 0 1 253.6 69.0 L170.5 120.9 A36 36 0 0 0 109.5 120.9 Z"/>
+        <path class="w-off" d="M171.8 123.1 L258.3 77.1 A134 134 0 0 1 144.7 273.9 L141.3 176.0 A36 36 0 0 0 171.8 123.1 Z"/>
+        <path class="w-sleep" d="M138.7 176.0 L135.3 273.9 A134 134 0 0 1 21.7 77.1 L108.2 123.1 A36 36 0 0 0 138.7 176.0 Z"/>
+        <circle cx="140" cy="140" r="30" fill="#020a1d" stroke="#0074ff" stroke-opacity=".6" stroke-width="2" filter="url(#wglow)"/></svg>
+      <div class="action"><button class="act wake" id="bWake"><span class="face"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 2v10"/><path d="M6.2 5.8a9 9 0 1 0 11.6 0"/></svg><span class="lb">ปลุกคอม</span></span></button><small>&nbsp;</small></div>
+      <div class="action"><button class="act sleep" id="bSleep"><span class="face"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.8 15.2A9 9 0 0 1 8.8 3.2 9.5 9.5 0 1 0 20.8 15.2Z"/><path d="M17 2l.7 2.1L20 5l-2.3.9L17 8l-.7-2.1L14 5l2.3-.9L17 2Z"/></svg><span class="lb">สลีป</span><small class="in">พักเครื่อง<br>งานยังอยู่</small></span></button><small>พักเครื่อง งานยังอยู่</small></div>
+      <div class="action"><button class="act off" id="bOff"><span class="face"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 2v10"/><path d="M6.2 5.8a9 9 0 1 0 11.6 0"/></svg><span class="lb">ปิดคอม</span><small class="in">ปิดทุกโปรแกรม</small></span></button><small>ปิดทุกโปรแกรม</small></div>
     </section>
     <div class="note" id="note"></div>
     <section class="log">
@@ -510,6 +643,12 @@
     <div class="showset" id="showSet"></div>
   </div>
   <div class="tab" data-tab="app">
+    <h4 class="thh">ธีม (หน้าตาแอป)</h4>
+    <div class="themes" id="themes">
+      <button data-theme="cyber" aria-pressed="false"><span class="tpv tp-cyber"></span>ไซเบอร์ฟ้า</button>
+      <button data-theme="radial" aria-pressed="false"><span class="tpv tp-radial"></span>วงล้อ</button>
+      <button data-theme="sakura" aria-pressed="false"><span class="tpv tp-sakura"></span>ซากุระ</button>
+    </div>
     <button class="item" id="swKeep" role="switch" aria-checked="false"><span>เปิดจอค้างไว้<br><small style="color:var(--dim)">จอมือถือไม่ดับเองตอนเปิดหน้านี้ (ควรเสียบชาร์จ)</small></span><span class="knob"></span></button>
     <button class="item" id="swSpeak" role="switch" aria-checked="true"><span>บอทพูดตอบ</span><span class="knob"></span></button>
     <button class="item" id="reset"><span>ตั้งค่าลิงก์ใหม่</span><span style="color:var(--dim)">›</span></button>
@@ -517,11 +656,11 @@
   <div class="setfoot"><button class="close" id="setClose">เสร็จ</button></div>
 </div></div>
 
-<script src="characters.js?v=2.26"></script>
-<script src="draw.js?v=2.26"></script>
-<script src="bot.js?v=2.26"></script>
-<script src="voice.js?v=2.26"></script>
-<script src="show.js?v=2.26"></script>
+<script src="characters.js?v=2.33"></script>
+<script src="draw.js?v=2.33"></script>
+<script src="bot.js?v=2.33"></script>
+<script src="voice.js?v=2.33"></script>
+<script src="show.js?v=2.33"></script>
 <script>
 'use strict';
 var NTFY = 'https://ntfy.sh/';
@@ -993,8 +1132,16 @@ function boardChrome(c, t) {
   c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.font = '700 ' + bs + 'px ' + F; c.fillText(bt, 160, BOARD_BTN.y + BOARD_BTN.h / 2 + 1);
 }
 /* v2.32 ธีมไซเบอร์ฟ้า: ตัวการ์ตูนตัวเล็กในวงแหวน (ไม่มีฉาก) — สถานะเป็นตัวหนังสือจริง */
-var THEME = document.body.getAttribute('data-theme') || 'classic';
-var bot = window.KumBot ? KumBot.create($('bot'), THEME === 'cyber'
+var THEME_KEY = 'kumremote_theme', THEMES = ['cyber', 'radial', 'sakura'];
+var THEME = THEMES.indexOf(store(THEME_KEY)) >= 0 ? store(THEME_KEY) : 'cyber';
+function setTheme(t) {   // v2.33 เปลี่ยนธีมทันที (การจัดวาง+สี อยู่ใน CSS ของแต่ละธีม)
+  THEME = t; document.body.setAttribute('data-theme', t); store(THEME_KEY, t);
+  var m = document.querySelector('meta[name=theme-color]'); if (m) m.content = { cyber: '#031426', radial: '#020a1d', sakura: '#3b1d6e' }[t];
+  [].forEach.call(document.querySelectorAll('#themes button'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-theme') === t ? 'true' : 'false'); });
+}
+setTheme(THEME);
+[].forEach.call(document.querySelectorAll('#themes button'), function (b) { b.onclick = function () { setTheme(b.getAttribute('data-theme')); }; });
+var bot = window.KumBot ? KumBot.create($('bot'), THEME !== 'classic'
   ? { character: store(CHAR_KEY), width: 150, height: 110, walk: [40, 110] }
   : { character: store(CHAR_KEY), width: 320, height: 240, stage: { y: 86, h: 94 }, chrome: boardChrome }) : null;
 function claudeNow() {
@@ -1017,7 +1164,7 @@ function holdMood(m, ms) { moodHold = { mood: m, until: Date.now() + ms }; updat
 setInterval(function () { if (claude.mode) render(); }, 5000);
 setInterval(function () { if (topic && !document.hidden && stale()) askStatus(); }, 60000);   // v2.25: ไม่มีปุ่มเช็คสถานะแล้ว — ข้อมูลเก่าเกิน 15 นาทีแอปเช็คเอง
 $('bot').onclick = function (e) {
-  if (THEME === 'cyber') { if (bot) bot.poke(); return; }   // v2.31 จอ HUD ไม่มีปุ่มในจอ (ตั้งค่า = ⚙ บนหัวแอป)
+  if (THEME !== 'classic') { if (bot) bot.poke(); return; }   // v2.31 จอ HUD ไม่มีปุ่มในจอ (ตั้งค่า = ⚙ บนหัวแอป)
   var r = this.getBoundingClientRect(), y = (e.clientY - r.top) * 240 / r.height, x = (e.clientX - r.left) * 320 / r.width;
   if (y >= BOARD_BTN.y) { var w0 = btnWhy('bWake'); $('bWake').onclick(); if (!w0 && !pendNow().shut) speak(SAY.wake); return; }       // ปุ่มปลุกในจอจำลอง
   if (y < 34 && x >= 114 && x < 174) { $('bSet').onclick(); return; }            // ปุ่มตั้งค่าในจอจำลอง

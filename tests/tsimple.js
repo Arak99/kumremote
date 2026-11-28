@@ -144,6 +144,26 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     const chips = await p.evaluate(() => [...document.querySelectorAll('#chips button')].map(b => b.innerText));
     ok(JSON.stringify(chips) === '["ปลุกคอม","สลีป","ปิดคอม","ไม่ใช่ทั้งหมด"]', 'unclear-voice chips use main button names ' + chips.join(','));
   });
+  await run('themes', [ON], async (p, posts) => {
+    ok(await p.evaluate(() => document.body.dataset.theme) === 'cyber', 'default theme = cyber');
+    await p.click('#bGear'); await p.waitForTimeout(300);
+    await p.evaluate(() => document.querySelector('[role=tab][data-tab=app]').click()); await p.waitForTimeout(200);
+    const names = await p.evaluate(() => [...document.querySelectorAll('#themes button')].map(b => b.innerText.trim()));
+    ok(JSON.stringify(names) === '["ไซเบอร์ฟ้า","วงล้อ","ซากุระ"]', 'theme menu lists 3 themes ' + names.join(','));
+    await p.click('#themes [data-theme=radial]'); await p.waitForTimeout(300);
+    const st = await p.evaluate(() => [document.body.dataset.theme, localStorage.getItem('kumremote_theme'), document.querySelector('#themes [data-theme=radial]').getAttribute('aria-pressed')]);
+    ok(JSON.stringify(st) === '["radial","radial","true"]', 'tap วงล้อ → theme changes now and is remembered ' + JSON.stringify(st));
+    await p.evaluate(() => document.getElementById('setX').click()); await p.waitForTimeout(300);
+    const hit = await p.evaluate(() => { const g = document.querySelector('.grid').getBoundingClientRect(); const at = (x, y) => { const e = document.elementFromPoint(g.left + x, g.top + y); const b = e && e.closest('button'); return b ? b.id : '-'; }; return [at(140, 40), at(60, 200), at(220, 200), at(140, 140)]; });
+    ok(JSON.stringify(hit) === '["bWake","bSleep","bOff","-"]', 'wheel: each slice hits only its own button, centre hits none ' + JSON.stringify(hit));
+    const n = posts.length; await p.mouse.click(...await p.evaluate(() => { const g = document.querySelector('.grid').getBoundingClientRect(); return [g.left + 60, g.top + 200]; })); await p.waitForTimeout(300);
+    ok((await dlg(p)).title === 'สลีป', 'wheel: tapping สลีป slice opens the สลีป dialog');
+    await p.click('#askCol button.no'); await p.waitForTimeout(200);
+    await p.click('#bGear'); await p.waitForTimeout(300); await p.click('#themes [data-theme=sakura]'); await p.waitForTimeout(200);
+    ok(await p.evaluate(() => document.body.dataset.theme) === 'sakura', 'switch to ซากุระ');
+    await p.reload(); await p.waitForTimeout(1500);
+    ok(await p.evaluate(() => document.body.dataset.theme) === 'sakura', 'theme remembered after reopening the app');
+  });
   await run('off-dialog', [ON], async (p, posts) => {
     await p.click('#bOff'); await p.waitForTimeout(300); const d = await dlg(p);
     ok(d.open && d.title === 'ปิดคอม' && /ปิดคอมเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /ปิดคอมเมื่อทำงานเสร็จ/.test(x)) && /บูต/.test(d.text), 'off: dialog has both choices + boot warning ' + d.btns.join(' | '));
