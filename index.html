@@ -33,6 +33,7 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.36 (28/11/2026) ธีมซากุระ: หน้าตั้งค่า/หน้าต่างถาม เปลี่ยนเป็นพื้นม่วงเข้ม ตัวหนังสือสว่าง (เดิมตัวหนังสือสีเข้มบนพื้นเข้ม อ่านไม่ออก)
     2.35 (28/11/2026) ธีมซากุระแบบใหม่ ทำตามภาพต้นแบบ: ภาพวาดจริงเป็นพื้นหลัง (ปราสาท พระจันทร์ ซากุระ เกาะลอย หมอก ทะเลสาบ วาดด้วย Gemini)
                      ตัวการ์ตูนปีศาจแบบละเอียดยืนบนเกาะ (ขยับตามสถานะ แตะแล้วกระโดด · ตัวละครอื่นยังเป็นแบบพิกเซลเดิม) · ทุกอย่างอยู่ในจอเดียว ไม่ต้องเลื่อน
                      ไมค์อยู่ใต้เกาะ มีวงแหวนเรืองแสง · ปุ่มบ้านมุมซ้ายบน = ตั้งค่า · ทัชแพดกับประวัติย้ายไปอยู่ใน ตั้งค่า → แอป (ใช้ได้ทุกธีม)
@@ -536,12 +537,24 @@
   body[data-theme=sakura] .act .in br{display:none}
   body[data-theme=sakura] .log{display:none}
   @media (max-height:700px){body[data-theme=sakura]{--D:calc(262px + env(safe-area-inset-bottom))} body[data-theme=sakura] .micbtn{width:84px;height:84px} body[data-theme=sakura] .micbtn::after{inset:-18px} body[data-theme=sakura] .mic{gap:24px} body[data-theme=sakura] .act,body[data-theme=sakura] .act.wake{min-height:80px}}
+  /* v2.36 หน้าต่างตั้งค่า/ถาม ในธีมซากุระ: พื้นม่วงเข้ม ตัวหนังสือสว่าง อ่านง่าย (เดิมตัวหนังสือม่วงเข้มบนพื้นกรมท่า อ่านไม่ออก) */
+  body[data-theme=sakura] .veil{--text:#f5efff;--dim:#c9b8ec;--line:rgba(205,175,255,.28);--card:#2c1a55;--accent:#b48cff;color:var(--text);background:rgba(25,8,50,.6)}
+  body[data-theme=sakura] .sheet{background:linear-gradient(180deg,#2a1752,#1f1040);border-color:rgba(205,175,255,.35);color:var(--text)}
+  body[data-theme=sakura] .sethead{background:#2a1752}
+  body[data-theme=sakura] .sheet button{color:var(--text)}
+  body[data-theme=sakura] .sheet .sethead .x,body[data-theme=sakura] .sheet .tabs button,body[data-theme=sakura] .sheet .delbar button,body[data-theme=sakura] .sheet .close,body[data-theme=sakura] .sheet .row2b button,body[data-theme=sakura] .sheet .col .alt,body[data-theme=sakura] .sheet .chips button{background:#3b2670}
+  body[data-theme=sakura] .sheet .tabs button[aria-selected=true],body[data-theme=sakura] .sheet .row2b .go,body[data-theme=sakura] .sheet .chips button.on{background:linear-gradient(160deg,#a47bff,#6a35e6);color:#fff}
+  body[data-theme=sakura] .sheet .chars button,body[data-theme=sakura] .sheet .pages button,body[data-theme=sakura] .themes button{background:#24143f;border-color:rgba(205,175,255,.3)}
+  body[data-theme=sakura] .chars button[aria-pressed=true],body[data-theme=sakura] .themes button[aria-pressed=true]{border-color:#c9a2ff;box-shadow:0 0 12px rgba(180,140,255,.6)}
+  body[data-theme=sakura] .sheet .yes{background:linear-gradient(160deg,#a47bff,#6a35e6);color:#fff}
+  body[data-theme=sakura] .scr{background:#24143f;border-color:rgba(205,175,255,.3)}
+  .tp-sakura{background:url(sakura/bg_v1.jpg) center 30%/cover,#6b4bb0}
   html:has(body[data-theme=sakura]){background:#4b2a8a} html:has(body[data-theme=radial]){background:#020719} html:has(body[data-theme=cyber]){background:#031324}
 </style>
 </head>
 <body data-theme="cyber">
 <main>
-  <header><h1>สบายใจ <span class="ver">v2.35</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bPad" aria-label="ทัชแพด ใช้มือถือแทนเมาส์"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="6"/><path d="M12 2.5v6.5"/><path d="M6 9h12"/></svg></button><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
+  <header><h1>สบายใจ <span class="ver">v2.36</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bPad" aria-label="ทัชแพด ใช้มือถือแทนเมาส์"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="6"/><path d="M12 2.5v6.5"/><path d="M6 9h12"/></svg></button><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
 
   <section class="setup" id="setup">
     <h2>ตั้งค่าครั้งแรก</h2>
