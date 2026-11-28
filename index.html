@@ -33,6 +33,10 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.35 (28/11/2026) ธีมซากุระแบบใหม่ ทำตามภาพต้นแบบ: ภาพวาดจริงเป็นพื้นหลัง (ปราสาท พระจันทร์ ซากุระ เกาะลอย หมอก ทะเลสาบ วาดด้วย Gemini)
+                     ตัวการ์ตูนปีศาจแบบละเอียดยืนบนเกาะ (ขยับตามสถานะ แตะแล้วกระโดด · ตัวละครอื่นยังเป็นแบบพิกเซลเดิม) · ทุกอย่างอยู่ในจอเดียว ไม่ต้องเลื่อน
+                     ไมค์อยู่ใต้เกาะ มีวงแหวนเรืองแสง · ปุ่มบ้านมุมซ้ายบน = ตั้งค่า · ทัชแพดกับประวัติย้ายไปอยู่ใน ตั้งค่า → แอป (ใช้ได้ทุกธีม)
+                     ธีมไซเบอร์ฟ้า/วงล้อ ไม่เปลี่ยน
     2.34 (28/11/2026) ปุ่ม "ทัชแพด" (รูปเมาส์) บนหัวแอป: เปิดหน้าทัชแพดใช้มือถือแทนเมาส์ (คู่กับโปรแกรม KumPad v1.0 บนคอม · ใช้ได้เมื่อมือถือต่อ Wi-Fi เดียวกับคอม)
                      แอปจำที่อยู่ทัชแพดจากข้อความ 🖱️ ที่คอมส่งมา (ไม่ขึ้นในรายการ)
     2.33 (28/11/2026) เลือกธีมได้ (ตั้งค่า → แอป → ธีม): ไซเบอร์ฟ้า · วงล้อ · ซากุระ — แต่ละธีมเปลี่ยนทั้งการจัดวางและสี จำธีมที่เลือก
@@ -473,12 +477,71 @@
   [data-theme=radial] .app > *,[data-theme=sakura] .app > *{width:100%}
   [data-theme=radial] .gear,[data-theme=sakura] .gear{flex:none;width:44px;height:44px;padding:9px}
   [data-theme=radial] .act .ic,[data-theme=radial] .act.wake svg{color:#fff}
+  /* ===== v2.35 ธีมซากุระแบบใหม่ (ภาพวาดจริง · จอเดียวไม่ต้องเลื่อน) ===== */
+  @font-face{font-family:Prompt;font-weight:500;src:url(sakura/prompt-thai-500.woff2) format("woff2");unicode-range:U+0E00-0E7F}
+  @font-face{font-family:Prompt;font-weight:600;src:url(sakura/prompt-thai-600.woff2) format("woff2");unicode-range:U+0E00-0E7F}
+  @font-face{font-family:Prompt;font-weight:700;src:url(sakura/prompt-thai-700.woff2) format("woff2");unicode-range:U+0E00-0E7F}
+  @font-face{font-family:Prompt;font-weight:500;src:url(sakura/prompt-latin-500.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+  @font-face{font-family:Prompt;font-weight:600;src:url(sakura/prompt-latin-600.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+  @font-face{font-family:Prompt;font-weight:700;src:url(sakura/prompt-latin-700.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+  #charArt{display:none}
+  body[data-theme=sakura]{--vh:100vh;--padT:calc(env(safe-area-inset-top) + 14px);--W:min(100vw,480px);--H:max(var(--vh),calc(var(--W) * 2.233));--D:calc(296px + env(safe-area-inset-bottom));--off:min(0px,calc(var(--vh) - var(--D) - var(--H) * .56));
+    background:#422b65 url(sakura/bg_v1.jpg) center var(--off)/auto var(--H) no-repeat;font-family:Prompt,system-ui,"Noto Sans Thai",sans-serif;min-height:var(--vh)}
+  @supports (height:100dvh){body[data-theme=sakura]{--vh:100dvh}}
+  body[data-theme=sakura] main{position:relative;gap:10px;min-height:calc(var(--vh) - var(--padT) - env(safe-area-inset-bottom) - 18px)}
+  body[data-theme=sakura] header{align-items:center;justify-content:flex-start;gap:10px;padding:0}
+  body[data-theme=sakura] header .hr{display:contents}
+  body[data-theme=sakura] header h1{flex:1;font-size:22px;text-shadow:0 2px 8px rgba(60,20,120,.75)}
+  body[data-theme=sakura] header h1 .ver{font-size:13px;opacity:1;text-shadow:0 1px 4px rgba(40,10,90,1)}
+  body[data-theme=sakura] #bPad,body[data-theme=sakura] header .net{display:none}
+  body[data-theme=sakura] header .net.no{display:block;order:3;padding:3px 10px;border-radius:10px;background:rgba(70,20,90,.55);font-size:12px}
+  body[data-theme=sakura] #bGear{order:-1;width:46px;height:46px;border-radius:14px;border:2px solid rgba(255,255,255,.75);background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.3%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2011l9-7%209%207%22/%3E%3Cpath%20d%3D%22M5%2010v10h14V10%22/%3E%3Cpath%20d%3D%22M9.5%2015.5c1.4%201.3%203.6%201.3%205%200%22/%3E%3Ccircle%20cx%3D%229.5%22%20cy%3D%2212.5%22%20r%3D%22.7%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2214.5%22%20cy%3D%2212.5%22%20r%3D%22.7%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E") center/26px no-repeat,linear-gradient(160deg,#9b6bff,#5526d6);box-shadow:0 0 16px rgba(150,100,255,.85)}
+  body[data-theme=sakura] #bGear svg{display:none}
+  body[data-theme=sakura] .status,body[data-theme=sakura] .status-content{position:static}
+  body[data-theme=sakura] .pill{min-height:42px}
+  body[data-theme=sakura] #char{position:absolute;left:50%;top:calc(var(--H) * .405 + var(--off) - var(--padT));transform:translate(-50%,-100%);width:auto;height:auto;margin:0;z-index:2;filter:none}
+  body[data-theme=sakura] #bot{width:150px;height:110px;filter:drop-shadow(0 6px 6px rgba(40,20,80,.45))}
+  body[data-theme=sakura][data-art="1"] #bot{display:none}
+  body[data-theme=sakura][data-art="1"] #charArt{display:block;height:min(16vh,130px);width:auto;image-rendering:pixelated;cursor:pointer;user-select:none;-webkit-user-select:none;filter:drop-shadow(0 6px 4px rgba(40,60,20,.45));transform-origin:50% 100%;animation:sakFloat 3.2s ease-in-out infinite}
+  body[data-theme=sakura][data-mood=sleep] #charArt{filter:grayscale(.55) brightness(.8) drop-shadow(0 6px 4px rgba(40,60,20,.45));animation:sakBreath 4.5s ease-in-out infinite}
+  body[data-theme=sakura][data-mood=listen] #charArt{animation:sakBounce .55s ease-in-out infinite}
+  body[data-theme=sakura][data-mood=work] #charArt{animation:sakWiggle .9s ease-in-out infinite}
+  body[data-theme=sakura][data-mood=bad] #charArt{animation:sakShake .5s linear infinite}
+  body[data-theme=sakura][data-mood=waking] #charArt{animation:sakBounce 1.2s ease-in-out infinite}
+  body[data-theme=sakura] #charArt.hop{animation:sakHop .6s ease-out}
+  @keyframes sakFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes sakBreath{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.96)}}
+  @keyframes sakBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes sakWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+  @keyframes sakShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+  @keyframes sakHop{0%{transform:translateY(0)}35%{transform:translateY(-28px) scale(1.04,.96)}70%{transform:translateY(0) scale(1.06,.94)}100%{transform:none}}
+  body[data-theme=sakura] .info{position:absolute;left:50%;top:calc(var(--H) * .405 + var(--off) - var(--padT) + 2px);transform:translateX(-50%);z-index:3;width:max-content;max-width:92%;flex-direction:column;align-items:center;gap:6px}
+  body[data-theme=sakura] .nopend{padding:5px 18px;font-size:15px;background:rgba(255,255,255,.6)}
+  body[data-theme=sakura] .heard{position:relative;z-index:3;order:2;align-self:center;width:auto;background:rgba(255,255,255,.7);border-color:rgba(255,255,255,.9);color:#2a1550}
+  body[data-theme=sakura] .mic-panel{order:4;margin-top:auto;margin-bottom:max(0px,calc(var(--vh) - var(--D) - var(--H) * .56));position:relative;z-index:2}
+  body[data-theme=sakura] .mic{gap:30px;font-size:16px}
+  body[data-theme=sakura] .micbtn{position:relative;width:104px;height:104px;border:3px solid rgba(255,255,255,.85);background:radial-gradient(circle at 40% 32%,#a47bff,#5a24d8 60%,#3d13a8);box-shadow:0 0 0 10px rgba(170,130,255,.25),0 0 0 22px rgba(170,130,255,.12),0 0 40px 14px rgba(190,140,255,.7)}
+  body[data-theme=sakura] .micbtn::after{content:"";position:absolute;inset:-24px;border-radius:50%;border:2.5px solid rgba(235,220,255,.95);box-shadow:0 0 18px 4px rgba(200,150,255,1),inset 0 0 18px 4px rgba(200,150,255,.8);pointer-events:none}
+  body[data-theme=sakura] .micbtn::before{content:"";position:absolute;left:50%;top:50%;width:300px;height:4px;transform:translate(-50%,-50%);background:linear-gradient(90deg,transparent,rgba(255,240,255,1) 40%,#fff 50%,rgba(255,240,255,1) 60%,transparent);box-shadow:0 0 10px 2px rgba(230,190,255,.9);z-index:-1;pointer-events:none}
+  body[data-theme=sakura] #micT{padding:1px 14px;border-radius:12px;background:rgba(70,30,150,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);text-shadow:0 1px 3px rgba(40,10,90,.9)}
+  body[data-theme=sakura] .note{order:5;min-height:0;align-self:center;width:auto;padding:3px 14px;border-radius:12px;background:rgba(50,20,100,.55);color:#fff;text-shadow:none}
+  body[data-theme=sakura] .note:empty{display:none}
+  body[data-theme=sakura] .txt2{order:6;height:50px;border-radius:25px}
+  body[data-theme=sakura] .chips{order:7}
+  body[data-theme=sakura] .grid{order:8}
+  body[data-theme=sakura] .act,body[data-theme=sakura] .act.wake{min-height:96px;padding:8px 4px;background:rgba(255,255,255,.44);font-size:17px}
+  body[data-theme=sakura] #bOff{background:rgba(255,215,228,.52)}
+  body[data-theme=sakura] .act .ic{width:32px;height:32px}
+  body[data-theme=sakura] .act .in{font-size:10.5px}
+  body[data-theme=sakura] .act .in br{display:none}
+  body[data-theme=sakura] .log{display:none}
+  @media (max-height:700px){body[data-theme=sakura]{--D:calc(262px + env(safe-area-inset-bottom))} body[data-theme=sakura] .micbtn{width:84px;height:84px} body[data-theme=sakura] .micbtn::after{inset:-18px} body[data-theme=sakura] .mic{gap:24px} body[data-theme=sakura] .act,body[data-theme=sakura] .act.wake{min-height:80px}}
   html:has(body[data-theme=sakura]){background:#4b2a8a} html:has(body[data-theme=radial]){background:#020719} html:has(body[data-theme=cyber]){background:#031324}
 </style>
 </head>
 <body data-theme="cyber">
 <main>
-  <header><h1>สบายใจ <span class="ver">v2.34</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bPad" aria-label="ทัชแพด ใช้มือถือแทนเมาส์"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="6"/><path d="M12 2.5v6.5"/><path d="M6 9h12"/></svg></button><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
+  <header><h1>สบายใจ <span class="ver">v2.35</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bPad" aria-label="ทัชแพด ใช้มือถือแทนเมาส์"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="6"/><path d="M12 2.5v6.5"/><path d="M6 9h12"/></svg></button><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
 
   <section class="setup" id="setup">
     <h2>ตั้งค่าครั้งแรก</h2>
@@ -526,7 +589,7 @@
 <path d="M92 29 L102 29 M248 29 L258 29 M92 194 L102 194 M248 194 L258 194" stroke="#1F91B9" stroke-width="1"/>
 <path d="M111 185 L111 189 M119 191 L120 195 M130 195 L132 199 M175 197 L175 201 M220 195 L218 199 M231 191 L230 195 M239 185 L239 189" stroke="#23C8E8" stroke-width="1"/>
 </svg>
-      <div class="status-content"><div class="pill"><span class="big" id="big">กำลังเช็คสถานะ…</span><span class="since" id="since"></span></div><div id="char"><canvas id="bot" role="img" aria-label="ตัวการ์ตูนสบายใจ (แตะเพื่อเล่น)"></canvas></div></div>
+      <div class="status-content"><div class="pill"><span class="big" id="big">กำลังเช็คสถานะ…</span><span class="since" id="since"></span></div><div id="char"><img id="charArt" src="sakura/devil_v1.png" alt="ตัวการ์ตูนสบายใจ (แตะเพื่อเล่น)" draggable="false"><canvas id="bot" role="img" aria-label="ตัวการ์ตูนสบายใจ (แตะเพื่อเล่น)"></canvas></div></div>
     </section>
     <div class="info"><span class="small" id="small">&nbsp;</span><div id="pends"></div></div>
     <div class="heard" id="heard" hidden></div>
@@ -594,7 +657,7 @@
         <path class="w-sleep" d="M138.7 176.0 L135.3 273.9 A134 134 0 0 1 21.7 77.1 L108.2 123.1 A36 36 0 0 0 138.7 176.0 Z"/>
         <circle cx="140" cy="140" r="30" fill="#020a1d" stroke="#0074ff" stroke-opacity=".6" stroke-width="2" filter="url(#wglow)"/></svg>
       <div class="action"><button class="act wake" id="bWake"><span class="face"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 2v10"/><path d="M6.2 5.8a9 9 0 1 0 11.6 0"/></svg><span class="lb">ปลุกคอม</span></span></button><small>&nbsp;</small></div>
-      <div class="action"><button class="act sleep" id="bSleep"><span class="face"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.8 15.2A9 9 0 0 1 8.8 3.2 9.5 9.5 0 1 0 20.8 15.2Z"/><path d="M17 2l.7 2.1L20 5l-2.3.9L17 8l-.7-2.1L14 5l2.3-.9L17 2Z"/></svg><span class="lb">สลีป</span><small class="in">พักเครื่อง<br>งานยังอยู่</small></span></button><small>พักเครื่อง งานยังอยู่</small></div>
+      <div class="action"><button class="act sleep" id="bSleep"><span class="face"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.8 15.2A9 9 0 0 1 8.8 3.2 9.5 9.5 0 1 0 20.8 15.2Z"/><path d="M17 2l.7 2.1L20 5l-2.3.9L17 8l-.7-2.1L14 5l2.3-.9L17 2Z"/></svg><span class="lb">สลีป</span><small class="in">พักเครื่อง<br> งานยังอยู่</small></span></button><small>พักเครื่อง งานยังอยู่</small></div>
       <div class="action"><button class="act off" id="bOff"><span class="face"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 2v10"/><path d="M6.2 5.8a9 9 0 1 0 11.6 0"/></svg><span class="lb">ปิดคอม</span><small class="in">ปิดทุกโปรแกรม</small></span></button><small>ปิดทุกโปรแกรม</small></div>
     </section>
     <div class="note" id="note"></div>
@@ -651,6 +714,8 @@
       <button data-theme="radial" aria-pressed="false"><span class="tpv tp-radial"></span>วงล้อ</button>
       <button data-theme="sakura" aria-pressed="false"><span class="tpv tp-sakura"></span>ซากุระ</button>
     </div>
+    <button class="item" id="bPad2"><span>🖱️ ทัชแพด<br><small style="color:var(--dim)">ใช้มือถือแทนเมาส์ (มือถือต้องต่อ Wi-Fi ร้าน)</small></span><span style="color:var(--dim)">›</span></button>
+    <button class="item" id="bHist2"><span>🕘 ประวัติทั้งหมด</span><span style="color:var(--dim)">›</span></button>
     <button class="item" id="swKeep" role="switch" aria-checked="false"><span>เปิดจอค้างไว้<br><small style="color:var(--dim)">จอมือถือไม่ดับเองตอนเปิดหน้านี้ (ควรเสียบชาร์จ)</small></span><span class="knob"></span></button>
     <button class="item" id="swSpeak" role="switch" aria-checked="true"><span>บอทพูดตอบ</span><span class="knob"></span></button>
     <button class="item" id="reset"><span>ตั้งค่าลิงก์ใหม่</span><span style="color:var(--dim)">›</span></button>
@@ -1108,6 +1173,8 @@ function renderHist() {
   if (!n) { var e = document.createElement('div'); e.textContent = 'ยังไม่มีประวัติ'; box.appendChild(e); }
 }
 $('bHist').onclick = function () { renderHist(); $('histVeil').classList.add('show'); };
+$('bHist2').onclick = function () { closeSet(); $('bHist').onclick(); };   // v2.35 ประวัติอยู่ในตั้งค่าด้วย (ธีมซากุระไม่มีกล่องล่าสุด)
+$('bPad2').onclick = function () { closeSet(); $('bPad').onclick(); };   // v2.35
 $('swAll').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); renderHist(); };
 $('histClose').onclick = function () { $('histVeil').classList.remove('show'); };
 $('histVeil').onclick = function (e) { if (e.target === $('histVeil')) $('histVeil').classList.remove('show'); };
@@ -1169,6 +1236,7 @@ function updateBot() {
   if (moodHold && Date.now() < moodHold.until) m = moodHold.mood;
   if (listening) m = 'listen';
   bot.setMood(m); bot.redraw();
+  document.body.setAttribute('data-mood', m); document.body.setAttribute('data-art', curChar().id === 'devil' ? '1' : '0');   // v2.35 ตัวการ์ตูนภาพวาด (ธีมซากุระ)
 }
 function holdMood(m, ms) { moodHold = { mood: m, until: Date.now() + ms }; updateBot(); setTimeout(updateBot, ms + 50); }
 setInterval(function () { if (claude.mode) render(); }, 5000);
@@ -1180,6 +1248,8 @@ $('bot').onclick = function (e) {
   if (y < 34 && x >= 114 && x < 174) { $('bSet').onclick(); return; }            // ปุ่มตั้งค่าในจอจำลอง
   if (bot) bot.poke();   // v2.28: แตะจอ = เล่นกับตัวการ์ตูนอย่างเดียว ไม่เช็คสถานะ (แอปเช็คเอง)
 };
+
+$('charArt').onclick = function () { var a = this; a.classList.remove('hop'); void a.offsetWidth; a.classList.add('hop'); if (bot) bot.poke(); };   // v2.35 แตะตัวการ์ตูน = กระโดด
 
 /* ---------- สั่งด้วยเสียง ---------- */
 var SPEAK_KEY = 'kumremote_speak';
