@@ -137,7 +137,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
       const cv = document.getElementById('bot'), g = cv.getContext('2d'), w0 = cv.width;
       cv.width = 320; cv.height = 240;            // แบบที่มือถือทำตอนคืนหน่วยความจำ (ภาพเล็กมุมซ้าย)
       await new Promise(r => setTimeout(r, 300));
-      const d = g.getImageData(cv.width - 30, cv.height - 30, 10, 10).data; let lit = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 30) lit++;
+      const d = g.getImageData(0, 0, cv.width, cv.height).data; let lit = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 0 && d[i] + d[i + 1] + d[i + 2] > 30) lit++;
       return { w0, w: cv.width, a: g.getTransform().a, dpr: window.devicePixelRatio, lit };
     });
     ok(r.w === r.w0 && Math.abs(r.a - Math.min(3, r.dpr)) < 1e-9 && r.lit > 0, 'board picture redraws full size after canvas reset ' + JSON.stringify(r));

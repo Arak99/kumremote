@@ -33,6 +33,9 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.32 (28/11/2026) หน้าตาไซเบอร์ฟ้าแบบใหม่ทั้งหน้า ใช้ลวดลายที่ ChatGPT วาดจากภาพต้นแบบ (Arak: v2.31 ยังไม่เหมือน → ให้ GPT ทำ): กรอบจอสถานะ HUD มุมตัดพร้อมเกจ,
+                     แผงไมค์มีเกจวงกลมซ้ายขวา, แถบประดับ ◀◀ ● ▶▶ (เป็นลายประดับ ไม่ใช่ปุ่ม), ปุ่มหลักแบบกรอบเรืองแสง ฟอนต์ Kanit
+                     · ตัวการ์ตูนตัวเล็กในวงแหวน (ไม่มีฉากหลัง) · สถานะ "เปิดอยู่ / ตั้งแต่ hh:mm" เป็นตัวหนังสือจริงบนจอ
     2.31 (28/11/2026) ทำให้ตรงภาพต้นแบบไซเบอร์ฟ้า (Arak: v2.30 ไม่เหมือนต้นแบบ): จอสถานะเป็นกรอบ HUD วงแหวนหมุน ตัวหนังสือ "เปิดอยู่ / ตั้งแต่ hh:mm" กลางจอ
                      ตัวการ์ตูนยืนในวงแหวน (ไม่มีฉากฟ้าและหัวจอบอร์ด) · ไมค์อยู่ในแผง HUD มีวงแหวนซ้ายขวา คำว่า "กดค้างแล้วพูด" · ปุ่มหลักเป็นตัวหนังสือในกรอบเรืองแสง
                      คำอธิบายอยู่ใต้ปุ่ม · ปุ่มตั้งค่า ⚙ ย้ายมาหัวแอป (เดิมอยู่ในจอเหลือง)
@@ -87,6 +90,8 @@
 <meta name="theme-color" content="#050d1f">
 <meta name="robots" content="noindex,nofollow">
 <title>สบายใจ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&amp;display=swap">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -288,47 +293,63 @@
   @media (prefers-reduced-motion:reduce){.lamp,.mic.on,.mic.on svg{animation:none!important}}
   .frame{position:relative;width:100%}
   .act .lb{display:block} .act small{display:none}
-  /* ---------- v2.30 ธีม "ไซเบอร์ฟ้า" (body[data-theme=cyber]) — ธีมอื่นในอนาคตเปลี่ยนได้ทั้งสีและการจัดวาง ---------- */
-  body[data-theme=cyber]{--bg:#050d1f;--card:#0a1830;--line:rgba(56,189,248,.28);--text:#e6f6ff;--dim:#8fb3cc;--accent:#22d3ee;--hud:#22d3ee;
-    background:radial-gradient(120% 50% at 50% 0%,#0b2347 0%,#050d1f 70%) no-repeat,#050d1f}
-  header .hr{display:flex;align-items:center;gap:6px}
-  .gear{width:44px;height:44px;padding:9px;border-radius:12px;background:transparent;color:var(--dim)} .gear svg{width:26px;height:26px;display:block}
-  [data-theme=cyber] header{align-items:center}
-  [data-theme=cyber] header h1{font-size:26px}
-  [data-theme=cyber] .gear{color:var(--hud);border:1.5px solid var(--line)}
-  [data-theme=cyber] .status{background:transparent;border:0;padding:4px 2px 0}
-  [data-theme=cyber] #bot{box-shadow:none;border:0;border-radius:0;margin:4px 0 8px}
-  [data-theme=cyber] .status .txt{width:100%;margin:0}
-  [data-theme=cyber] .meta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;width:100%}
+  /* ---------- v2.32 ธีม "ไซเบอร์ฟ้า" — ลวดลายจาก ChatGPT (ตามภาพต้นแบบที่ Arak เลือก) ---------- */
+  body[data-theme=cyber]{--bg:#031426;--card:#082641;--line:rgba(30,208,247,.35);--text:#e5faff;--dim:#83afc3;--accent:#16dcf8;--hud:#16dcf8;
+    font-family:'Kanit',system-ui,"Noto Sans Thai",sans-serif;
+    background:radial-gradient(ellipse at 50% 20%,rgba(0,117,188,.23),transparent 45%),radial-gradient(ellipse at 50% 85%,rgba(0,126,177,.12),transparent 45%),linear-gradient(160deg,#08294d 0%,#03172b 48%,#031324 100%) fixed,#031426}
+  [data-theme=cyber] main{gap:10px}
+  [data-theme=cyber] header{align-items:center;height:49px}
+  [data-theme=cyber] header h1{font-size:25px;font-weight:400;color:#f0faff;text-shadow:0 0 14px rgba(90,211,255,.3)}
+  [data-theme=cyber] header h1 .ver{font-size:12px}
+  [data-theme=cyber] header .hr{gap:10px} [data-theme=cyber] .gear{color:#8bd9eb;border:1px solid rgba(70,203,236,.3);border-radius:22px;background:linear-gradient(135deg,rgba(18,86,119,.45),rgba(6,42,70,.65));width:auto;height:34px;padding:4px 12px}
+  [data-theme=cyber] .gear svg{width:22px;height:22px}
+  [data-theme=cyber] .status{position:relative;width:100%;aspect-ratio:350/224;background:none;border:0;padding:0;border-radius:0;display:block}
+  [data-theme=cyber] .status-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  [data-theme=cyber] .status-content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding-top:5.5%}
+  [data-theme=cyber] .status .big{display:block;font-size:22px;line-height:1.35;font-weight:500;color:#effcff;text-shadow:0 0 12px rgba(40,211,255,.3)}
+  [data-theme=cyber] .status[data-s=bad] .big{color:#fb7185} [data-theme=cyber] .status[data-s=busy] .big{color:#fbbf24}
+  [data-theme=cyber] .since{font-size:21px;line-height:1.3;color:#effaff;min-height:1.3em}
+  [data-theme=cyber] #char{width:150px;height:110px;flex:none;margin-top:0}
+  [data-theme=cyber] #bot{width:150px;height:110px;aspect-ratio:auto;border:0;border-radius:0;box-shadow:none;margin:0;image-rendering:pixelated}
+  .spin{transform-origin:175px 112px;animation:hudspin 24s linear infinite} .spin2{transform-origin:175px 32px;animation:hudspin 12s linear infinite reverse}
+  @keyframes hudspin{to{transform:rotate(360deg)}}
+  [data-theme=cyber] .info{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;padding:0 2px;min-height:30px}
   [data-theme=cyber] #pends{display:contents}
-  [data-theme=cyber] .status .small{margin:0;font-size:13.5px;text-align:left}
-  [data-theme=cyber] .nopend{margin:0;padding:0;border:0;font-size:13.5px;color:var(--dim)}
-  [data-theme=cyber] .pend{margin:4px 0 0;border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.10)}
+  [data-theme=cyber] .info .small{font-size:15px;font-weight:300;color:#b6d2e2}
+  [data-theme=cyber] .nopend{margin:0;padding:0;border:0;font-size:15px;font-weight:300;color:#b6d2e2}
+  [data-theme=cyber] .pend{margin:2px 0 0;border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.10)}
   [data-theme=cyber] .pend.warn{border-color:rgba(251,146,60,.7);background:rgba(251,146,60,.16)}
   [data-theme=cyber] .pend.red{border-color:rgba(248,113,113,.75);background:rgba(248,113,113,.16)}
-  [data-theme=cyber] .mic{flex-direction:column;gap:6px;min-height:0;padding:14px 0 12px;background:linear-gradient(180deg,rgba(13,42,82,.55),rgba(6,19,43,.75));border:1.5px solid var(--line);border-radius:0;clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);color:var(--hud);font-size:24px;font-weight:700;position:relative;text-shadow:0 0 10px rgba(34,211,238,.6)}
-  [data-theme=cyber] .mic svg{box-sizing:content-box;width:38px;height:38px;padding:24px;border-radius:50%;color:var(--hud);background:radial-gradient(circle,rgba(34,211,238,.18),rgba(5,13,31,.92) 70%);border:2px solid var(--hud);box-shadow:0 0 0 7px rgba(34,211,238,.10),0 0 26px rgba(34,211,238,.55)}
-  [data-theme=cyber] .mic::before,[data-theme=cyber] .mic::after{content:"";position:absolute;top:38px;width:46px;height:46px;border-radius:50%;border:2px solid rgba(34,211,238,.7);box-shadow:0 0 0 7px rgba(34,211,238,.08),inset 0 0 0 9px rgba(5,13,31,.9),inset 0 0 0 11px rgba(34,211,238,.5);pointer-events:none}
-  [data-theme=cyber] .mic::before{left:22px} [data-theme=cyber] .mic::after{right:22px}
-  [data-theme=cyber] .mic svg{position:relative;z-index:1}
-  [data-theme=cyber] .mic.on{animation:none;background:transparent}
-  [data-theme=cyber] .mic.on svg{color:#04121f;background:var(--hud);animation:pulse 1.2s ease-in-out infinite}
-  [data-theme=cyber] .txt2 input{border-radius:999px;background:rgba(10,24,48,.85);border-color:var(--line);padding:13px 18px}
-  [data-theme=cyber] .txt2 button{flex:none;width:50px;height:50px;padding:0;border-radius:50%;background:var(--hud);color:#04121f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(34,211,238,.45)}
+  [data-theme=cyber] .mic-panel{position:relative;width:100%;aspect-ratio:350/166}
+  [data-theme=cyber] .mic-svg{position:absolute;inset:0;width:100%;height:100%}
+  [data-theme=cyber] .mic{position:absolute;inset:0;width:100%;min-height:0;padding:0;background:transparent;border:0;border-radius:0;display:block;color:#63e7f5}
+  [data-theme=cyber] .micbtn{position:absolute;top:18%;left:50%;transform:translateX(-50%);width:27%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 40%,#0d4666 0%,#07304c 55%,#041b32 100%);box-shadow:0 0 0 3px rgba(15,191,231,.17),0 0 0 7px rgba(15,191,231,.1),0 0 17px rgba(0,219,255,.65),inset 0 0 18px rgba(0,205,255,.22)}
+  [data-theme=cyber] .micbtn svg{width:48%;height:auto;filter:drop-shadow(0 0 8px rgba(0,228,255,.65))}
+  [data-theme=cyber] #micT{position:absolute;bottom:9%;left:0;width:100%;text-align:center;font-size:24px;font-weight:400;text-shadow:0 0 12px rgba(0,212,255,.4)}
+  [data-theme=cyber] .mic.on{animation:none;background:transparent} [data-theme=cyber] .mic.on .micbtn{background:#16dcf8;animation:pulse 1.2s ease-in-out infinite}
+  [data-theme=cyber] .mic.on .micbtn svg *{fill:#03263d;stroke:#03263d}
+  [data-theme=cyber] .txt2{position:relative;height:50px;align-items:center;border:1px solid rgba(52,177,221,.35);border-radius:28px;background:linear-gradient(100deg,rgba(9,43,68,.95),rgba(9,55,84,.8));box-shadow:inset 0 2px 10px rgba(0,0,0,.25),0 0 10px rgba(0,159,210,.08);padding:4px 5px 4px 17px;gap:6px}
+  [data-theme=cyber] .txt2 input{height:100%;border:0;outline:0;background:transparent;padding:0;font-size:17px;font-weight:300;color:#e8faff;border-radius:0}
+  [data-theme=cyber] .txt2 input::placeholder{color:#a4c0d0;opacity:.85}
+  [data-theme=cyber] .txt2 button{flex:none;width:40px;height:40px;padding:0;border-radius:50%;background:linear-gradient(135deg,#24c8ed,#0794cf);color:#003451;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(0,197,255,.45)}
   [data-theme=cyber] .txt2 button svg{width:24px;height:24px}
-  [data-theme=cyber] .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  [data-theme=cyber] .act,[data-theme=cyber] .act.wake{grid-column:auto;flex-direction:column;justify-content:flex-start;gap:6px;min-height:0;padding:0;border-radius:0;background:transparent;border:0;box-shadow:none;color:var(--hud);font-size:21px}
-  [data-theme=cyber] .act .lb{width:100%;padding:16px 2px;border-radius:16px;border:1.5px solid var(--hud);background:rgba(10,30,60,.85);box-shadow:0 0 14px rgba(34,211,238,.3),inset 0 0 14px rgba(34,211,238,.12);text-shadow:0 0 8px rgba(34,211,238,.6);font-weight:700}
-  [data-theme=cyber] .act:active .lb{transform:scale(.97)} [data-theme=cyber] .act:active{transform:none;background:transparent}
-  [data-theme=cyber] .act svg{display:none}
-  [data-theme=cyber] .act small{display:block;font-size:12px;font-weight:500;color:var(--text);opacity:.85;line-height:1.25;text-align:center;text-shadow:none}
-  [data-theme=cyber] .act.dim{opacity:.38;filter:grayscale(.6);box-shadow:none}
-  [data-theme=cyber] .log{background:rgba(10,24,48,.7)}
+  [data-theme=cyber] .control-strip{width:100%;aspect-ratio:350/64;pointer-events:none} [data-theme=cyber] .control-strip svg{width:100%;height:100%;overflow:visible}
+  [data-theme=cyber] .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .action{min-width:0;display:flex;flex-direction:column;align-items:center}
+  [data-theme=cyber] .action small{margin-top:7px;font-size:11.5px;color:#b6d1df;white-space:nowrap;font-weight:300;text-align:center}
+  [data-theme=cyber] .act,[data-theme=cyber] .act.wake{grid-column:auto;width:100%;min-height:56px;height:56px;padding:0;border-radius:12px;border:1px solid rgba(39,194,229,.58);
+    background:linear-gradient(145deg,rgba(14,76,104,.95),rgba(5,38,61,.98));color:#74e8f4;font-size:19px;font-weight:400;white-space:nowrap;position:relative;
+    box-shadow:inset 0 0 12px rgba(0,207,246,.12),0 0 10px rgba(0,188,230,.13),inset 0 1px 1px rgba(126,240,255,.2)}
+  [data-theme=cyber] .act::before{content:"";position:absolute;inset:3px;border:1px solid rgba(80,213,239,.1);border-radius:9px;pointer-events:none}
+  [data-theme=cyber] .act:active{transform:none;background:linear-gradient(145deg,#12638b,#075075);box-shadow:0 0 20px rgba(0,221,255,.5)}
+  [data-theme=cyber] .act.dim{opacity:.4;filter:grayscale(.5)}
+  [data-theme=cyber] .log{background:rgba(8,38,65,.6);border-color:rgba(52,177,221,.25)}
 </style>
 </head>
 <body data-theme="cyber">
 <main>
-  <header><h1>สบายใจ <span class="ver">v2.31</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
+  <header><h1>สบายใจ <span class="ver">v2.32</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
 
   <section class="setup" id="setup">
     <h2>ตั้งค่าครั้งแรก</h2>
@@ -345,26 +366,101 @@
     </div>
 
     <section class="status" id="status" data-s="unknown" aria-live="polite">
-      <div class="frame"><canvas id="bot" role="img" aria-label="บอทสบายใจ (แตะเพื่อเล่นกับตัวการ์ตูน)"></canvas></div>
-      <div class="txt"><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="meta"><div class="small" id="small">&nbsp;</div><div id="pends"></div></div></div>
-      <div class="heard" id="heard" hidden></div>
+      <svg class="status-svg" viewBox="0 0 350 224" fill="none" aria-hidden="true">
+<defs>
+<linearGradient id="frameGradient" x1="0" y1="0" x2="350" y2="224"><stop stop-color="#40E8FF"/><stop offset=".5" stop-color="#087FAE"/><stop offset="1" stop-color="#43DFFF"/></linearGradient>
+<filter id="neon"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<path d="M8 38 L24 8 L97 8 L107 15 M243 15 L253 8 L326 8 L342 26 L342 191 L327 211 L253 211 L242 203 M108 203 L97 211 L24 211 L8 190 L8 38" stroke="url(#frameGradient)" stroke-width="1.7" opacity=".85"/>
+<path d="M19 43 L30 20 L92 20 M258 20 L320 20 L331 43 L331 184 L317 199 L258 199 M92 199 L32 199 L19 183 L19 43" stroke="#087DA6" stroke-width="1" opacity=".65"/>
+<path d="M8 64 L8 54 L18 44 M8 153 L8 177 M342 64 L342 54 L332 44 M342 153 L342 177" stroke="#18DBFF" stroke-width="3" filter="url(#neon)"/>
+<path d="M111 15 L239 15 L231 20 L119 20 Z" fill="#00CBEF" opacity=".9" filter="url(#neon)"/>
+<path d="M111 203 L239 203 L231 208 L119 208 Z" fill="#00CBEF" opacity=".85" filter="url(#neon)"/>
+<circle cx="175" cy="112" r="88" stroke="#0C668D" stroke-width="1" stroke-dasharray="2 4" opacity=".8"/>
+<circle cx="175" cy="112" r="78" stroke="#0C9FC3" stroke-width="1" stroke-dasharray="1 5" opacity=".55"/>
+<circle cx="175" cy="112" r="67" stroke="#137DA4" stroke-width="1.2" opacity=".5"/>
+<circle class="spin" cx="175" cy="112" r="94" stroke="#0B6F9B" stroke-width="1" stroke-dasharray="22 7 3 7" opacity=".6"/>
+<path d="M65 58 A112 112 0 0 0 64 155" stroke="#11C9F3" stroke-width="3" stroke-linecap="round" filter="url(#neon)"/>
+<path d="M76 48 A105 105 0 0 0 76 163" stroke="#087FA9" stroke-width="1" stroke-dasharray="3 4"/>
+<path d="M285 58 A112 112 0 0 1 286 155" stroke="#11C9F3" stroke-width="3" stroke-linecap="round" filter="url(#neon)"/>
+<path d="M274 48 A105 105 0 0 1 274 163" stroke="#087FA9" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="44" cy="44" r="12" stroke="#1A9EC1" stroke-width="1" opacity=".8"/>
+<circle cx="44" cy="44" r="8" stroke="#3AC9EA" stroke-width=".8" stroke-dasharray="1 2"/>
+<path d="M44 32 V37 M32 44 H37 M51 50 L55 54" stroke="#32BBD8" stroke-width="1"/>
+<circle cx="306" cy="44" r="13" stroke="#1A9EC1" stroke-width="1" opacity=".8"/>
+<circle cx="306" cy="44" r="8" stroke="#3AC9EA" stroke-width=".8" stroke-dasharray="2 2"/>
+<path d="M306 34 L309 42 L306 47 L302 42 Z" stroke="#35C6E8" stroke-width=".8"/>
+<circle cx="44" cy="175" r="10" stroke="#1685A9" stroke-width="1"/>
+<circle cx="44" cy="175" r="5" stroke="#35C6E8" stroke-width="1" stroke-dasharray="2 2"/>
+<g fill="#17B9DB"><rect x="297" y="171" width="4" height="2"/><rect x="304" y="171" width="4" height="2"/><rect x="311" y="171" width="4" height="2"/><rect x="297" y="176" width="4" height="2"/><rect x="304" y="176" width="4" height="2"/><rect x="311" y="176" width="4" height="2"/><rect x="304" y="181" width="4" height="2"/><rect x="311" y="181" width="4" height="2"/></g>
+<path d="M28 76 L34 76 M28 83 L32 83 M28 90 L34 90 M316 76 L322 76 M318 83 L322 83 M316 90 L322 90" stroke="#20A6C9" stroke-width="1"/>
+<path d="M92 29 L102 29 M248 29 L258 29 M92 194 L102 194 M248 194 L258 194" stroke="#1F91B9" stroke-width="1"/>
+<path d="M111 185 L111 189 M119 191 L120 195 M130 195 L132 199 M175 197 L175 201 M220 195 L218 199 M231 191 L230 195 M239 185 L239 189" stroke="#23C8E8" stroke-width="1"/>
+</svg>
+      <div class="status-content"><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="since" id="since"></div><div id="char"><canvas id="bot" role="img" aria-label="ตัวการ์ตูนสบายใจ (แตะเพื่อเล่น)"></canvas></div></div>
     </section>
-    <button class="mic" id="bMic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a.9.9 0 0 0-1.8 0 4.2 4.2 0 0 1-8.4 0 .9.9 0 0 0-1.8 0 6 6 0 0 0 5.1 5.9V20H8.5a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8h-2.6v-2.6a6 6 0 0 0 5.1-5.9z"/></svg><span id="micT">กดค้างแล้วพูด</span></button>
+    <div class="info"><span class="small" id="small">&nbsp;</span><div id="pends"></div></div>
+    <div class="heard" id="heard" hidden></div>
+    <section class="mic-panel">
+      <svg class="mic-svg" viewBox="0 0 350 166" fill="none" aria-hidden="true">
+<defs>
+<linearGradient id="micFrame" x1="0" y1="0" x2="350" y2="166"><stop stop-color="#28DDF7"/><stop offset=".5" stop-color="#087FA8"/><stop offset="1" stop-color="#2CD7F5"/></linearGradient>
+<filter id="neon2"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<path d="M8 28 L23 8 L70 8 M280 8 L327 8 L342 28 L342 137 L329 153 L284 153 M66 153 L23 153 L8 137 L8 28" stroke="url(#micFrame)" stroke-width="1.4" opacity=".85"/>
+<path d="M8 48 V126 M342 48 V126" stroke="#0D7197" stroke-width="1"/>
+<circle cx="54" cy="70" r="25" stroke="#087DA4" stroke-width="1"/>
+<circle cx="54" cy="70" r="19" stroke="#15C9EC" stroke-width="1.5" stroke-dasharray="27 7 8 5" filter="url(#neon2)"/>
+<circle cx="54" cy="70" r="11" stroke="#1597B9" stroke-width="1"/>
+<circle cx="54" cy="70" r="4" fill="#17BBD9" opacity=".8"/>
+<circle cx="296" cy="70" r="25" stroke="#087DA4" stroke-width="1"/>
+<circle cx="296" cy="70" r="19" stroke="#15C9EC" stroke-width="1.5" stroke-dasharray="27 7 8 5" filter="url(#neon2)"/>
+<circle cx="296" cy="70" r="11" stroke="#1597B9" stroke-width="1"/>
+<circle cx="296" cy="70" r="4" fill="#17BBD9" opacity=".8"/>
+<path d="M78 70 H126 M224 70 H272" stroke="#16B8DC" stroke-width="1.5"/>
+<path d="M83 66 H119 M231 66 H267" stroke="#087CA4" stroke-width="1"/>
+<circle cx="175" cy="70" r="56" stroke="#0B739B" stroke-width="1" stroke-dasharray="2 4"/>
+<circle cx="175" cy="70" r="49" stroke="#117EA4" stroke-width="1.2" stroke-dasharray="2 3"/>
+<circle cx="175" cy="70" r="43" stroke="#17C6E9" stroke-width="1" opacity=".7"/>
+<path d="M151 12 H199" stroke="#16A6CE" stroke-width="1"/>
+<path d="M161 8 H189" stroke="#32DBF4" stroke-width="1.5"/>
+<g fill="#18B9D9"><rect x="20" y="12" width="4" height="2"/><rect x="27" y="12" width="4" height="2"/><rect x="34" y="12" width="4" height="2"/><rect x="41" y="12" width="4" height="2"/><rect x="20" y="17" width="4" height="2"/><rect x="27" y="17" width="4" height="2"/></g>
+<g fill="#18B9D9"><rect x="315" y="12" width="4" height="2"/><rect x="322" y="12" width="4" height="2"/><rect x="329" y="12" width="4" height="2"/><rect x="315" y="17" width="4" height="2"/><rect x="322" y="17" width="4" height="2"/></g>
+<g stroke="#159BC0" stroke-width="1"><path d="M15 38 V125 M18 45 V54 M18 61 V70 M18 77 V86 M18 93 V102 M18 109 V118"/><path d="M335 38 V125 M332 45 V54 M332 61 V70 M332 77 V86 M332 93 V102 M332 109 V118"/></g>
+<g fill="#22C7E7"><circle cx="24" cy="136" r="1.3"/><circle cx="29" cy="136" r="1.3"/><circle cx="34" cy="136" r="1.3"/><circle cx="316" cy="136" r="1.3"/><circle cx="321" cy="136" r="1.3"/><circle cx="326" cy="136" r="1.3"/></g>
+<path d="M37 153 H105 M245 153 H313" stroke="#126F95" stroke-width="1"/>
+<path d="M144 150 H206" stroke="#0E8DB4" stroke-width="1" stroke-dasharray="3 4"/>
+</svg>
+      <button class="mic" id="bMic"><span class="micbtn"><svg viewBox="0 0 48 58" fill="none" aria-hidden="true"><rect x="17" y="4" width="14" height="32" rx="7" fill="#23DDF7"/><path d="M9 27 V30 C9 40 15 45 24 45 C33 45 39 40 39 30 V27" stroke="#27D9F2" stroke-width="4" stroke-linecap="round"/><path d="M24 45 V53 M16 53 H32" stroke="#27D9F2" stroke-width="3" stroke-linecap="round"/></svg></span><span id="micT">กดค้างแล้วพูด</span></button>
+    </section>
     <form class="txt2" id="txtF" autocomplete="off"><input id="txtIn" placeholder="หรือพิมพ์คำสั่ง" enterkeyhint="send" aria-label="พิมพ์คำสั่ง"><button type="submit" aria-label="ส่ง"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button></form>
+    <div class="control-strip" aria-hidden="true"><svg viewBox="0 0 350 64" fill="none">
+<defs>
+<linearGradient id="stripGradient" x1="0" y1="0" x2="350" y2="64"><stop stop-color="#0A4A6B"/><stop offset=".5" stop-color="#0D668B"/><stop offset="1" stop-color="#0A4A6B"/></linearGradient>
+<filter id="stripGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<path d="M7 16 L112 7 L120 13 L113 32 L120 51 L112 57 L7 48 Z" fill="url(#stripGradient)" stroke="#2089AC" stroke-width="1.4"/>
+<path d="M15 20 L104 13 L111 18 L105 32 L111 46 L104 52 L15 44 Z" stroke="#0B739A" stroke-width="1" opacity=".8"/>
+<path d="M343 16 L238 7 L230 13 L237 32 L230 51 L238 57 L343 48 Z" fill="url(#stripGradient)" stroke="#2089AC" stroke-width="1.4"/>
+<path d="M335 20 L246 13 L239 18 L245 32 L239 46 L246 52 L335 44 Z" stroke="#0B739A" stroke-width="1" opacity=".8"/>
+<path d="M43 23 V41 M48 21 V40 M53 21 V39" stroke="#35A9C8" stroke-width="1.5" opacity=".6"/>
+<path d="M77 32 L86 26 V38 Z M91 32 L100 26 V38 Z" fill="#27D5EE" opacity=".9"/>
+<path d="M273 32 L264 26 V38 Z M259 32 L250 26 V38 Z" fill="#27D5EE" opacity=".9"/>
+<path d="M297 23 V41 M302 21 V40 M307 21 V39" stroke="#35A9C8" stroke-width="1.5" opacity=".6"/>
+<circle cx="175" cy="32" r="28" fill="#06243D" stroke="#1B9FC2" stroke-width="1.5"/>
+<circle class="spin2" cx="175" cy="32" r="23" stroke="#12C9E9" stroke-width="1" stroke-dasharray="2 3"/>
+<circle cx="175" cy="32" r="16" stroke="#0D7399" stroke-width="1.2"/>
+<circle cx="175" cy="32" r="10" fill="#0B5477" stroke="#20C7E9" stroke-width="1.2" filter="url(#stripGlow)"/>
+<circle cx="175" cy="32" r="4" fill="#2BDCF5"/>
+<path d="M175 5 V9 M175 55 V59 M148 32 H152 M198 32 H202" stroke="#22C4E5" stroke-width="1.3"/>
+</svg></div>
     <div class="chips" id="chips" hidden>
       <button data-c="wake">ปลุกคอม</button><button data-c="sleep">สลีป</button><button data-c="shutdown">ปิดคอม</button><button data-c="cancel">ไม่ใช่ทั้งหมด</button>
     </div>
-
-    <section class="grid">
-      <button class="act wake" id="bWake">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg><span class="lb">ปลุกคอม</span>
-      </button>
-      <button class="act sleep" id="bSleep">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></svg><span class="lb">สลีป</span><small>พักเครื่อง งานยังอยู่</small>
-      </button>
-      <button class="act off" id="bOff">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg><span class="lb">ปิดคอม</span><small>ปิดทุกโปรแกรม</small>
-      </button>
+    <section class="grid actions">
+      <div class="action"><button class="act wake" id="bWake"><span class="lb">ปลุกคอม</span></button><small>&nbsp;</small></div>
+      <div class="action"><button class="act sleep" id="bSleep"><span class="lb">สลีป</span></button><small>พักเครื่อง งานยังอยู่</small></div>
+      <div class="action"><button class="act off" id="bOff"><span class="lb">ปิดคอม</span></button><small>ปิดทุกโปรแกรม</small></div>
     </section>
     <div class="note" id="note"></div>
     <section class="log">
@@ -571,7 +667,9 @@ function renderBtns() { ['bWake', 'bSleep', 'bOff'].forEach(function (id) { $(id
 function render() {
   var v = VIEW[state] || VIEW.unknown;
   $('status').setAttribute('data-s', v[0]);
-  $('big').textContent = v[1];
+  var shutP0 = pendNow().shut;   // v2.32 ข้อความบนจอ HUD
+  $('big').textContent = shutP0 ? 'กำลังจะปิด…' : state === 'on' ? 'เปิดอยู่' : (state === 'off' || state === 'sleeping' || state === 'shuttingdown') ? 'สลีป / ปิดอยู่' : state === 'waking' ? 'กำลังปลุก…' : state === 'wakefail' ? 'ปลุกไม่ขึ้น' : state === 'noboard' ? 'ตัวปลุกไม่ตอบ' : 'กำลังเช็ค…';
+  $('since').textContent = (state === 'on' || state === 'off') && stateAt && !shutP0 ? 'ตั้งแต่ ' + hhmm(stateAt) : '';
   var small = stateAt ? 'ข้อมูลเมื่อ ' + hhmm(stateAt) + (stale() ? ' (นานแล้ว กำลังเช็คใหม่…)' : '') : ' ';
   if (state === 'wakefail') small = 'เช็คว่าคอมเสียบสายแลนและมีไฟเข้า แล้วลองอีกครั้ง';
   if (state === 'noboard') small = 'ตัวปลุกไม่ตอบกลับ แต่ยังรับคำสั่งได้ — กดปลุกคอมได้เลย';
@@ -894,27 +992,10 @@ function boardChrome(c, t) {
   c.fillStyle = bc; c.beginPath(); c.roundRect(BOARD_BTN.x, BOARD_BTN.y, BOARD_BTN.w, BOARD_BTN.h, 14); c.fill();
   c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.font = '700 ' + bs + 'px ' + F; c.fillText(bt, 160, BOARD_BTN.y + BOARD_BTN.h / 2 + 1);
 }
-/* v2.31 ธีมไซเบอร์ฟ้า: จอสถานะแบบ HUD (แทนหน้าจอบอร์ด) */
+/* v2.32 ธีมไซเบอร์ฟ้า: ตัวการ์ตูนตัวเล็กในวงแหวน (ไม่มีฉาก) — สถานะเป็นตัวหนังสือจริง */
 var THEME = document.body.getAttribute('data-theme') || 'classic';
-function hudChrome(c, t) {
-  var F = 'system-ui,"Noto Sans Thai","Leelawadee UI",sans-serif', C = '#22d3ee', cx = 160, cy = 154, i;
-  var g = c.createRadialGradient(cx, cy, 10, cx, cy, 190); g.addColorStop(0, '#0d2a52'); g.addColorStop(1, '#06132b'); c.fillStyle = g; c.fillRect(0, 0, 320, 240);
-  c.save(); c.strokeStyle = C; c.shadowColor = C; c.shadowBlur = 8; c.lineWidth = 1.5; c.globalAlpha = .9;
-  c.beginPath(); c.moveTo(18, 6); c.lineTo(302, 6); c.lineTo(314, 18); c.lineTo(314, 222); c.lineTo(302, 234); c.lineTo(18, 234); c.lineTo(6, 222); c.lineTo(6, 18); c.closePath(); c.stroke();
-  c.lineWidth = 4; c.beginPath(); c.moveTo(110, 6); c.lineTo(210, 6); c.moveTo(110, 234); c.lineTo(210, 234); c.moveTo(6, 90); c.lineTo(6, 150); c.moveTo(314, 90); c.lineTo(314, 150); c.stroke();
-  c.lineWidth = 1.5; c.globalAlpha = .55; c.beginPath(); c.arc(cx, cy, 74, 0, 7); c.stroke();
-  c.globalAlpha = .9; c.lineWidth = 3; var a0 = t / 2400;
-  for (i = 0; i < 3; i++) { c.beginPath(); c.arc(cx, cy, 82, a0 + i * 2.094, a0 + i * 2.094 + .9); c.stroke(); }
-  c.lineWidth = 1; c.globalAlpha = .45; for (i = 0; i < 2; i++) { c.beginPath(); c.arc([30, 290][i], 30, 12, 0, 7); c.stroke(); c.beginPath(); c.arc([30, 290][i], 30, 5, 0, 7); c.stroke(); }
-  c.restore();
-  var shutP = pendNow().shut;
-  var st = shutP ? 'กำลังจะปิด…' : state === 'on' ? 'เปิดอยู่' : (state === 'off' || state === 'sleeping' || state === 'shuttingdown') ? 'สลีป / ปิดอยู่' : state === 'waking' ? 'กำลังปลุก…' : state === 'wakefail' ? 'ปลุกไม่ขึ้น' : state === 'noboard' ? 'ตัวปลุกไม่ตอบ' : 'กำลังเช็ค…';
-  var col = shutP || state === 'wakefail' || state === 'noboard' ? '#fb7185' : state === 'waking' ? '#fbbf24' : state === 'on' ? '#e6f6ff' : '#9fb3c8';
-  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = col; c.font = '700 26px ' + F; c.fillText(st, cx, 30);
-  if ((state === 'on' || state === 'off') && stateAt && !shutP) { c.fillStyle = '#e6f6ff'; c.font = '600 22px ' + F; c.fillText('ตั้งแต่ ' + hhmm(stateAt), cx, 56); }
-}
 var bot = window.KumBot ? KumBot.create($('bot'), THEME === 'cyber'
-  ? { character: store(CHAR_KEY), width: 320, height: 240, stage: { y: 100, h: 124, plain: true }, walk: [110, 210], chrome: hudChrome }
+  ? { character: store(CHAR_KEY), width: 150, height: 110, walk: [40, 110] }
   : { character: store(CHAR_KEY), width: 320, height: 240, stage: { y: 86, h: 94 }, chrome: boardChrome }) : null;
 function claudeNow() {
   if (!claude.mode) return null;
