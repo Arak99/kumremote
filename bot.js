@@ -45,7 +45,7 @@
     canvas.addEventListener('contextrestored', fit);
 
     function think(t, dt) {
-      var half = (cw() / 2) * U + 8, lo = half, hi = W - half;
+      var half = (cw() / 2) * U + 8, lo = opt.walk ? Math.max(half, opt.walk[0]) : half, hi = opt.walk ? Math.min(W - half, opt.walk[1]) : W - half;   // v2.31 walk = ช่วงที่เดินได้
       if (mood === 'on' || mood === 'work') {
         var speed = mood === 'work' ? 55 : 18;
         if (b.act === 'walk') {
@@ -169,7 +169,7 @@
       c.clearRect(0, 0, W, H);
       var floor = H - 14;
       if (opt.chrome) opt.chrome(c, t);
-      if (opt.stage) floor = scene(opt.stage.y, opt.stage.h, t);
+      if (opt.stage) floor = opt.stage.plain ? opt.stage.y + opt.stage.h - 7 : scene(opt.stage.y, opt.stage.h, t);   // v2.31 plain = ไม่วาดฟ้า (ธีมวาดพื้นหลังเอง)
       else { c.fillStyle = 'rgba(255,255,255,.06)'; c.fillRect(0, floor, W, 2); }
       var jump = 0;
       if (mood === 'on' && b.act === 'jump') jump = Math.max(0, Math.sin((t % 700) / 700 * Math.PI)) * 10;

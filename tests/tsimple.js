@@ -29,9 +29,8 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     ok(L.wake.startsWith('ปลุกคอม') && L.sleep.startsWith('สลีป') && L.off.startsWith('ปิดคอม'), 'layout: 3 buttons with new names ' + JSON.stringify(L));
     ok(!L.stay, 'layout: no "อยู่ต่อ" button');
     ok(!(await p.evaluate(() => !!document.getElementById('bCheck') || !!document.querySelector('footer'))), 'layout: no เช็คสถานะ button, no bottom bar');
-    const box = await p.locator('#bot').boundingBox();
-    await p.mouse.click(box.x + box.width * 144 / 320, box.y + box.height * 17 / 240); await p.waitForTimeout(400);
-    ok(await p.evaluate(() => document.getElementById('setVeil').classList.contains('show')), 'layout: tapping ตั้งค่า on the screen opens settings');
+    await p.click('#bGear'); await p.waitForTimeout(400);
+    ok(await p.evaluate(() => document.getElementById('setVeil').classList.contains('show')), 'layout: gear in header opens settings');
     await p.evaluate(() => document.getElementById('setX').click()); await p.waitForTimeout(300);
     ok(!L.tabs.includes('คอม'), 'layout: settings has no คอม tab ' + L.tabs.join(','));
     ok((await pends(p)).length === 0, 'layout: nothing pending → no bar');

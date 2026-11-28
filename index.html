@@ -33,6 +33,9 @@
     2.10 (27/11/2026) เลือก "ใช้ตาในรูป" ได้ (ตัวละครที่มีตาอยู่แล้ว ตาจะไม่ขยับ) · ติ๊กตอนครอบรูป หรือกดปุ่มสลับในหน้าวาด (ต้อง KumWake v2.6)
     2.11 (27/11/2026) ตาจากรูปที่ขยับได้: ลากกรอบครอบตาในรูป (🔲 กรอบตา) แล้วบอร์ดจะตัดตาไปกะพริบ/เลื่อนมองเอง · หน้าครอบรูปเลือกโหมดตาได้ 3 แบบ (ต้อง KumWake v2.8)
     2.12 (27/11/2026) ทำตัวละครจากรูปให้ดีขึ้น: หน้าครอบรูปจัดตัวละครเต็มกรอบให้เอง · สีแต่ละช่องคมขึ้น (ใช้สีที่พบมากสุด ไม่เลอะที่ขอบ) · ลบพื้นหลังได้ดีขึ้น
+    2.31 (28/11/2026) ทำให้ตรงภาพต้นแบบไซเบอร์ฟ้า (Arak: v2.30 ไม่เหมือนต้นแบบ): จอสถานะเป็นกรอบ HUD วงแหวนหมุน ตัวหนังสือ "เปิดอยู่ / ตั้งแต่ hh:mm" กลางจอ
+                     ตัวการ์ตูนยืนในวงแหวน (ไม่มีฉากฟ้าและหัวจอบอร์ด) · ไมค์อยู่ในแผง HUD มีวงแหวนซ้ายขวา คำว่า "กดค้างแล้วพูด" · ปุ่มหลักเป็นตัวหนังสือในกรอบเรืองแสง
+                     คำอธิบายอยู่ใต้ปุ่ม · ปุ่มตั้งค่า ⚙ ย้ายมาหัวแอป (เดิมอยู่ในจอเหลือง)
     2.30 (28/11/2026) หน้าตาใหม่ "ไซเบอร์ฟ้า" (แบบที่ Arak เลือกจากภาพ ChatGPT): กรอบจอสถานะเรืองแสงฟ้ามีมุม HUD, บรรทัด "ข้อมูลเมื่อ" กับ "ไม่มีคำสั่งค้าง" อยู่แถวเดียวใต้จอ,
                      ปุ่มไมค์วงกลมใหญ่กลางจอ, ช่องพิมพ์ทรงแคปซูลมีปุ่มส่งลูกศร, 3 ปุ่มหลักเรียงแถวเดียว มีคำอธิบายใต้ชื่อ
                      · "คอมหลับ" เปลี่ยนชื่อเป็น "สลีป" ทั้งแอป (ใต้ปุ่ม: พักเครื่อง งานยังอยู่) · หน้าตาแยกเป็นธีม (body data-theme) เผื่อเพิ่มธีมอื่นทีหลัง
@@ -288,12 +291,13 @@
   /* ---------- v2.30 ธีม "ไซเบอร์ฟ้า" (body[data-theme=cyber]) — ธีมอื่นในอนาคตเปลี่ยนได้ทั้งสีและการจัดวาง ---------- */
   body[data-theme=cyber]{--bg:#050d1f;--card:#0a1830;--line:rgba(56,189,248,.28);--text:#e6f6ff;--dim:#8fb3cc;--accent:#22d3ee;--hud:#22d3ee;
     background:radial-gradient(120% 50% at 50% 0%,#0b2347 0%,#050d1f 70%) no-repeat,#050d1f}
-  [data-theme=cyber] header h1{font-size:24px}
+  header .hr{display:flex;align-items:center;gap:6px}
+  .gear{width:44px;height:44px;padding:9px;border-radius:12px;background:transparent;color:var(--dim)} .gear svg{width:26px;height:26px;display:block}
+  [data-theme=cyber] header{align-items:center}
+  [data-theme=cyber] header h1{font-size:26px}
+  [data-theme=cyber] .gear{color:var(--hud);border:1.5px solid var(--line)}
   [data-theme=cyber] .status{background:transparent;border:0;padding:4px 2px 0}
-  [data-theme=cyber] #bot{box-shadow:0 0 0 2px var(--hud),0 0 24px rgba(34,211,238,.45);border:0;border-radius:14px;margin:8px 0 10px}
-  [data-theme=cyber] .frame::before,[data-theme=cyber] .frame::after{content:"";position:absolute;width:30px;height:30px;pointer-events:none;border:3px solid var(--hud);filter:drop-shadow(0 0 5px rgba(34,211,238,.9))}
-  [data-theme=cyber] .frame::before{top:0;left:-6px;border-right:0;border-bottom:0;border-radius:14px 0 0 0}
-  [data-theme=cyber] .frame::after{bottom:4px;right:-6px;border-left:0;border-top:0;border-radius:0 0 14px 0}
+  [data-theme=cyber] #bot{box-shadow:none;border:0;border-radius:0;margin:4px 0 8px}
   [data-theme=cyber] .status .txt{width:100%;margin:0}
   [data-theme=cyber] .meta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;width:100%}
   [data-theme=cyber] #pends{display:contents}
@@ -302,28 +306,29 @@
   [data-theme=cyber] .pend{margin:4px 0 0;border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.10)}
   [data-theme=cyber] .pend.warn{border-color:rgba(251,146,60,.7);background:rgba(251,146,60,.16)}
   [data-theme=cyber] .pend.red{border-color:rgba(248,113,113,.75);background:rgba(248,113,113,.16)}
-  [data-theme=cyber] .mic{flex-direction:column;gap:8px;min-height:0;padding:6px 0 2px;background:transparent;border:0;border-radius:0;color:var(--hud);font-size:18px;font-weight:600;position:relative}
+  [data-theme=cyber] .mic{flex-direction:column;gap:6px;min-height:0;padding:14px 0 12px;background:linear-gradient(180deg,rgba(13,42,82,.55),rgba(6,19,43,.75));border:1.5px solid var(--line);border-radius:0;clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);color:var(--hud);font-size:24px;font-weight:700;position:relative;text-shadow:0 0 10px rgba(34,211,238,.6)}
   [data-theme=cyber] .mic svg{box-sizing:content-box;width:38px;height:38px;padding:24px;border-radius:50%;color:var(--hud);background:radial-gradient(circle,rgba(34,211,238,.18),rgba(5,13,31,.92) 70%);border:2px solid var(--hud);box-shadow:0 0 0 7px rgba(34,211,238,.10),0 0 26px rgba(34,211,238,.55)}
-  [data-theme=cyber] .mic::before,[data-theme=cyber] .mic::after{content:"";position:absolute;top:50px;width:calc(50% - 70px);height:2px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.6));pointer-events:none}
-  [data-theme=cyber] .mic::before{left:6px} [data-theme=cyber] .mic::after{right:6px;transform:scaleX(-1)}
+  [data-theme=cyber] .mic::before,[data-theme=cyber] .mic::after{content:"";position:absolute;top:38px;width:46px;height:46px;border-radius:50%;border:2px solid rgba(34,211,238,.7);box-shadow:0 0 0 7px rgba(34,211,238,.08),inset 0 0 0 9px rgba(5,13,31,.9),inset 0 0 0 11px rgba(34,211,238,.5);pointer-events:none}
+  [data-theme=cyber] .mic::before{left:22px} [data-theme=cyber] .mic::after{right:22px}
+  [data-theme=cyber] .mic svg{position:relative;z-index:1}
   [data-theme=cyber] .mic.on{animation:none;background:transparent}
   [data-theme=cyber] .mic.on svg{color:#04121f;background:var(--hud);animation:pulse 1.2s ease-in-out infinite}
   [data-theme=cyber] .txt2 input{border-radius:999px;background:rgba(10,24,48,.85);border-color:var(--line);padding:13px 18px}
   [data-theme=cyber] .txt2 button{flex:none;width:50px;height:50px;padding:0;border-radius:50%;background:var(--hud);color:#04121f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(34,211,238,.45)}
   [data-theme=cyber] .txt2 button svg{width:24px;height:24px}
   [data-theme=cyber] .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  [data-theme=cyber] .act,[data-theme=cyber] .act.wake{grid-column:auto;flex-direction:column;gap:2px;min-height:98px;padding:10px 4px;border-radius:16px;background:rgba(10,24,48,.8);border:1.5px solid var(--hud);color:var(--text);font-size:18px;box-shadow:0 0 14px rgba(34,211,238,.22),inset 0 0 12px rgba(34,211,238,.08)}
-  [data-theme=cyber] .act svg,[data-theme=cyber] .act.wake svg,[data-theme=cyber] .act.sleep svg{width:26px;height:26px;color:var(--hud);margin-bottom:2px}
-  [data-theme=cyber] .act.off{border-color:#fb7185;box-shadow:0 0 14px rgba(251,113,133,.22),inset 0 0 12px rgba(251,113,133,.08)}
-  [data-theme=cyber] .act.off svg{color:#fb7185}
-  [data-theme=cyber] .act small{display:block;font-size:11.5px;font-weight:500;color:var(--dim);line-height:1.25;text-align:center}
+  [data-theme=cyber] .act,[data-theme=cyber] .act.wake{grid-column:auto;flex-direction:column;justify-content:flex-start;gap:6px;min-height:0;padding:0;border-radius:0;background:transparent;border:0;box-shadow:none;color:var(--hud);font-size:21px}
+  [data-theme=cyber] .act .lb{width:100%;padding:16px 2px;border-radius:16px;border:1.5px solid var(--hud);background:rgba(10,30,60,.85);box-shadow:0 0 14px rgba(34,211,238,.3),inset 0 0 14px rgba(34,211,238,.12);text-shadow:0 0 8px rgba(34,211,238,.6);font-weight:700}
+  [data-theme=cyber] .act:active .lb{transform:scale(.97)} [data-theme=cyber] .act:active{transform:none;background:transparent}
+  [data-theme=cyber] .act svg{display:none}
+  [data-theme=cyber] .act small{display:block;font-size:12px;font-weight:500;color:var(--text);opacity:.85;line-height:1.25;text-align:center;text-shadow:none}
   [data-theme=cyber] .act.dim{opacity:.38;filter:grayscale(.6);box-shadow:none}
   [data-theme=cyber] .log{background:rgba(10,24,48,.7)}
 </style>
 </head>
 <body data-theme="cyber">
 <main>
-  <header><h1>สบายใจ <span class="ver">v2.30</span></h1><span class="net" id="net">กำลังเชื่อมต่อ…</span></header>
+  <header><h1>สบายใจ <span class="ver">v2.31</span></h1><span class="hr"><span class="net" id="net">กำลังเชื่อมต่อ…</span><button class="gear" id="bGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></header>
 
   <section class="setup" id="setup">
     <h2>ตั้งค่าครั้งแรก</h2>
@@ -344,7 +349,7 @@
       <div class="txt"><div class="big" id="big">กำลังเช็คสถานะ…</div><div class="meta"><div class="small" id="small">&nbsp;</div><div id="pends"></div></div></div>
       <div class="heard" id="heard" hidden></div>
     </section>
-    <button class="mic" id="bMic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a.9.9 0 0 0-1.8 0 4.2 4.2 0 0 1-8.4 0 .9.9 0 0 0-1.8 0 6 6 0 0 0 5.1 5.9V20H8.5a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8h-2.6v-2.6a6 6 0 0 0 5.1-5.9z"/></svg><span id="micT">กดค้างแล้วพูด · ปล่อยเมื่อพูดจบ</span></button>
+    <button class="mic" id="bMic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a.9.9 0 0 0-1.8 0 4.2 4.2 0 0 1-8.4 0 .9.9 0 0 0-1.8 0 6 6 0 0 0 5.1 5.9V20H8.5a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8h-2.6v-2.6a6 6 0 0 0 5.1-5.9z"/></svg><span id="micT">กดค้างแล้วพูด</span></button>
     <form class="txt2" id="txtF" autocomplete="off"><input id="txtIn" placeholder="หรือพิมพ์คำสั่ง" enterkeyhint="send" aria-label="พิมพ์คำสั่ง"><button type="submit" aria-label="ส่ง"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button></form>
     <div class="chips" id="chips" hidden>
       <button data-c="wake">ปลุกคอม</button><button data-c="sleep">สลีป</button><button data-c="shutdown">ปิดคอม</button><button data-c="cancel">ไม่ใช่ทั้งหมด</button>
@@ -352,10 +357,10 @@
 
     <section class="grid">
       <button class="act wake" id="bWake">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg><span class="lb">ปลุกคอม</span><small>สั่งเปิดคอม</small>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg><span class="lb">ปลุกคอม</span>
       </button>
       <button class="act sleep" id="bSleep">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></svg><span class="lb">สลีป</span><small>พักเครื่อง<br>งานยังอยู่</small>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></svg><span class="lb">สลีป</span><small>พักเครื่อง งานยังอยู่</small>
       </button>
       <button class="act off" id="bOff">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg><span class="lb">ปิดคอม</span><small>ปิดทุกโปรแกรม</small>
@@ -817,6 +822,7 @@ $('bri').onchange = function () {
 $('dimSw').onclick = function () { var on = this.getAttribute('aria-checked') !== 'true'; this.setAttribute('aria-checked', on ? 'true' : 'false'); want.dim = on; holdNow(); send('screen', false, 'dim ' + (on ? 'on' : 'off')); };
 
 $('askNo').onclick = closeAsk;
+$('bGear').onclick = function () { $('bSet').onclick(); };
 $('veil').onclick = function (e) { if (e.target === $('veil')) closeAsk(); };
 $('askYes').onclick = function () { var cb = askCb; closeAsk(); if (cb) cb(); };
 $('reset').onclick = function () { closeSet(); ask('ตั้งค่าลิงก์ใหม่?', 'จะลบลิงก์ที่จำไว้ในมือถือเครื่องนี้ แล้วให้วางลิงก์ใหม่', 'ลบและตั้งใหม่', true, function () { store(KEY, null); location.reload(); }); };
@@ -888,7 +894,28 @@ function boardChrome(c, t) {
   c.fillStyle = bc; c.beginPath(); c.roundRect(BOARD_BTN.x, BOARD_BTN.y, BOARD_BTN.w, BOARD_BTN.h, 14); c.fill();
   c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.font = '700 ' + bs + 'px ' + F; c.fillText(bt, 160, BOARD_BTN.y + BOARD_BTN.h / 2 + 1);
 }
-var bot = window.KumBot ? KumBot.create($('bot'), { character: store(CHAR_KEY), width: 320, height: 240, stage: { y: 86, h: 94 }, chrome: boardChrome }) : null;
+/* v2.31 ธีมไซเบอร์ฟ้า: จอสถานะแบบ HUD (แทนหน้าจอบอร์ด) */
+var THEME = document.body.getAttribute('data-theme') || 'classic';
+function hudChrome(c, t) {
+  var F = 'system-ui,"Noto Sans Thai","Leelawadee UI",sans-serif', C = '#22d3ee', cx = 160, cy = 154, i;
+  var g = c.createRadialGradient(cx, cy, 10, cx, cy, 190); g.addColorStop(0, '#0d2a52'); g.addColorStop(1, '#06132b'); c.fillStyle = g; c.fillRect(0, 0, 320, 240);
+  c.save(); c.strokeStyle = C; c.shadowColor = C; c.shadowBlur = 8; c.lineWidth = 1.5; c.globalAlpha = .9;
+  c.beginPath(); c.moveTo(18, 6); c.lineTo(302, 6); c.lineTo(314, 18); c.lineTo(314, 222); c.lineTo(302, 234); c.lineTo(18, 234); c.lineTo(6, 222); c.lineTo(6, 18); c.closePath(); c.stroke();
+  c.lineWidth = 4; c.beginPath(); c.moveTo(110, 6); c.lineTo(210, 6); c.moveTo(110, 234); c.lineTo(210, 234); c.moveTo(6, 90); c.lineTo(6, 150); c.moveTo(314, 90); c.lineTo(314, 150); c.stroke();
+  c.lineWidth = 1.5; c.globalAlpha = .55; c.beginPath(); c.arc(cx, cy, 74, 0, 7); c.stroke();
+  c.globalAlpha = .9; c.lineWidth = 3; var a0 = t / 2400;
+  for (i = 0; i < 3; i++) { c.beginPath(); c.arc(cx, cy, 82, a0 + i * 2.094, a0 + i * 2.094 + .9); c.stroke(); }
+  c.lineWidth = 1; c.globalAlpha = .45; for (i = 0; i < 2; i++) { c.beginPath(); c.arc([30, 290][i], 30, 12, 0, 7); c.stroke(); c.beginPath(); c.arc([30, 290][i], 30, 5, 0, 7); c.stroke(); }
+  c.restore();
+  var shutP = pendNow().shut;
+  var st = shutP ? 'กำลังจะปิด…' : state === 'on' ? 'เปิดอยู่' : (state === 'off' || state === 'sleeping' || state === 'shuttingdown') ? 'สลีป / ปิดอยู่' : state === 'waking' ? 'กำลังปลุก…' : state === 'wakefail' ? 'ปลุกไม่ขึ้น' : state === 'noboard' ? 'ตัวปลุกไม่ตอบ' : 'กำลังเช็ค…';
+  var col = shutP || state === 'wakefail' || state === 'noboard' ? '#fb7185' : state === 'waking' ? '#fbbf24' : state === 'on' ? '#e6f6ff' : '#9fb3c8';
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = col; c.font = '700 26px ' + F; c.fillText(st, cx, 30);
+  if ((state === 'on' || state === 'off') && stateAt && !shutP) { c.fillStyle = '#e6f6ff'; c.font = '600 22px ' + F; c.fillText('ตั้งแต่ ' + hhmm(stateAt), cx, 56); }
+}
+var bot = window.KumBot ? KumBot.create($('bot'), THEME === 'cyber'
+  ? { character: store(CHAR_KEY), width: 320, height: 240, stage: { y: 100, h: 124, plain: true }, walk: [110, 210], chrome: hudChrome }
+  : { character: store(CHAR_KEY), width: 320, height: 240, stage: { y: 86, h: 94 }, chrome: boardChrome }) : null;
 function claudeNow() {
   if (!claude.mode) return null;
   var age = Date.now() / 1000 - claude.at;
@@ -909,6 +936,7 @@ function holdMood(m, ms) { moodHold = { mood: m, until: Date.now() + ms }; updat
 setInterval(function () { if (claude.mode) render(); }, 5000);
 setInterval(function () { if (topic && !document.hidden && stale()) askStatus(); }, 60000);   // v2.25: ไม่มีปุ่มเช็คสถานะแล้ว — ข้อมูลเก่าเกิน 15 นาทีแอปเช็คเอง
 $('bot').onclick = function (e) {
+  if (THEME === 'cyber') { if (bot) bot.poke(); return; }   // v2.31 จอ HUD ไม่มีปุ่มในจอ (ตั้งค่า = ⚙ บนหัวแอป)
   var r = this.getBoundingClientRect(), y = (e.clientY - r.top) * 240 / r.height, x = (e.clientX - r.left) * 320 / r.width;
   if (y >= BOARD_BTN.y) { var w0 = btnWhy('bWake'); $('bWake').onclick(); if (!w0 && !pendNow().shut) speak(SAY.wake); return; }       // ปุ่มปลุกในจอจำลอง
   if (y < 34 && x >= 114 && x < 174) { $('bSet').onclick(); return; }            // ปุ่มตั้งค่าในจอจำลอง
@@ -945,7 +973,7 @@ function doCmd(cmd, value) {
   }
 }
 var LABEL_TH = { chat: 'คุยเล่น', wake: 'ปลุกคอม', sleep: 'สลีป', shutdown: 'ปิดคอม', status: 'เช็คสถานะ', stay: 'ยกเลิกที่ค้างอยู่', cancel: 'ยกเลิกที่ค้างอยู่', bright: 'ปรับความสว่าง', brighter: 'จอสว่างขึ้น', dimmer: 'หรี่จอ', dim: 'หรี่เอง', help: 'ดูคำสั่ง' };
-var MIC_IDLE = 'กดค้างแล้วพูด · ปล่อยเมื่อพูดจบ', micDown = 0, tapMode = false, tapTimer = null;
+var MIC_IDLE = 'กดค้างแล้วพูด', micDown = 0, tapMode = false, tapTimer = null;
 function handleHeard(t, intent) {
   if (!t) { heard('ไม่ได้ยินเสียง — กดค้างแล้วพูด ปล่อยนิ้วเมื่อพูดจบ'); return; }
   if (intent && intent.cmd === 'chat') { doCmd('chat', intent); return; }
