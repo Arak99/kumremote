@@ -26,7 +26,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
 
   await run('layout', [ON], async (p) => {
     const L = await p.evaluate(() => ({ wake: document.getElementById('bWake').innerText.trim(), sleep: document.getElementById('bSleep').innerText.trim(), off: document.getElementById('bOff').innerText.trim(), stay: !!document.getElementById('bStay'), tabs: [...document.querySelectorAll('#setVeil [role=tab]')].map(x => x.innerText) }));
-    ok(L.wake === 'ปลุกคอม' && L.sleep === 'คอมหลับ' && L.off === 'ปิดคอม', 'layout: 3 buttons with new names ' + JSON.stringify(L));
+    ok(L.wake.startsWith('ปลุกคอม') && L.sleep.startsWith('สลีป') && L.off.startsWith('ปิดคอม'), 'layout: 3 buttons with new names ' + JSON.stringify(L));
     ok(!L.stay, 'layout: no "อยู่ต่อ" button');
     ok(!(await p.evaluate(() => !!document.getElementById('bCheck') || !!document.querySelector('footer'))), 'layout: no เช็คสถานะ button, no bottom bar');
     const box = await p.locator('#bot').boundingBox();
@@ -44,13 +44,13 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
   await run('sleep-plain', [ON], async (p, posts) => {
     const n0 = posts.length; await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
     ok(sent(posts, n0).includes('busy'), 'sleep: dialog asks the PC what it is doing (busy)');
-    ok(d.open && d.title === 'คอมหลับ' && d.btns.some(x => /คอมหลับเลยตอนนี้/.test(x)) && d.btns.some(x => /คอมหลับเมื่อทำงานเสร็จ/.test(x)) && !/ค้างอยู่/.test(d.text), 'sleep: dialog always has both choices ' + d.btns.join(' | '));
+    ok(d.open && d.title === 'สลีป' && d.btns.some(x => /สลีปเลยตอนนี้/.test(x)) && d.btns.some(x => /สลีปเมื่อทำงานเสร็จ/.test(x)) && !/ค้างอยู่/.test(d.text), 'sleep: dialog always has both choices ' + d.btns.join(' | '));
     ok(/กำลังเช็คว่าคอมทำงานอยู่ไหม/.test(d.text), 'sleep: shows "checking…" while waiting for PC');
-    const n = posts.length; await p.click('#askCol button:has-text("คอมหลับเลยตอนนี้")'); await p.waitForTimeout(400); ok(sent(posts, n).includes('sleep'), 'sleep: หลับเลย sends sleep');
+    const n = posts.length; await p.click('#askCol button:has-text("สลีปเลยตอนนี้")'); await p.waitForTimeout(400); ok(sent(posts, n).includes('sleep'), 'sleep: หลับเลย sends sleep');
   });
   await run('sleep-while-claude', [ON, WORK], async (p, posts) => {
     await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
-    ok(d.open && /Claude กำลังทำงาน/.test(d.text) && /คอมหลับเมื่อทำงานเสร็จ/.test(d.btns[0]) && d.btns.some(x => /คอมหลับเลยตอนนี้[\s\S]*จะหยุด/.test(x)), 'claude working: when-done offered first, now warns work stops ' + d.btns.join(' | '));
+    ok(d.open && /Claude กำลังทำงาน/.test(d.text) && /สลีปเมื่อทำงานเสร็จ/.test(d.btns[0]) && d.btns.some(x => /สลีปเลยตอนนี้[\s\S]*จะหยุด/.test(x)), 'claude working: when-done offered first, now warns work stops ' + d.btns.join(' | '));
     await p.screenshot({ path: '/tmp/s_choose.png' });
     await p.click('#askCol button.yes'); await p.waitForTimeout(300); const d2 = await dlg(p);
     const chip = p => p.evaluate(() => { const c = document.querySelector('#idleChips button.on'); return c ? c.innerText : null; });
@@ -70,7 +70,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     ok(!sent(posts, n2).length && !(await dlg(p)).open, 'ยกเลิก in picker sends nothing');
   });
   await run('pending-sd', [ON, WORK, ['sleepdone jobs 5', 20], ["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 5 นาที (เตือนก่อน 60 วินาที แตะแถบในแอปเพื่อยกเลิก)", 19]], async (p, posts) => {
-    const pb = await pends(p); ok(pb.length === 1 && /คอมจะหลับเมื่อ Claude ทำงานเสร็จ/.test(pb[0].text), 'sd pending: bar shown ' + JSON.stringify(pb));
+    const pb = await pends(p); ok(pb.length === 1 && /คอมจะสลีปเมื่อ Claude ทำงานเสร็จ/.test(pb[0].text), 'sd pending: bar shown ' + JSON.stringify(pb));
     // กดปิดคอม → บอกว่าจะยกเลิก 🌙
     await p.click('#bOff'); await p.waitForTimeout(300); let d = await dlg(p);
     ok(/ค้างอยู่/.test(d.text) && /จะยกเลิกอันนี้/.test(d.text) && /Claude กำลังทำงาน/.test(d.text) && /บูต/.test(d.text), 'shutdown dialog warns about pending + Claude + boot');
@@ -87,7 +87,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     ok(!sent(posts, n).length && /ไม่มีอะไรค้าง/.test(note), 'typed "ห้ามหลับ" with nothing pending → explains, sends nothing');
     await typeCmd(p, 'ยังไม่ต้องปิดเครื่อง'); const d = await dlg(p); ok(!d.open && !sent(posts, n).includes('shutdown'), '"ยังไม่ต้องปิดเครื่อง" does NOT open shutdown');
     await typeCmd(p, 'ฝันดี ไปนอนแล้ว'); const d2 = await dlg(p); ok(!d2.open, '"ฝันดี ไปนอนแล้ว" is chat, no sleep dialog');
-    await typeCmd(p, 'ให้คอมหลับ'); const d3 = await dlg(p); ok(d3.open && /คอมหลับ/.test(d3.title), 'typed "ให้คอมหลับ" opens the same sleep dialog as the button');
+    await typeCmd(p, 'ให้คอมหลับ'); const d3 = await dlg(p); ok(d3.open && /สลีป/.test(d3.title), 'typed "ให้คอมหลับ" opens the same sleep dialog as the button');
   });
   await run('shutdown-countdown', [ON, ['shutdown', 4], ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที) - แตะแถบในแอปเพื่อยกเลิก', 3]], async (p, posts) => {
     const pb = await pends(p); ok(pb.length === 1 && /red/.test(pb[0].cls) && /คอมจะปิดในอีก ([89]|1[0-2]) วินาที/.test(pb[0].text), 'shutdown: red countdown bar ' + JSON.stringify(pb));
@@ -106,7 +106,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
   });
   await run('shutdown-expired', [ON, ['⏻ RUBY_PC กำลังปิดเครื่อง (อีก 15 วินาที)', 120]], async (p) => { ok((await pends(p)).length === 0, 'old shutdown (2 min ago) → no bar'); });
   await run('warn', [ON, ["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 1 นาที (x)", 120], ["⏳ RUBY_PC จะ Sleep ใน 60 วินาที เพราะClaude ทำงานเสร็จ แล้วรอ 1 นาที - แตะแถบในแอปเพื่อยกเลิก", 5]], async (p, posts) => {
-    const pb = await pends(p); ok(pb.length === 1 && /warn/.test(pb[0].cls) && /คอมจะหลับในอีกไม่ถึง 1 นาที/.test(pb[0].text), 'warn: orange bar ' + JSON.stringify(pb));
+    const pb = await pends(p); ok(pb.length === 1 && /warn/.test(pb[0].cls) && /คอมจะสลีปในอีกไม่ถึง 1 นาที/.test(pb[0].text), 'warn: orange bar ' + JSON.stringify(pb));
     const n = posts.length; await p.click('#pends .pend'); await p.waitForTimeout(400); ok(sent(posts, n).includes('cancel'), 'warn: tap → cancel');
   });
   await run('slept', [["🌙 ตั้งแล้ว: จะ Sleep เมื่อClaude ทำงานเสร็จ แล้วรอ 1 นาที (x)", 200], ['⏳ RUBY_PC จะ Sleep ใน 60 วินาที', 130], ['😴 RUBY_PC กำลัง Sleep', 70]], async (p) => { ok((await pends(p)).length === 0, 'slept → bar gone'); });
@@ -117,14 +117,14 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
   await run('old-stay-history', [ON, ['stay', 100], ['🖥️ RUBY_PC อยู่ต่อ - จะไม่ Sleep เองจนกว่าจะสั่ง', 99]], async (p) => { ok((await pends(p)).length === 0, 'old "อยู่ต่อ" in history → no bar, no error'); });
   await run('busy-reply', [ON, ['🔎 RUBY_PC กำลังทำงาน: Claude Code กำลังทำงาน, CPU ทำงาน 40%', 3]], async (p, posts) => {
     await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
-    ok(/คอมกำลังทำงาน: Claude Code กำลังทำงาน, CPU ทำงาน 40%/.test(d.text) && /คอมหลับเมื่อทำงานเสร็จ/.test(d.btns[0]), 'PC reports busy (other project) → shown + when-done first');
+    ok(/คอมกำลังทำงาน: Claude Code กำลังทำงาน, CPU ทำงาน 40%/.test(d.text) && /สลีปเมื่อทำงานเสร็จ/.test(d.btns[0]), 'PC reports busy (other project) → shown + when-done first');
     await p.screenshot({ path: '/tmp/s_busy.png' });
     await p.click('#askCol button.no'); await p.waitForTimeout(200);
     await p.click('#bOff'); await p.waitForTimeout(300); const d2 = await dlg(p); ok(/คอมกำลังทำงาน: Claude Code/.test(d2.text), 'shutdown dialog also says what the PC is doing');
   });
   await run('idle-reply', [ON, ['🔎 RUBY_PC ว่างอยู่ ไม่มีงานค้าง', 3]], async (p) => {
     await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
-    ok(/คอมว่างอยู่/.test(d.text) && /คอมหลับเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /คอมหลับเมื่อทำงานเสร็จ/.test(x)), 'PC idle → หลับเลย first, when-done still there');
+    ok(/คอมว่างอยู่/.test(d.text) && /สลีปเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /สลีปเมื่อทำงานเสร็จ/.test(x)), 'PC idle → หลับเลย first, when-done still there');
   });
   await run('tap-char', [ON], async (p, posts) => {
     const box = await p.locator('#bot').boundingBox(); const n = posts.length;
@@ -143,7 +143,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     });
     ok(r.w === r.w0 && Math.abs(r.a - Math.min(3, r.dpr)) < 1e-9 && r.lit > 0, 'board picture redraws full size after canvas reset ' + JSON.stringify(r));
     const chips = await p.evaluate(() => [...document.querySelectorAll('#chips button')].map(b => b.innerText));
-    ok(JSON.stringify(chips) === '["ปลุกคอม","คอมหลับ","ปิดคอม","ไม่ใช่ทั้งหมด"]', 'unclear-voice chips use main button names ' + chips.join(','));
+    ok(JSON.stringify(chips) === '["ปลุกคอม","สลีป","ปิดคอม","ไม่ใช่ทั้งหมด"]', 'unclear-voice chips use main button names ' + chips.join(','));
   });
   await run('off-dialog', [ON], async (p, posts) => {
     await p.click('#bOff'); await p.waitForTimeout(300); const d = await dlg(p);
@@ -170,8 +170,8 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     const pb = await pends(p); ok(pb.length === 1 && /warn/.test(pb[0].cls) && /คอมจะปิดในอีกไม่ถึง 1 นาที/.test(pb[0].text), 'off warn: orange bar says ปิด ' + JSON.stringify(pb));
   });
   await run('busy-mode-pending', [ON, ['sleepdone busy 5', 31], ["🌙 ตั้งแล้ว: จะ Sleep เมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 5 นาที (เตือนก่อน 60 วินาที แตะแถบในแอปเพื่อยกเลิก)", 30]], async (p) => {
-    const pb = await pends(p); ok(pb.length === 1 && /ตั้งไว้: คอมจะหลับเมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 5 นาที/.test(pb[0].text), 'busy mode pending bar ' + JSON.stringify(pb));
-    ok(/สั่งคอมหลับเมื่อทำงานเสร็จ/.test(await p.textContent('#log')), 'busy mode command label in list');
+    const pb = await pends(p); ok(pb.length === 1 && /ตั้งไว้: คอมจะสลีปเมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 5 นาที/.test(pb[0].text), 'busy mode pending bar ' + JSON.stringify(pb));
+    ok(/สั่งสลีปเมื่อทำงานเสร็จ/.test(await p.textContent('#log')), 'busy mode command label in list');
   });
   await run('resumed', [ON, ["🌙 ตั้งแล้ว: จะ Sleep เมื่อคอมทำงานเสร็จ แล้วว่างต่อเนื่อง 5 นาที (x)", 400], ['⏳ RUBY_PC จะ Sleep ใน 60 วินาที', 50], ['🌙 คอมกลับมาทำงานอีก (CPU ทำงาน 60%) — ยังไม่หลับ รอให้ว่างก่อน', 20]], async (p) => {
     const pb = await pends(p); ok(pb.length === 1 && !/warn/.test(pb[0].cls) && /คอมทำงานเสร็จ/.test(pb[0].text), 'PC busy again after warning → back to waiting (not orange) ' + JSON.stringify(pb));
