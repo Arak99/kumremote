@@ -164,6 +164,15 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     await p.reload(); await p.waitForTimeout(1500);
     ok(await p.evaluate(() => document.body.dataset.theme) === 'sakura', 'theme remembered after reopening the app');
   });
+  await run('touchpad', [ON, ['🖱️ RUBY_PC ทัชแพดพร้อม http://192.168.1.121:8790/?k=abc123', 50]], async (p, posts) => {
+    ok(await p.evaluate(() => localStorage.getItem('kumremote_pad')) === 'http://192.168.1.121:8790/?k=abc123', 'app remembers touchpad address from 🖱️ message');
+    ok(!/ทัชแพดพร้อม/.test(await p.textContent('#log')), '🖱️ message is not shown in the recent list');
+    ok(await p.evaluate(() => !!document.getElementById('bPad')), 'touchpad button in header');
+  });
+  await run('touchpad-none', [ON], async (p, posts) => {
+    await p.click('#bPad'); await p.waitForTimeout(300); const d = await dlg(p);
+    ok(d.open && /ยังไม่รู้ที่อยู่ทัชแพด/.test(d.text), 'no address yet → explains instead of opening');
+  });
   await run('off-dialog', [ON], async (p, posts) => {
     await p.click('#bOff'); await p.waitForTimeout(300); const d = await dlg(p);
     ok(d.open && d.title === 'ปิดคอม' && /ปิดคอมเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /ปิดคอมเมื่อทำงานเสร็จ/.test(x)) && /บูต/.test(d.text), 'off: dialog has both choices + boot warning ' + d.btns.join(' | '));
