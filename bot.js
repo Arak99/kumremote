@@ -32,15 +32,17 @@
     var U = 10, last = 0, raf = 0, alive = true;
     function cw() { return (ch && ch.cols) || 12; }   // v2.9 ความกว้างตัวละคร (ช่อง)
 
+    function DPR() { return Math.min(3, window.devicePixelRatio || 1); }
     function fit() {
-      var dpr = Math.min(3, window.devicePixelRatio || 1);
-      canvas.width = W * dpr; canvas.height = H * dpr;
+      var dpr = DPR();
+      canvas.width = Math.floor(W * dpr); canvas.height = Math.floor(H * dpr);
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.imageSmoothingEnabled = false;
       if (opt.stage) { U = 6; while (U > 3 && ch.map.length * U + (ch.legs.length ? U * 1.5 : 0) + 14 > opt.stage.h) U--; }   // เหมือนบนบอร์ด
       else U = Math.max(5, Math.floor(Math.min((H * 0.66) / (ch.map.length + (ch.legs.length ? 1.5 : 0)), (W * 0.42) / cw())));
     }
     fit();
+    canvas.addEventListener('contextrestored', fit);
 
     function think(t, dt) {
       var half = (cw() / 2) * U + 8, lo = half, hi = W - half;
@@ -163,6 +165,7 @@
       if (still) t = 1000;
       var dt = Math.min(.1, (t - last) / 1000 || 0); last = t;
       think(t, dt);
+      if (canvas.width !== Math.floor(W * DPR()) || c.getTransform().a !== DPR()) fit();   // มือถือคืนหน่วยความจำ canvas ตอนแอปอยู่เบื้องหลัง → ขนาด/สเกลหาย ภาพเล็กมุมซ้าย (Arak เจอ 28/11)
       c.clearRect(0, 0, W, H);
       var floor = H - 14;
       if (opt.chrome) opt.chrome(c, t);

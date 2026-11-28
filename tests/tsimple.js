@@ -133,6 +133,18 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     ok(!sent(posts, n).length, 'tapping the character 4x sends nothing ' + JSON.stringify(sent(posts, n)));
     ok(!/แตะจอเพื่อเช็ค/.test(await p.evaluate(() => document.body.innerText)), 'no "แตะจอเพื่อเช็คใหม่" text');
   });
+  await run('canvas-reset', [ON], async (p, posts) => {
+    const r = await p.evaluate(async () => {
+      const cv = document.getElementById('bot'), g = cv.getContext('2d'), w0 = cv.width;
+      cv.width = 320; cv.height = 240;            // แบบที่มือถือทำตอนคืนหน่วยความจำ (ภาพเล็กมุมซ้าย)
+      await new Promise(r => setTimeout(r, 300));
+      const d = g.getImageData(cv.width - 30, cv.height - 30, 10, 10).data; let lit = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 30) lit++;
+      return { w0, w: cv.width, a: g.getTransform().a, dpr: window.devicePixelRatio, lit };
+    });
+    ok(r.w === r.w0 && Math.abs(r.a - Math.min(3, r.dpr)) < 1e-9 && r.lit > 0, 'board picture redraws full size after canvas reset ' + JSON.stringify(r));
+    const chips = await p.evaluate(() => [...document.querySelectorAll('#chips button')].map(b => b.innerText));
+    ok(JSON.stringify(chips) === '["ปลุกคอม","คอมหลับ","ปิดคอม","ไม่ใช่ทั้งหมด"]', 'unclear-voice chips use main button names ' + chips.join(','));
+  });
   await run('off-dialog', [ON], async (p, posts) => {
     await p.click('#bOff'); await p.waitForTimeout(300); const d = await dlg(p);
     ok(d.open && d.title === 'ปิดคอม' && /ปิดคอมเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /ปิดคอมเมื่อทำงานเสร็จ/.test(x)) && /บูต/.test(d.text), 'off: dialog has both choices + boot warning ' + d.btns.join(' | '));
