@@ -126,6 +126,13 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     await p.click('#bSleep'); await p.waitForTimeout(300); const d = await dlg(p);
     ok(/คอมว่างอยู่/.test(d.text) && /คอมหลับเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /คอมหลับเมื่อทำงานเสร็จ/.test(x)), 'PC idle → หลับเลย first, when-done still there');
   });
+  await run('tap-char', [ON], async (p, posts) => {
+    const box = await p.locator('#bot').boundingBox(); const n = posts.length;
+    for (let i = 0; i < 4; i++) { await p.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5); await p.waitForTimeout(150); }
+    await p.waitForTimeout(300);
+    ok(!sent(posts, n).length, 'tapping the character 4x sends nothing ' + JSON.stringify(sent(posts, n)));
+    ok(!/แตะจอเพื่อเช็ค/.test(await p.evaluate(() => document.body.innerText)), 'no "แตะจอเพื่อเช็คใหม่" text');
+  });
   await run('off-dialog', [ON], async (p, posts) => {
     await p.click('#bOff'); await p.waitForTimeout(300); const d = await dlg(p);
     ok(d.open && d.title === 'ปิดคอม' && /ปิดคอมเลยตอนนี้/.test(d.btns[0]) && d.btns.some(x => /ปิดคอมเมื่อทำงานเสร็จ/.test(x)) && /บูต/.test(d.text), 'off: dialog has both choices + boot warning ' + d.btns.join(' | '));
