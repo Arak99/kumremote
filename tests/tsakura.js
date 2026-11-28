@@ -27,7 +27,13 @@ let pass = 0, fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL 
     ok(L.labelTop >= L.micBottom - 1, tag + '"กดค้างแล้วพูด" not over the outer ring ' + Math.round(L.labelTop) + '>=' + Math.round(L.micBottom));
     ok(L.pendBottom <= L.micTop + 1, tag + '"ไม่มีคำสั่งค้าง" not over the mic ring ' + Math.round(L.pendBottom) + '<=' + Math.round(L.micTop));
     ok(!L.log, tag + 'no "ล่าสุด" box');
+    const fx = await p.evaluate(async () => { const c = document.querySelector('canvas.fx'); if (!c || !c.offsetParent && getComputedStyle(c).display === 'none') return { shown: false };
+      const a = c.toDataURL(); await new Promise(r => setTimeout(r, 400)); return { shown: getComputedStyle(c).display !== 'none', moving: a !== c.toDataURL() }; });
+    ok(fx.shown && fx.moving, tag + 'sakura effects canvas shown and animating ' + JSON.stringify(fx));
     if (w === 390 && h === 844) {
+      await p.evaluate(() => setTheme('cyber')); await p.waitForTimeout(200);
+      ok(await p.evaluate(() => getComputedStyle(document.querySelector('canvas.fx')).display === 'none'), 'other theme → effects off');
+      await p.evaluate(() => setTheme('sakura')); await p.waitForTimeout(200);
       await p.click('#charArt', { force: true }); await p.waitForTimeout(100);
       ok(await p.evaluate(() => document.getElementById('charArt').classList.contains('hop')), 'tap character → hop');
       await p.click('#bGear'); await p.waitForTimeout(300);
